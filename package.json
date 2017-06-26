@@ -1,0 +1,25 @@
+{
+  "name": "datatables.net-editor",
+  "version": "0.0.1",
+  "description": "NodeJS server-side support for the DataTables Editor library",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "DataTables",
+    "Editor"
+  ],
+  "author": "SpryMedia Limited",
+  "license": "MIT",
+  "dependencies": {
+    "knex": "^0.13.0",
+    "pg": "^6.4.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^2.6.0",
+    "gulp-typescript": "^3.1.7",
+    "typescript": "^2.3.4"
+  }
+}
