@@ -13,8 +13,10 @@
   "author": "SpryMedia Limited",
   "license": "MIT",
   "dependencies": {
+    "buffer-crc32": "^0.2.13",
     "knex": "^0.13.0",
-    "pg": "^6.4.0"
+    "pg": "^6.4.0",
+    "xss-filters": "^1.2.7"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

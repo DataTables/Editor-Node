@@ -1,10 +1,40 @@
 
-export default class Field {
-    private _name: string;
+import Editor from './editor';
+import {IFormatter} from './formatters';
+import NestedData from './nestedData';
+import Validator, {IValidator} from './validators';
+import xss, {Ixss} from './xss';
+
+enum SetType {
+    None,
+    Both,
+    Create,
+    Edit
+};
+
+export default class Field extends NestedData {
+    public static SetType = SetType;
+
     private _dbField: string;
+    private _get: boolean = true;
+    private _getFormatter: IFormatter;
+    private _getValue: any;
+    private _opts;
+    private _optsFn;
+    private _name: string;
+    private _set: SetType = SetType.Both;
+    private _setFormatter: IFormatter;
+    private _setValue: any;
+    private _validator: IValidator[] = [];
+    private _upload;
+    private _xss: Ixss;
+    private _xssFormat: boolean = true;
+
 
     constructor( dbField: string=null, name:string=null ) {
-        if ( ! dbField && name ) {
+        super();
+
+        if ( ! name && dbField ) {
             // Standard usage, a single parameter
             this
                 .name( dbField )
@@ -15,6 +45,50 @@ export default class Field {
                 .name( name )
                 .dbField( dbField );
         }
+    }
+
+    public dbField (): string;
+    public dbField (dbField: string): Field;
+    public dbField (dbField?: string): any {
+        if ( dbField === undefined ) {
+            return this._dbField;
+        }
+
+        this._dbField = dbField;
+        return this;
+    }
+
+    public get (): boolean;
+    public get (flag: boolean): Field;
+    public get (flag?: boolean): any {
+        if ( flag === undefined ) {
+            return this._get;
+        }
+
+        this._get = flag;
+        return this;
+    }
+
+    public getFormatter (): IFormatter;
+    public getFormatter (formatter: IFormatter): Field;
+    public getFormatter (formatter?: IFormatter): any {
+        if ( formatter === undefined ) {
+            return this._getFormatter;
+        }
+
+        this._getFormatter = formatter;
+        return this;
+    }
+
+    public getValue (): any;
+    public getValue (val: any): Field;
+    public getValue (val?: any): any {
+        if ( val === undefined ) {
+            return this._getValue;
+        }
+
+        this._getValue = val;
+        return this;
     }
 
     public name (): string;
@@ -28,15 +102,204 @@ export default class Field {
         return this;
     }
 
-    public dbField (): string;
-    public dbField (dbField: string): Field;
-    public dbField (dbField?: string): any {
-        if ( dbField === undefined ) {
-            return this._dbField;
+    // TODO options
+
+
+    public set (): boolean;
+    public set (flag: boolean|SetType): Field;
+    public set (flag?: boolean): any {
+        if ( flag === undefined ) {
+            return this._set;
         }
 
-        this._dbField = dbField;
+        if ( flag === true ) {
+            this._set = SetType.Both;
+        }
+        else if ( flag === false ) {
+            this._set = SetType.None;
+        }
+        else {
+            this._set = flag;
+        }
+
         return this;
+    }
+
+    public setFormatter (): IFormatter;
+    public setFormatter (formatter: IFormatter): Field;
+    public setFormatter (formatter?: IFormatter): any {
+        if ( formatter === undefined ) {
+            return this._setFormatter;
+        }
+
+        this._setFormatter = formatter;
+        return this;
+    }
+
+    public setValue (): any;
+    public setValue (val: any): Field;
+    public setValue (val?: any): any {
+        if ( val === undefined ) {
+            return this._setValue;
+        }
+
+        this._setValue = val;
+        return this;
+    }
+    
+    // TODO upload
+
+    public validator (): any;
+    public validator (validator: IValidator): Field;
+    public validator (validator?: IValidator): any {
+        if ( validator === undefined ) {
+            return this._validator;
+        }
+
+        this._validator.push( validator );
+        return this;
+    }
+
+    public xss (): any;
+    public xss (flag: boolean|Ixss): Field;
+    public xss (flag?: boolean|Ixss): any {
+        if ( flag === undefined ) {
+            return this._xss;
+        }
+
+        if ( flag === true ) {
+            this._xss = xss;
+        }
+        else if ( flag === false ) {
+            this._xss = null;
+        }
+        else {
+            this._xss = flag;
+        }
+
+        return this;
+    }
+
+    
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Internal methods
+	 * Used by the Editor class and not generally for public use
+	 */
+    public apply( action: 'get'|'create'|'edit', data?: object ): boolean {
+        if ( action === 'get' ) {
+            return this._get;
+        }
+
+        if ( action === 'create' && (this._set === SetType.None || this._set === SetType.Edit)) {
+            return false;
+        }
+        else if ( action === 'edit' && (this._set === SetType.None || this._set === SetType.Create)) {
+            return false;
+        }
+
+        // Check it was in the submitted data
+        if ( this._setValue === undefined && ! this._propExists( this.name(), data ) ) {
+            return false;
+        }
+
+        // In the data set, so use it
+        return true;
+    }
+
+    // TODO optionsExec
+
+    public val( direction: 'get'|'set', data: object ): any {
+        let val;
+
+        if ( direction === 'get' ) {
+            if ( this._getValue !== undefined ) {
+                val = typeof this._getValue === 'function' ?
+                    this._getValue() :
+                    this._getValue;
+            }
+            else {
+                // Getting data, so db field name
+                val = data[ this._dbField ] !== undefined ?
+                    data[ this._dbField ] :
+                    null;
+            }
+
+            return this._format( val, data, this._getFormatter );
+        }
+        
+        // set - using from the payload, and thus use `name`
+        if ( this._setValue !== undefined ) {
+            val = typeof this._setValue === 'function' ?
+                this._setValue() :
+                this._setValue;
+        }
+        else {
+            val = this._readProp( this._name, data );
+        }
+
+        return this._format( val, data, this._setFormatter );
+    }
+
+    public async validate ( data: object, editor: Editor, id: string ): Promise<true|string> {
+        if ( this._validator.length === 0 ) {
+            return true;
+        }
+        
+        let val = this._readProp( this.name(), data );
+        let host = new Validator.Host( {
+            action: editor.inData()['action'],
+            id,
+            field: this,
+            editor,
+            db: editor.db()
+        } );
+
+        for ( let i=0, ien=this._validator.length ; i<ien ; i++ ) {
+            let validator = this._validator[i];
+
+            let res = validator( val, data, host );
+
+            if ( ! res ) {
+                return res;
+            }
+        }
+
+        // Calidation methods all run, must be value
+        return true;
+    }
+    
+    public write( out: object, srcData: object ): void {
+        this._writeProp( out, this.name(), this.val('get', srcData) );
+    }
+
+    public xssSafety ( val: any ) {
+        if ( ! this._xss ) {
+            return val;
+        }
+
+        if ( Array.isArray( val ) ) {
+            let out = [];
+
+            for ( let i=0, ien=val.length ; i<ien ; i++ ) {
+                out.push( this._xss( val[i] ) );
+            }
+
+            return out;
+        }
+
+        return this._xss( val );
+    }
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Private methods
+	 */
+
+    private _format( val: any, data: object, formatter: IFormatter ): any {
+        return formatter ?
+            formatter( val, data ) :
+            val;
     }
 }
 
