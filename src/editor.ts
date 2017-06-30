@@ -350,7 +350,7 @@ export default class Editor extends NestedData {
 
         }
         else if ( data.action === 'remove' ) {
-
+            await this._remove( data );
         }
         else {
             // create or edit
@@ -498,9 +498,80 @@ export default class Editor extends NestedData {
         return row;
     }
 
-    // private async _remove( http:DtRequest ): Promise<void> {
+    private async _remove( http:DtRequest ): Promise<void> {
+        let ids: string[] = [];
+        let keys = Object.keys( http.data );
 
-    // }
+        for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+            // Strip the ID prefix that the client-side sends back
+            let id = keys[i].replace( this.idPrefix(), '' );
+
+            // TODO preRemove event
+            let res = true;
+
+            // Allow the event to be cancelled and inform the client-side
+            if ( res === false ) {
+                this._out.cancelled.push( id );
+            }
+            else {
+                ids.push( id );
+            }
+        }
+
+        if ( ids.length === 0 ) {
+            return;
+        }
+
+        // Row based joins - remove first as the host row will be removed which
+        // is a dependency
+        // TODO joins
+
+        // Remove from the left join tables
+        // TODO left join
+
+        // Remove from the primary tables
+        let tables = this.table();
+
+        for ( let i=0, ien=tables.length ; i<ien ; i++ ) {
+            await this._removeTable( tables[i], ids );
+        }
+
+        // TODO postRemove event
+    }
+
+    private async _removeTable( table: string, ids: string[], pkey: string[]=null ): Promise<void> {
+        if ( pkey === null ) {
+            pkey = this.pkey();
+        }
+
+        // Check that there is actually a field which has a set option for this table
+        let count = 0;
+        let fields = this.fields();
+
+        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+            let dbField = fields[i].dbField();
+
+            if ( dbField.indexOf('.') === -1 ||
+                (this._part( dbField, 'table') === table && !fields[i].set())
+            ) {
+                count++;
+            }
+        }
+
+        if ( count > 0 ) {
+            let q = this._db( table );
+
+            for ( let i=0, ien=ids.length ; i<ien ; i++ ) {
+                let cond = this.pkeyToArray( ids[i], true, pkey );
+
+                q.orWhere( function() {
+                    this.where( cond );
+                } );
+            }
+
+            await q.del();
+        }
+    }
 
 
     private async _insertOrUpdate ( id: string, values: object ): Promise<string> {
