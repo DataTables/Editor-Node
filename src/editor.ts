@@ -14,7 +14,21 @@ enum Action {
 
 
 export interface DtResponse {
+    data?: object[];
+    sqlDebug?: object[];
+    cancelled?: string[];
+    error?: string;
+    fieldErrors?: {
+        name: string,
+        status: string
+    }[];
+    options?: object;
+    files?: object;
+}
 
+export interface DtRequest {
+    action?: string;
+    data?: object[];
 }
 
 
@@ -323,16 +337,61 @@ export default class Editor extends NestedData {
 
 
 
-    private async _process ( data: object ): Promise<void> {
-        this._out = {};
+    private async _process ( data: DtRequest ): Promise<void> {
+        this._out = {
+            data: []
+        };
 
         if ( ! data.action ) {
             let outData = await this._get( null, data );
             this._out.data = outData.data; // TODO a merge
         }
+        else if ( data.action === 'upload' ) {
+
+        }
+        else if ( data.action === 'remove' ) {
+
+        }
+        else {
+            // create or edit
+            let keys = Object.keys( data.data );
+
+            for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+                let cancel = null;
+                let idSrc = keys[i];
+
+                // TODO preCreate / preEdit
+            
+                // One of the event handlers returned false - don't continue
+				if ( cancel === false ) {
+                    // Remove the data from the data set so it won't be processed
+                    delete data.data[ idSrc ];
+
+                    // Tell the client-side we aren't updating this row
+                    this._out.cancelled.push( idSrc );
+                }
+            }
+
+            // Field validation
+            // TODO
+
+            keys = Object.keys( data.data );
+
+            for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+                let d = data.action === 'create' ?
+                    await this._insert( data.data[keys[i]] ) :
+                    await this._update( keys[i], data.data[keys[i]] );
+
+                if ( d !== null ) {
+                    this._out.data.push( d );
+                }
+            }
+
+            // TODO fileClean
+        }
     }
 
-    private async _get ( id: string, data: object ): Promise<object> {
+    private async _get ( id: string, http: object=null ): Promise<DtResponse> {
         let fields = this.fields();
         let pkeys = this.pkey();
         let query = this
@@ -389,6 +448,220 @@ export default class Editor extends NestedData {
         }
     }
 
+    private async _insert( values: object ): Promise<object> {
+		// Only allow a composite insert if the values for the key are
+		// submitted. This is required because there is no reliable way in MySQL
+		// to return the newly inserted row, so we can't know any newly
+		// generated values.
+		this._pkeyValidateInsert( values );
+
+		// Insert the new row
+		let id = await this._insertOrUpdate( null, values );
+
+        // TODO Pkey submitted
+
+        // TODO Join
+
+        // TODO writeCreate
+
+        let row = await this._get( id );
+        row = row.data.length > 0 ?
+            row.data[0] :
+            null;
+        
+        // TODO postCreate
+
+        return row;
+    }
+
+    private async _update( id:string, values: object ): Promise<object> {
+        id = id.replace( this.idPrefix(), '' );
+
+        // Update or insert the rows for the parent table and the left joined
+        // tables
+        await this._insertOrUpdate( id, values );
+
+        // TODO join
+
+        // TODO pkey merge
+        let getId = id;
+
+        // TODO writeEdit
+
+        let row = await this._get( getId );
+        row = row.data.length > 0 ?
+            row.data[0] :
+            null;
+        
+        // TODO postEdit
+
+        return row;
+    }
+
+    // private async _remove( http:DtRequest ): Promise<void> {
+
+    // }
+
+
+    private async _insertOrUpdate ( id: string, values: object ): Promise<string> {
+        // Loop over the tables, doing the insert or update as needed
+        let tables = this.table();
+
+        for ( let i=0, ien=tables.length ; i<ien ; i++ ) {
+            let res = await this._insertOrUpdateTable(
+                tables[i],
+                values,
+                id !== null ?
+                    this.pkeyToArray( id, true ) :
+                    null
+            );
+
+            // If you don't have an id yet, then the first insert will return
+            // the id we want
+            if ( id === null ) {
+                id = res;
+            }
+        }
+
+        // TODO left join tables
+
+        return id;
+    }
+
+    private async _insertOrUpdateTable( table: string, values: object, where: object=null ) {
+        let set = {}, res;
+        let action: 'create'|'edit' = (where === null) ? 'create' : 'edit';
+        let tableAlias = this._alias( table, 'alias' );
+        let fields = this.fields();
+
+        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+            let field = fields[i];
+            let tablePart = this._part( field.dbField() );
+
+            if ( this._part( field.dbField(), 'db' ) ) {
+                tablePart = this._part( field.dbField(), 'db' )+'.'+tablePart;
+            }
+
+            // Does this field apply to the table (only check when a join is
+            // being used)
+            if ( this._leftJoin.length && tablePart !== tableAlias ) {
+                continue;
+            }
+
+            // Check if this field should be set, based on options and
+            // submitted data
+            if ( ! field.apply( action, values ) ) {
+                continue;
+            }
+
+            // Some db's (specifically postgres) don't like having the table
+            // name prefixing the column name.
+            let fieldPart = this._part( field.dbField(), 'column' );
+            set[ fieldPart ] = field.val( 'set', values );
+        }
+
+        if ( Object.keys(set).length === 0 ) {
+            return null;
+        }
+
+        if ( action === 'create' ) {
+            res = await this
+                ._db( table )
+                .insert( set )
+                .returning( this._pkey );
+            
+            return res[0].toString(); // TODO test with compound key
+        }
+        else {
+            await this
+                ._db( table )
+                .update( set )
+                .where( where );
+        }
+    }
+
+
+    private _part( name:string, type: 'table'|'db'|'column'='table'): string {
+        let db, table, column;
+
+        if ( name.indexOf('.') !== -1 ) {
+            let a = name.split('.');
+
+            if ( a.length === 3 ) {
+                db = a[0];
+                table = a[1];
+                column = a[2];
+            }
+            else if ( a.length === 2 ) {
+                table = a[0];
+                column = a[1];
+            }
+        }
+        else {
+            column = name;
+        }
+
+        if ( type === 'db' ) {
+            return db;
+        }
+        else if ( type === 'table' ) {
+            return table;
+        }
+        return column;
+    }
+
+    private _alias( name: string, type: 'alias'|'orig'='alias'): string {
+        if ( name.indexOf( ' as ' ) !== -1 ) {
+            let a = name.split(/ as /i);
+            return type === 'alias' ?
+                a[1] :
+                a[0];
+        }
+
+        return name;
+    }
+
+
+
+    private _findField ( name: string, type: 'db'|'name' ): Field {
+        let fields = this._fields;
+
+        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+            let field = fields[i];
+
+            if ( type === 'name' && field.name() === name ) {
+                return field;
+            }
+            else if ( type === 'db' && field.dbField() === name ) {
+                return field;
+            }
+        }
+
+        return null;
+    }
+
+
+    private _pkeyValidateInsert( row: object ): boolean {
+        let pkey = this.pkey();
+
+        if ( pkey.length === 1 ) {
+            return true;
+        }
+
+        for ( let i=0, ien=pkey.length ; i<ien ; i++ ) {
+            let column = pkey[i];
+            let field = this._findField( column, 'db' );
+
+            if ( ! field || ! field.apply('create', row) ) {
+                throw new Error( 'When inserting into a compound key table, '+
+                    'all fields that are part of the compound key must be '+
+                    'submitted with a specific value.'
+                );
+            }
+        }
+
+        return true;
+    }
 
     private _pkeySeparator (): string {
         let str = this.pkey().join(',');
