@@ -356,11 +356,20 @@ export default class Editor extends NestedData {
             // create or edit
             let keys = Object.keys( data.data );
 
+            // Pre events so they can occur before validation, and they
+            // all happen together
             for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
                 let cancel = null;
                 let idSrc = keys[i];
+                let values = data.data[keys[i]];
 
-                // TODO preCreate / preEdit
+                if ( data.action === 'create' ) {
+                    cancel = this._trigger( 'preCreate', values );
+                }
+                else {
+                    let id = idSrc.replace( this.idPrefix(), '' );
+                    cancel = this._trigger( 'preEdit', id, values );
+                }
             
                 // One of the event handlers returned false - don't continue
 				if ( cancel === false ) {
@@ -392,6 +401,11 @@ export default class Editor extends NestedData {
     }
 
     private async _get ( id: string, http: object=null ): Promise<DtResponse> {
+        let cancel = this._trigger( 'preGet', id );
+        if ( cancel === false ) {
+            return {};
+        }
+
         let fields = this.fields();
         let pkeys = this.pkey();
         let query = this
@@ -441,7 +455,7 @@ export default class Editor extends NestedData {
 
         // TODO Row based joins
 
-        // TODO postGet
+        this._trigger( 'postGet', id, out );
 
         return {
             data: out
@@ -462,14 +476,14 @@ export default class Editor extends NestedData {
 
         // TODO Join
 
-        // TODO writeCreate
+		this._trigger( 'writeCreate', id, values );
 
         let row = await this._get( id );
         row = row.data.length > 0 ?
             row.data[0] :
             null;
-        
-        // TODO postCreate
+
+		this._trigger( 'postCreate', id, values, row );
 
         return row;
     }
@@ -486,14 +500,14 @@ export default class Editor extends NestedData {
         // TODO pkey merge
         let getId = id;
 
-        // TODO writeEdit
+		this._trigger( 'writeEdit', id, values );
 
         let row = await this._get( getId );
         row = row.data.length > 0 ?
             row.data[0] :
             null;
         
-        // TODO postEdit
+		this._trigger( 'postEdit', id, values, row );
 
         return row;
     }
@@ -506,8 +520,7 @@ export default class Editor extends NestedData {
             // Strip the ID prefix that the client-side sends back
             let id = keys[i].replace( this.idPrefix(), '' );
 
-            // TODO preRemove event
-            let res = true;
+            let res = this._trigger( 'preRemove', id, http.data[keys[i]] );
 
             // Allow the event to be cancelled and inform the client-side
             if ( res === false ) {
@@ -536,7 +549,9 @@ export default class Editor extends NestedData {
             await this._removeTable( tables[i], ids );
         }
 
-        // TODO postRemove event
+        for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+            await this._trigger( 'postRemove', keys[i], http.data[ keys[i] ] );
+        }
     }
 
     private async _removeTable( table: string, ids: string[], pkey: string[]=null ): Promise<void> {
@@ -649,6 +664,25 @@ export default class Editor extends NestedData {
                 .update( set )
                 .where( where );
         }
+    }
+
+    private _trigger( name: string, ...args ): boolean {
+        let out = null;
+        let events = this._events[ name ];
+
+        if ( ! this._events[ name ] ) {
+            return;
+        }
+
+        for ( let i=0, ien=events.length ; i<ien ; i++ ) {
+            let res = events[i].apply( this, args );
+
+            if ( res !== null ) {
+                out = res;
+            }
+        }
+
+        return out;
     }
 
 
