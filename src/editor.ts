@@ -375,7 +375,17 @@ export default class Editor extends NestedData {
     }
 
     // TODO where
+    public where (): any[];
+    public where (cond: any): Editor;
+    public where (cond?: any): any {
+        if ( cond === undefined ) {
+            return this._where;
+        }
 
+        this._where.push( cond );
+        
+        return this;
+    }
 
 
 
@@ -482,8 +492,10 @@ export default class Editor extends NestedData {
             }
         }
 
-        // TODO where
+        this._getWhere( query );
+
         // TODO leftJoin
+
         // TODO SSP
 
         if ( id !== null ) {
@@ -723,6 +735,14 @@ export default class Editor extends NestedData {
                 ._db( table )
                 .update( set )
                 .where( where );
+        }
+    }
+
+    private _getWhere( query: knex ): void {
+        let where = this.where();
+
+        for ( let i=0, ien=where.length ; i<ien ; i++ ) {
+            query.where( where[i] );
         }
     }
 
