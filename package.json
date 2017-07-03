@@ -15,7 +15,9 @@
   "dependencies": {
     "buffer-crc32": "^0.2.13",
     "knex": "^0.13.0",
+    "moment": "^2.18.1",
     "pg": "^6.4.0",
+    "valid-url": "^1.0.9",
     "xss-filters": "^1.2.7"
   },
   "devDependencies": {

@@ -3,8 +3,10 @@ import * as crc32 from 'buffer-crc32';
 import Field from './field';
 import knex from 'knex';
 import NestedData from './nestedData';
+import Format from './formatters';
+import Validate from './validators';
 
-enum Action {
+export enum Action {
     Read,
     Create,
     Edit,
@@ -12,16 +14,17 @@ enum Action {
     Upload
 };
 
+export interface DtError {
+    name: string;
+    status: string;
+}
 
 export interface DtResponse {
     data?: object[];
     sqlDebug?: object[];
     cancelled?: string[];
     error?: string;
-    fieldErrors?: {
-        name: string,
-        status: string
-    }[];
+    fieldErrors?: DtError[];
     options?: object;
     files?: object;
 }
@@ -31,11 +34,12 @@ export interface DtRequest {
     data?: object[];
 }
 
+export interface IGlobalValidator {
+    ( editor: Editor, action: string, http: DtRequest ): Promise<true|string>
+}
 
 
 export default class Editor extends NestedData {
-    public static Action = Action;
-
     public static version: string = '1.7.0';
 
     public static action ( http ): Action {
@@ -77,7 +81,7 @@ export default class Editor extends NestedData {
     private _out: DtResponse = {};
     private _events = [];
     private _debug: boolean = false;
-    private _validator;
+    private _validator: IGlobalValidator;
     private _tryCatch: boolean = false;
     private _knexTransaction: knex;
 
@@ -158,7 +162,7 @@ export default class Editor extends NestedData {
         return this;
     }
 
-    public inData () { // TODO typing
+    public inData (): DtRequest {
         return this._processData;
     }
 
@@ -328,9 +332,47 @@ export default class Editor extends NestedData {
         return this;
     }
 
-    // TODO validate
+    public async validate( errors: DtError[], http: DtRequest ): Promise<boolean> {
+        if ( http.action !== 'create' && http.action !== 'edit' ) {
+            return true;
+        }
 
-    // TODO validator
+        let keys = Object.keys( http.data );
+        let fields = this.fields();
+        let idPrefix = this.idPrefix();
+
+        for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+            for ( let j=0, jen=fields.length ; j<jen ; j++ ) {
+                let field = fields[j];
+                let values = http.data[ keys[i] ];
+                let validation = await field.validate( values, this, keys[i].replace( idPrefix, '' ) );
+
+                if ( validation !== true ) {
+                    errors.push( {
+                        name: field.name(),
+                        status: validation
+                    } );
+                }
+            }
+
+            // TODO MJoin validation
+        }
+
+        return errors.length > 0 ?
+            false :
+            true;
+    }
+
+    public validator (): IGlobalValidator;
+    public validator (fn: IGlobalValidator): Editor;
+    public validator (fn?: IGlobalValidator): any {
+        if ( fn === undefined ) {
+            return this._validator;
+        }
+
+        this._validator = fn;
+        return this;
+    }
 
     // TODO where
 
@@ -339,64 +381,82 @@ export default class Editor extends NestedData {
 
     private async _process ( data: DtRequest ): Promise<void> {
         this._out = {
-            data: []
+            data: [],
+            fieldErrors: []
         };
 
-        if ( ! data.action ) {
-            let outData = await this._get( null, data );
-            this._out.data = outData.data; // TODO a merge
-        }
-        else if ( data.action === 'upload' ) {
+        this._processData = data;
+        this._formData = data.data ? data.data: null;
 
-        }
-        else if ( data.action === 'remove' ) {
-            await this._remove( data );
-        }
-        else {
-            // create or edit
-            let keys = Object.keys( data.data );
+        // TODO prepJoin
 
-            // Pre events so they can occur before validation, and they
-            // all happen together
-            for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
-                let cancel = null;
-                let idSrc = keys[i];
-                let values = data.data[keys[i]];
+        if ( this._validator ) {
+            let ret = await this._validator( this, data.action, data );
 
-                if ( data.action === 'create' ) {
-                    cancel = this._trigger( 'preCreate', values );
-                }
-                else {
-                    let id = idSrc.replace( this.idPrefix(), '' );
-                    cancel = this._trigger( 'preEdit', id, values );
-                }
-            
-                // One of the event handlers returned false - don't continue
-				if ( cancel === false ) {
-                    // Remove the data from the data set so it won't be processed
-                    delete data.data[ idSrc ];
-
-                    // Tell the client-side we aren't updating this row
-                    this._out.cancelled.push( idSrc );
-                }
+            if ( ret !== true ) {
+                this._out.error = ret;
             }
+        }
 
-            // Field validation
-            // TODO
-
-            keys = Object.keys( data.data );
-
-            for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
-                let d = data.action === 'create' ?
-                    await this._insert( data.data[keys[i]] ) :
-                    await this._update( keys[i], data.data[keys[i]] );
-
-                if ( d !== null ) {
-                    this._out.data.push( d );
-                }
+        if ( ! this._out.error ) {
+            if ( ! data.action ) {
+                let outData = await this._get( null, data );
+                this._out.data = outData.data; // TODO a merge
             }
+            else if ( data.action === 'upload' ) {
+                // TODO
+            }
+            else if ( data.action === 'remove' ) {
+                await this._remove( data );
+            }
+            else {
+                // create or edit
+                let keys = Object.keys( data.data );
 
-            // TODO fileClean
+                // Pre events so they can occur before validation, and they
+                // all happen together
+                for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+                    let cancel = null;
+                    let idSrc = keys[i];
+                    let values = data.data[keys[i]];
+
+                    if ( data.action === 'create' ) {
+                        cancel = this._trigger( 'preCreate', values );
+                    }
+                    else {
+                        let id = idSrc.replace( this.idPrefix(), '' );
+                        cancel = this._trigger( 'preEdit', id, values );
+                    }
+                
+                    // One of the event handlers returned false - don't continue
+                    if ( cancel === false ) {
+                        // Remove the data from the data set so it won't be processed
+                        delete data.data[ idSrc ];
+
+                        // Tell the client-side we aren't updating this row
+                        this._out.cancelled.push( idSrc );
+                    }
+                }
+
+                // Field validation
+                let valid = await this.validate( this._out.fieldErrors, data );
+
+                if ( valid ) {
+                    keys = Object.keys( data.data );
+
+                    for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+                        let d = data.action === 'create' ?
+                            await this._insert( data.data[keys[i]] ) :
+                            await this._update( keys[i], data.data[keys[i]] );
+
+                        if ( d !== null ) {
+                            this._out.data.push( d );
+                        }
+                    }
+                }
+
+                // TODO fileClean
+            }
         }
     }
 

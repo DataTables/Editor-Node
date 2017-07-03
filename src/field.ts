@@ -5,7 +5,7 @@ import NestedData from './nestedData';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
 
-enum SetType {
+export enum SetType {
     None,
     Both,
     Create,
@@ -13,8 +13,6 @@ enum SetType {
 };
 
 export default class Field extends NestedData {
-    public static SetType = SetType;
-
     private _dbField: string;
     private _get: boolean = true;
     private _getFormatter: IFormatter;
@@ -257,10 +255,9 @@ export default class Field extends NestedData {
 
         for ( let i=0, ien=this._validator.length ; i<ien ; i++ ) {
             let validator = this._validator[i];
+            let res = await validator( val, data, host );
 
-            let res = validator( val, data, host );
-
-            if ( ! res ) {
+            if ( res !== true ) {
                 return res;
             }
         }
