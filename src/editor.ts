@@ -27,15 +27,41 @@ export interface DtResponse {
     fieldErrors?: DtError[];
     options?: object;
     files?: object;
+    draw?: number;
+    recordsTotal?: number;
+    recordsFiltered?: number;
 }
 
 export interface DtRequest {
     action?: string;
     data?: object[];
+    draw?: number;
+    start?: number;
+    length?: number;
+    order?: {
+        dir: 'asc'|'desc',
+        column: number
+    }[];
+    columns?: {
+        data: string;
+        searchable: boolean;
+        search: {
+            value: string;
+        }
+    }[];
+    search?: {
+        value: string;
+    }
 }
 
 export interface IGlobalValidator {
     ( editor: Editor, action: string, http: DtRequest ): Promise<true|string>
+}
+
+interface SSP {
+    draw?: number;
+    recordsFiltered?: number;
+    recordsTotal?: number;
 }
 
 
@@ -374,7 +400,6 @@ export default class Editor extends NestedData {
         return this;
     }
 
-    // TODO where
     public where (): any[];
     public where (cond: any): Editor;
     public where (cond?: any): any {
@@ -411,7 +436,11 @@ export default class Editor extends NestedData {
         if ( ! this._out.error ) {
             if ( ! data.action ) {
                 let outData = await this._get( null, data );
-                this._out.data = outData.data; // TODO a merge
+
+                this._out.data = outData.data;
+                this._out.draw = outData.draw;
+                this._out.recordsTotal = outData.recordsTotal;
+                this._out.recordsFiltered = outData.recordsFiltered;
             }
             else if ( data.action === 'upload' ) {
                 // TODO
@@ -493,6 +522,7 @@ export default class Editor extends NestedData {
         }
 
         this._getWhere( query );
+        let ssp = await this._ssp( query, http );
 
         // TODO leftJoin
 
@@ -530,9 +560,119 @@ export default class Editor extends NestedData {
         this._trigger( 'postGet', id, out );
 
         return {
-            data: out
+            data: out,
+            draw: ssp.draw,
+            recordsFiltered: ssp.recordsFiltered,
+            recordsTotal: ssp.recordsTotal
         }
     }
+
+    private async _ssp ( query: knex.query, http: DtRequest ): Promise<SSP> {
+        if ( ! http.draw ) {
+            return {}; // TODO what?
+        }
+
+        // Add the server-side processing conditions to the get query
+        this._sspLimit( query, http );
+        this._sspSort( query, http );
+        this._sspFilter( query, http );
+
+        // Get the number of rows in the result set
+        let setCount = this
+            ._db( this.table() )
+            .count( this._pkey[0] +' as cnt' );
+        
+        this._getWhere( setCount );
+        this._sspFilter( setCount, http );
+        // TODO left join
+        let res = await setCount;
+        let recordsFiltered = res[0].cnt;
+
+        // Get the number of rows in the full set
+        let fullCount = this
+            ._db( this.table() )
+            .count( this._pkey[0] +' as cnt' );
+
+        this._getWhere( fullCount );
+        // TODO left join
+        res = await fullCount;
+        let recordsTotal = res[0].cnt;
+
+        return {
+            draw: http.draw*1,
+            recordsFiltered,
+            recordsTotal
+        };
+    }
+
+    private _sspFilter( query: knex.query, http: DtRequest ): void {
+        let fields = this.fields();
+
+        // GLobal filter
+        if ( http.search.value ) {
+            query.where( (q) => {
+                for ( let i=0, ien=http.columns.length ; i<ien ; i++ ) {
+                    if ( http.columns[i].searchable ) {
+                        let field = this._sspField( http, i );
+
+                        if ( field ) {
+                            q.orWhere( field, 'LIKE', '%'+http.search.value+'%' );
+                        }
+                    }
+                }
+            } );
+        }
+
+        // Column filter
+        for ( let i=0, ien=http.columns.length ; i<ien ; i++ ) {
+            let column = http.columns[i];
+            let search = column.search.value;
+
+            if ( search !== '' && column.searchable ) {
+                query.where(
+                    this._sspField( http, i ),
+                    'LIKE',
+                    '%'+search+'%'
+                )
+            }
+        }
+    }
+
+    private _sspLimit( query: knex.query, http: DtRequest ): void {
+        if ( http.length != -1 ) { // -1 is 'show all' in DataTables
+            query
+                .limit( http.length*1 )
+                .offset( http.start*1 );
+        }
+    }
+
+    private _sspSort( query: knex.query, http: DtRequest ): void {
+        for ( let i=0, ien=http.order.length ; i<ien ; i++ ) {
+            let order = http.order[i];
+
+            query.orderBy(
+                this._sspField( http, order.column ),
+                order.dir === 'asc' ? 'asc' : 'desc'
+            )
+        }
+    }
+
+    private _sspField( http: DtRequest, index: number ): string {
+        let name = http.columns[ index ].data;
+        let field = this._findField( name, 'name' );
+
+        if ( ! field ) {
+            // Is it the primary key?
+            if ( name === 'DT_RowId' ) {
+                return this._pkey[0];
+            }
+
+            throw new Error( 'Unknown field: '+name+' (index '+index+')' );
+        }
+
+        return field.dbField();
+    }
+
 
     private async _insert( values: object ): Promise<object> {
 		// Only allow a composite insert if the values for the key are
