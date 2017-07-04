@@ -595,7 +595,7 @@ export default class Editor extends NestedData {
 
     private async _ssp ( query: knex.query, http: DtRequest ): Promise<SSP> {
         if ( ! http.draw ) {
-            return {}; // TODO what?
+            return {};
         }
 
         // Add the server-side processing conditions to the get query
@@ -610,7 +610,8 @@ export default class Editor extends NestedData {
         
         this._getWhere( setCount );
         this._sspFilter( setCount, http );
-        // TODO left join
+        this._performLeftJoin( setCount );
+
         let res = await setCount;
         let recordsFiltered = res[0].cnt;
 
@@ -620,7 +621,9 @@ export default class Editor extends NestedData {
             .count( this._pkey[0] +' as cnt' );
 
         this._getWhere( fullCount );
-        // TODO left join
+        if ( this._where.length  ) { // only needed if there is a where condition
+            this._performLeftJoin( fullCount );
+        }
         res = await fullCount;
         let recordsTotal = res[0].cnt;
 
