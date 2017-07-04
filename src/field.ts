@@ -1,9 +1,11 @@
 
 import Editor from './editor';
+import Options, {IOption, CustomOptions} from './options';
 import {IFormatter} from './formatters';
 import NestedData from './nestedData';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
+import knex from 'knex';
 
 export enum SetType {
     None,
@@ -17,8 +19,7 @@ export default class Field extends NestedData {
     private _get: boolean = true;
     private _getFormatter: IFormatter;
     private _getValue: any;
-    private _opts;
-    private _optsFn;
+    private _opts: Options & CustomOptions;
     private _name: string;
     private _set: SetType = SetType.Both;
     private _setFormatter: IFormatter;
@@ -100,7 +101,17 @@ export default class Field extends NestedData {
         return this;
     }
 
-    // TODO options
+
+    public options (): Options & CustomOptions;
+    public options (opts: Options & CustomOptions): Field;
+    public options (opts?: Options & CustomOptions): any {
+        if ( opts === undefined ) {
+            return this._opts;
+        }
+
+        this._opts = opts;
+        return this;
+    }
 
 
     public set (): boolean;
@@ -205,7 +216,17 @@ export default class Field extends NestedData {
         return true;
     }
 
-    // TODO optionsExec
+
+    public async optionsExec ( db: knex ): Promise<false|IOption[]> {
+        if ( this._opts instanceof Options ) {
+            return await this._opts.exec( db );
+        }
+        else if ( this._opts ) {
+            return await this._opts( db );
+        }
+        return false;
+    }
+
 
     public val( direction: 'get'|'set', data: object ): any {
         let val;

@@ -59,13 +59,13 @@ export default class NestedData {
         let names = name.split('.');
         let inner = out;
 
-        for ( let i=0, ien=names.length ; i<ien ; i++ ) {
+        for ( let i=0, ien=names.length-1 ; i<ien ; i++ ) {
             let loopName = names[i];
 
             if ( inner[ loopName ] === undefined ) {
-                inner[ loopName ] = [];
+                inner[ loopName ] = {};
             }
-            else if ( inner[ loopName ] !== 'object' ) {
+            else if ( typeof inner[ loopName ] !== 'object' ) {
                 throw new Error('A property with the name `'+name+'` already exists. '+
 					'This can occur if you have properties which share a prefix - '+
 					'for example `name` and `name.first`.'

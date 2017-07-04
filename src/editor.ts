@@ -64,6 +64,13 @@ interface SSP {
     recordsTotal?: number;
 }
 
+interface LeftJoin {
+    table: string;
+    field1: string;
+    field2: string;
+    operator: string;
+}
+
 
 export default class Editor extends NestedData {
     public static version: string = '1.7.0';
@@ -103,7 +110,7 @@ export default class Editor extends NestedData {
     private _table: string[] = [];
     private _transaction: boolean = false;
     private _where = [];
-    private _leftJoin = [];
+    private _leftJoin: LeftJoin[] = [];
     private _out: DtResponse = {};
     private _events = [];
     private _debug: boolean = false;
@@ -194,7 +201,16 @@ export default class Editor extends NestedData {
 
     // TODO join
 
-    // TODO leftJoin
+    public leftJoin( table: string, field1: string, operator: string, field2: string ): Editor {
+        this._leftJoin.push( {
+            table,
+            field1,
+            field2,
+            operator
+        } );
+
+        return this;
+    }
 
     public on ( name: string, callback: Function ): Editor {
         if ( ! this._events[ name ] ) {
@@ -422,8 +438,7 @@ export default class Editor extends NestedData {
 
         this._processData = data;
         this._formData = data.data ? data.data: null;
-
-        // TODO prepJoin
+        this._prepJoin();
 
         if ( this._validator ) {
             let ret = await this._validator( this, data.action, data );
@@ -439,6 +454,7 @@ export default class Editor extends NestedData {
 
                 this._out.data = outData.data;
                 this._out.draw = outData.draw;
+                this._out.options = outData.options;
                 this._out.recordsTotal = outData.recordsTotal;
                 this._out.recordsFiltered = outData.recordsFiltered;
             }
@@ -507,9 +523,12 @@ export default class Editor extends NestedData {
 
         let fields = this.fields();
         let pkeys = this.pkey();
-        let query = this
-            .db()( this.table() )
-            .select( pkeys );
+        let query = this.db()( this.table() );
+        let options = {};
+
+        for ( let i=0, ien=pkeys.length ; i<ien ; i++ ) {
+            query.select( pkeys[i] +' as '+ pkeys[i] );
+        }
 
         for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
             if ( pkeys.includes( fields[i].dbField() ) ) {
@@ -517,16 +536,14 @@ export default class Editor extends NestedData {
             }
 
             if( fields[i].apply('get') && fields[i].getValue() === undefined ) {
-                query.select( fields[i].dbField() );
+                // Use the `as` to ensure that the table name is included, if using a join
+                query.select( fields[i].dbField() +' as '+ fields[i].dbField() );
             }
         }
 
         this._getWhere( query );
+        this._performLeftJoin( query );
         let ssp = await this._ssp( query, http );
-
-        // TODO leftJoin
-
-        // TODO SSP
 
         if ( id !== null ) {
             query.where( this.pkeyToArray( id, true ) );
@@ -552,8 +569,16 @@ export default class Editor extends NestedData {
             out.push( inner );
         }
 
+        // Field options
+        if ( id === null ) {
+            for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+                let opts = await fields[i].optionsExec( this._db );
 
-        // TODO field options
+                if ( opts ) {
+                    options[ fields[i].name() ] = opts;
+                }
+            }
+        }
 
         // TODO Row based joins
 
@@ -562,6 +587,7 @@ export default class Editor extends NestedData {
         return {
             data: out,
             draw: ssp.draw,
+            options,
             recordsFiltered: ssp.recordsFiltered,
             recordsTotal: ssp.recordsTotal
         }
@@ -671,6 +697,46 @@ export default class Editor extends NestedData {
         }
 
         return field.dbField();
+    }
+
+    private _prepJoin(): void {
+        if ( this._leftJoin.length === 0 ) {
+            return;
+        }
+
+        // Check if hte primary key has a table identifier - if not - add one
+        for ( let i=0, ien=this._pkey.length ; i<ien ; i++ ) {
+            let val = this._pkey[i];
+
+            if ( val.indexOf('.') === -1 ) {
+                this._pkey[i] = this._alias( this.table()[0], 'alias' )+'.'+val;
+            }
+        }
+
+		// Check that all fields have a table selector, otherwise, we'd need to
+		// know the structure of the tables, to know which fields belong in
+		// which. This extra requirement on the fields removes that
+        for ( let i=0, ien=this._fields.length ; i<ien ; i++ ) {
+            let field = this._fields[i];
+            let name = field.dbField();
+
+            if ( name.indexOf('.') === -1 ) {
+				throw new Error( 'Table part of the field "'+name+'" was not found. '+
+					'In Editor instances that use a join, all fields must have the '+
+					'database table set explicitly.'
+				);
+            }
+        }
+    }
+
+    private _performLeftJoin( query: knex ): void {
+        for ( let i=0, ien=this._leftJoin.length ; i<ien ; i++ ) {
+            let join = this._leftJoin[i];
+
+            query.leftJoin( join.table, function () {
+                this.on( join.field1, join.operator, join.field2 );
+            } );
+        }
     }
 
 

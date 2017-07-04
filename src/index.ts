@@ -12,4 +12,7 @@ export { Validate };
 import Format from './formatters';
 export { Format };
 
+import Options from './options';
+export { Options };
+
 

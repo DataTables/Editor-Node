@@ -2,6 +2,7 @@
 import * as knex from 'knex';
 import Editor from './editor';
 import Field from './field';
+import OPtions from './options';
 import * as validUrl from 'valid-url';
 import * as moment from 'moment';
 
@@ -463,6 +464,8 @@ export default class Validator {
 
         return async function ( val: any, data: object, host: Host ): Promise<true|string> {
             let common = Validator._common( val, opts );
+            let options = host.field.options();
+
             if ( common !== null ) {
                 return common === false ?
                     opts.message :
@@ -473,12 +476,12 @@ export default class Validator {
                 db = host.db;
             }
 
-            if ( table === null ) {
-                table = host.field.options().table();
+            if ( table === null && options instanceof Options ) {
+                table = options.table();
             }
 
-            if ( column === null ) {
-                column = host.field.options().value();
+            if ( column === null && options instanceof Options ) {
+                column = options.value();
             }
 
             if ( table === null || column === null ) {
