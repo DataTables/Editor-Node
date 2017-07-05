@@ -13,7 +13,7 @@
   "author": "SpryMedia Limited",
   "license": "MIT",
   "dependencies": {
-    "buffer-crc32": "^0.2.13",
+    "crc": "^3.4.4",
     "knex": "^0.13.0",
     "moment": "^2.18.1",
     "pg": "^6.4.0",

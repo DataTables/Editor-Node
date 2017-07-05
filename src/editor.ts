@@ -1,5 +1,5 @@
 
-import * as crc32 from 'buffer-crc32';
+import * as crc from 'crc';
 import Field, {SetType} from './field';
 import knex from 'knex';
 import NestedData from './nestedData';
@@ -258,10 +258,11 @@ export default class Editor extends NestedData {
         }
 
         if ( typeof pkey === 'string' ) {
-            this._pkey.push( pkey );
+
+            this._pkey = [ pkey ];
         }
         else {
-            this._pkey.push.apply( this._pkey, pkey );
+            this._pkey = pkey;
         }
         
         return this;
@@ -294,8 +295,8 @@ export default class Editor extends NestedData {
         return id.join( this._pkeySeparator() );
     }
 
-    public pkeyToArray ( value: string, flat: boolean=false, pkey: string[]=null): string[] {
-        let arr: string[] = [];
+    public pkeyToObject ( value: string, flat: boolean=false, pkey: string[]=null): object {
+        let arr: object = {};
         
         value = value.replace( this.idPrefix(), '' );
         let idParts = value.split( this._pkeySeparator() );
@@ -546,7 +547,7 @@ export default class Editor extends NestedData {
         let ssp = await this._ssp( query, http );
 
         if ( id !== null ) {
-            query.where( this.pkeyToArray( id, true ) );
+            query.where( this.pkeyToObject( id, true ) );
         }
 
         let result = await query;
@@ -753,7 +754,11 @@ export default class Editor extends NestedData {
 		// Insert the new row
 		let id = await this._insertOrUpdate( null, values );
 
-        // TODO Pkey submitted
+		// Was the primary key altered as part of the edit, if so use the
+		// submitted values
+        id = this._pkey.length > 1 ?
+            this.pkeyToValue( values ) :
+            this._pkeySubmitMerge( id, values );
 
         // TODO Join
 
@@ -778,8 +783,9 @@ export default class Editor extends NestedData {
 
         // TODO join
 
-        // TODO pkey merge
-        let getId = id;
+		// Was the primary key altered as part of the edit, if so use the
+		// submitted values
+        let getId = this._pkeySubmitMerge( id, values );
 
 		this._trigger( 'writeEdit', id, values );
 
@@ -792,6 +798,23 @@ export default class Editor extends NestedData {
 
         return row;
     }
+
+    private _pkeySubmitMerge ( pkeyVal: string, row: object ): string {
+        let pkey = this._pkey;
+        let arr = this.pkeyToObject( pkeyVal, true );
+
+        for ( let i=0, ien=pkey.length ; i<ien ; i++ ) {
+            let column = pkey[ i ];
+            let field = this._findField( column, 'db' );
+
+            if ( field && field.apply( 'edit', row ) ) {
+                arr[ column ] = field.val( 'set', row );
+            }
+        }
+
+        return this.pkeyToValue( arr, true );
+    }
+
 
     private async _remove( http:DtRequest ): Promise<void> {
         let ids: string[] = [];
@@ -880,7 +903,7 @@ export default class Editor extends NestedData {
             let q = this._db( table );
 
             for ( let i=0, ien=ids.length ; i<ien ; i++ ) {
-                let cond = this.pkeyToArray( ids[i], true, pkey );
+                let cond = this.pkeyToObject( ids[i], true, pkey );
 
                 q.orWhere( function() {
                     this.where( cond );
@@ -901,7 +924,7 @@ export default class Editor extends NestedData {
                 tables[i],
                 values,
                 id !== null ?
-                    this.pkeyToArray( id, true ) :
+                    this.pkeyToObject( id, true ) :
                     null
             );
 
@@ -1133,6 +1156,6 @@ export default class Editor extends NestedData {
     private _pkeySeparator (): string {
         let str = this.pkey().join(',');
 
-        return crc32( str );
+        return crc.crc32( str ).toString(16);
     }
 }

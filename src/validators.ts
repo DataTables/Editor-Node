@@ -2,7 +2,7 @@
 import * as knex from 'knex';
 import Editor from './editor';
 import Field from './field';
-import OPtions from './options';
+import {default as JoinOptions} from './options';
 import * as validUrl from 'valid-url';
 import * as moment from 'moment';
 
@@ -447,7 +447,7 @@ export default class Validator {
             // If doing an edit then we need to also discount the current row,
             // since it is of course already validly unique
             if ( host.action === 'edit' ) {
-                let cond = host.editor.pkeyToArray( host.id, true );
+                let cond = host.editor.pkeyToObject( host.id, true );
                 q.whereNot( cond );
             }
 
@@ -476,11 +476,11 @@ export default class Validator {
                 db = host.db;
             }
 
-            if ( table === null && options instanceof Options ) {
+            if ( table === null && options instanceof JoinOptions ) {
                 table = options.table();
             }
 
-            if ( column === null && options instanceof Options ) {
+            if ( column === null && options instanceof JoinOptions ) {
                 column = options.value();
             }
 
@@ -488,9 +488,9 @@ export default class Validator {
                 throw new Error( 'Table or column for database value check is not defined for field '+host.field.name() );
             }
 
-            let res = await host.db()( table )
+            let res = await db( table )
                 .select( column )
-                .where( { column: val } )
+                .where( { [column]: val } )
 
             return ! res ?
                 opts.message :
