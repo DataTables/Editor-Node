@@ -107,7 +107,7 @@ export default class Editor extends NestedData {
     private _join = [];
     private _pkey: string[] = ['id'];
     private _table: string[] = [];
-    private _transaction: boolean = false;
+    private _transaction: boolean = true;
     private _where = [];
     private _leftJoin: LeftJoin[] = [];
     private _out: DtResponse = {};
@@ -120,9 +120,17 @@ export default class Editor extends NestedData {
     constructor( db: knex=null, table:string|string[]=null, pkey: string|string[]=null ) {
         super();
         
-        this.db( db );
-        this.table( table );
-        this.pkey( pkey );
+        if ( db ) {
+            this.db( db );
+        }
+
+        if ( table ) {
+            this.table( table );
+        }
+
+        if ( pkey ) {
+            this.pkey( pkey );
+        }
     }
 
     public data (): DtResponse {
@@ -318,10 +326,7 @@ export default class Editor extends NestedData {
                 }
                 catch ( e ) {
                     that._out.error = e.message;
-
-                    if ( that._transaction ) {
-                        // TODO Does knex do the rollback automatically for us?
-                    }
+                    // knex does the rollback if an exception occurs
                 }
             }
             else {
@@ -1013,7 +1018,7 @@ export default class Editor extends NestedData {
                 .insert( set )
                 .returning( this._pkey );
             
-            return res[0].toString(); // TODO test with compound key
+            return res[0].toString();
         }
         else {
             await this
