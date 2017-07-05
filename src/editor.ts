@@ -21,7 +21,6 @@ export interface DtError {
 
 export interface DtResponse {
     data?: object[];
-    sqlDebug?: object[];
     cancelled?: string[];
     error?: string;
     fieldErrors?: DtError[];
@@ -113,7 +112,6 @@ export default class Editor extends NestedData {
     private _leftJoin: LeftJoin[] = [];
     private _out: DtResponse = {};
     private _events = [];
-    private _debug: boolean = false;
     private _validator: IGlobalValidator;
     private _tryCatch: boolean = false;
     private _knexTransaction: knex;
@@ -141,17 +139,6 @@ export default class Editor extends NestedData {
         }
 
         this._db = db;
-        return this;
-    }
-
-    public debug (): boolean;
-    public debug (debug: boolean): Editor;
-    public debug (debug?: boolean): any {
-        if ( debug === undefined ) {
-            return this._debug;
-        }
-
-        this._debug = debug;
         return this;
     }
 
@@ -323,9 +310,6 @@ export default class Editor extends NestedData {
 
 
     public async process ( data: object ): Promise<Editor> {
-        if ( this._debug ) {
-            // TODO
-        }
         let that = this;
         let run = async function () {
             if ( that._tryCatch ) {
@@ -355,10 +339,6 @@ export default class Editor extends NestedData {
         }
         else {
             await run();
-        }
-
-        if ( this._debug ) {
-            // TODO
         }
 
         return this;
@@ -552,7 +532,7 @@ export default class Editor extends NestedData {
 
         let result = await query;
         if ( ! result ) {
-            throw new Error( 'Error executing SQL for data get. Enable SQL debug using `->debug(true)`' );
+            throw new Error( 'Error executing SQL for data get. Enable SQL debug using `debug: true` in your Knex db configuration' );
         }
 
         let out = [];
