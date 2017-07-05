@@ -1,6 +1,6 @@
 
 import * as crc32 from 'buffer-crc32';
-import Field from './field';
+import Field, {SetType} from './field';
 import knex from 'knex';
 import NestedData from './nestedData';
 import Format from './formatters';
@@ -594,7 +594,7 @@ export default class Editor extends NestedData {
     }
 
     private async _ssp ( query: knex.query, http: DtRequest ): Promise<SSP> {
-        if ( ! http.draw ) {
+        if ( ! http || ! http.draw ) {
             return {};
         }
 
@@ -821,7 +821,29 @@ export default class Editor extends NestedData {
         // TODO joins
 
         // Remove from the left join tables
-        // TODO left join
+        for ( let i=0, ien=this._leftJoin.length ; i<ien ; i++ ) {
+            let join = this._leftJoin[i];
+            let table = this._alias( join.table, 'orig' );
+            let parentLink, childLink;
+
+            // Which side of the join refers to the parent table?
+            if ( join.field1.indexOf( join.table ) === 0 ) {
+                parentLink = join.field2;
+                childLink = join.field1;
+            }
+            else {
+                parentLink = join.field1;
+                childLink = join.field2;
+            }
+
+			// Only delete on the primary key, since that is what the ids refer
+			// to - otherwise we'd be deleting random data! Note that this
+			// won't work with compound keys since the parent link would be
+			// over multiple fields.
+            if ( parentLink === this._pkey[0] && this._pkey.length === 1 ) {
+                this._removeTable( join.table, ids, [childLink] );
+            }
+        }
 
         // Remove from the primary tables
         let tables = this.table();
@@ -848,7 +870,7 @@ export default class Editor extends NestedData {
             let dbField = fields[i].dbField();
 
             if ( dbField.indexOf('.') === -1 ||
-                (this._part( dbField, 'table') === table && !fields[i].set())
+                (this._part( dbField, 'table') === table && fields[i].set() !== SetType.None)
             ) {
                 count++;
             }
@@ -890,7 +912,58 @@ export default class Editor extends NestedData {
             }
         }
 
-        // TODO left join tables
+        // And for the left join tables
+        for ( let i=0, ien=this._leftJoin.length ; i<ien ; i++ ) {
+            let join = this._leftJoin[i];
+
+            // Which side of the join refers to the parent table?
+            let joinTable = this._alias( join.table, 'alias' );
+            let tablePart = this._part( join.field1 );
+            let parentLink, childLink, whereVal;
+
+            if ( this._part( join.field1, 'db' ) ) {
+                tablePart = this._part( join.field1, 'db' )+'.'+tablePart;
+            }
+
+            if ( tablePart === joinTable ) {
+                parentLink = join.field2;
+                childLink = join.field1;                
+            }
+            else {
+                parentLink = join.field1;
+                childLink = join.field2;
+            }
+
+            if ( parentLink === this._pkey[0] && this._pkey.length === 1 ) {
+                whereVal = id;
+            }
+            else {
+				// We need submitted information about the joined data to be
+				// submitted as well as the new value. We first check if the
+				// host field was submitted
+                let field = this._findField( parentLink, 'db' );
+
+                if ( ! field || ! field.apply( 'edit', values ) ) { // TODO this isn't right could be create
+                    // If not, then check if the child id was submitted
+                    field = this._findField( childLink, 'db' );
+                    
+                    if ( ! field || ! field.apply( 'edit', values ) ) {
+                        // No data available, so we can't do anything
+                        continue;
+                    }
+                }
+
+                whereVal = field.val( 'set', values );
+            }
+
+            let whereName = this._part( childLink, 'column' );
+
+            this._insertOrUpdateTable(
+                join.table,
+                values,
+                { [whereName]: whereVal }
+            );
+        }
 
         return id;
     }

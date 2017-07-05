@@ -114,7 +114,7 @@ export default class Field extends NestedData {
     }
 
 
-    public set (): boolean;
+    public set (): SetType;
     public set (flag: boolean|SetType): Field;
     public set (flag?: boolean): any {
         if ( flag === undefined ) {
