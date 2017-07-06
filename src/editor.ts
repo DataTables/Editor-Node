@@ -5,6 +5,7 @@ import knex from 'knex';
 import NestedData from './nestedData';
 import Format from './formatters';
 import Validate from './validators';
+import Mjoin from './mjoin';
 
 export enum Action {
     Read,
@@ -104,7 +105,7 @@ export default class Editor extends NestedData {
     private _formData;
     private _processData;
     private _idPrefix: string = 'row_';
-    private _join = [];
+    private _join: Mjoin[] = [];
     private _pkey: string[] = ['id'];
     private _table: string[] = [];
     private _transaction: boolean = true;
@@ -194,7 +195,17 @@ export default class Editor extends NestedData {
         return this._processData;
     }
 
-    // TODO join
+    public join (): Mjoin[];
+    public join (...join: Mjoin[]): Editor;
+    public join (...join: Mjoin[]): any {
+        if ( join === undefined || join.length === 0 ) {
+            return this._join;
+        }
+
+        this._join.push.apply( this._join, join );
+        
+        return this;
+    }
 
     public leftJoin( table: string, field1: string, operator: string, field2: string ): Editor {
         this._leftJoin.push( {
@@ -301,7 +312,7 @@ export default class Editor extends NestedData {
         }
 
         if ( pkey.length !== idParts.length ) {
-            throw new Error( 'Primary key data doesn\'t match submitted data' );
+            throw new Error( 'Primary key data does not match submitted data' );
         }
 
         for ( let i=0, ien=idParts.length ; i<ien ; i++ ) {
@@ -370,9 +381,10 @@ export default class Editor extends NestedData {
         let idPrefix = this.idPrefix();
 
         for ( let i=0, ien=keys.length ; i<ien ; i++ ) {
+            let values = http.data[ keys[i] ];
+
             for ( let j=0, jen=fields.length ; j<jen ; j++ ) {
                 let field = fields[j];
-                let values = http.data[ keys[i] ];
                 let validation = await field.validate( values, this, keys[i].replace( idPrefix, '' ) );
 
                 if ( validation !== true ) {
@@ -383,7 +395,10 @@ export default class Editor extends NestedData {
                 }
             }
 
-            // TODO MJoin validation
+            // MJoin validation
+            for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+                await this._join[i].validate( errors, this, values );
+            }
         }
 
         return errors.length > 0 ?
@@ -462,11 +477,11 @@ export default class Editor extends NestedData {
                     let values = data.data[keys[i]];
 
                     if ( data.action === 'create' ) {
-                        cancel = this._trigger( 'preCreate', values );
+                        cancel = await this._trigger( 'preCreate', values );
                     }
                     else {
                         let id = idSrc.replace( this.idPrefix(), '' );
-                        cancel = this._trigger( 'preEdit', id, values );
+                        cancel = await this._trigger( 'preEdit', id, values );
                     }
                 
                     // One of the event handlers returned false - don't continue
@@ -502,7 +517,7 @@ export default class Editor extends NestedData {
     }
 
     private async _get ( id: string, http: object=null ): Promise<DtResponse> {
-        let cancel = this._trigger( 'preGet', id );
+        let cancel = await this._trigger( 'preGet', id );
         if ( cancel === false ) {
             return {};
         }
@@ -566,17 +581,23 @@ export default class Editor extends NestedData {
             }
         }
 
-        // TODO Row based joins
-
-        this._trigger( 'postGet', id, out );
-
-        return {
+        // Build a DtResponse object
+        let response = {
             data: out,
             draw: ssp.draw,
             options,
             recordsFiltered: ssp.recordsFiltered,
             recordsTotal: ssp.recordsTotal
+        };
+
+        // Row based joins
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            await this._join[i].data( this, response );
         }
+
+        await this._trigger( 'postGet', id, out );
+
+        return response;
     }
 
     private async _ssp ( query: knex.query, http: DtRequest ): Promise<SSP> {
@@ -623,7 +644,7 @@ export default class Editor extends NestedData {
     private _sspFilter( query: knex.query, http: DtRequest ): void {
         let fields = this.fields();
 
-        // GLobal filter
+        // Global filter
         if ( http.search.value ) {
             query.where( (q) => {
                 for ( let i=0, ien=http.columns.length ; i<ien ; i++ ) {
@@ -693,7 +714,7 @@ export default class Editor extends NestedData {
             return;
         }
 
-        // Check if hte primary key has a table identifier - if not - add one
+        // Check if the primary key has a table identifier - if not - add one
         for ( let i=0, ien=this._pkey.length ; i<ien ; i++ ) {
             let val = this._pkey[i];
 
@@ -745,16 +766,19 @@ export default class Editor extends NestedData {
             this.pkeyToValue( values ) :
             this._pkeySubmitMerge( id, values );
 
-        // TODO Join
+        // Join
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            this._join[i].create( this, id, values );
+        }
 
-		this._trigger( 'writeCreate', id, values );
+		await this._trigger( 'writeCreate', id, values );
 
         let row = await this._get( id );
         row = row.data.length > 0 ?
             row.data[0] :
             null;
 
-		this._trigger( 'postCreate', id, values, row );
+		await this._trigger( 'postCreate', id, values, row );
 
         return row;
     }
@@ -766,20 +790,23 @@ export default class Editor extends NestedData {
         // tables
         await this._insertOrUpdate( id, values );
 
-        // TODO join
+        // Join
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            await this._join[i].update( this, id, values );
+        }
 
 		// Was the primary key altered as part of the edit, if so use the
 		// submitted values
         let getId = this._pkeySubmitMerge( id, values );
 
-		this._trigger( 'writeEdit', id, values );
+		await this._trigger( 'writeEdit', id, values );
 
         let row = await this._get( getId );
         row = row.data.length > 0 ?
             row.data[0] :
             null;
         
-		this._trigger( 'postEdit', id, values, row );
+		await this._trigger( 'postEdit', id, values, row );
 
         return row;
     }
@@ -809,7 +836,7 @@ export default class Editor extends NestedData {
             // Strip the ID prefix that the client-side sends back
             let id = keys[i].replace( this.idPrefix(), '' );
 
-            let res = this._trigger( 'preRemove', id, http.data[keys[i]] );
+            let res = await this._trigger( 'preRemove', id, http.data[keys[i]] );
 
             // Allow the event to be cancelled and inform the client-side
             if ( res === false ) {
@@ -826,7 +853,9 @@ export default class Editor extends NestedData {
 
         // Row based joins - remove first as the host row will be removed which
         // is a dependency
-        // TODO joins
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            await this._join[i].remove( this, ids );
+        }
 
         // Remove from the left join tables
         for ( let i=0, ien=this._leftJoin.length ; i<ien ; i++ ) {
@@ -849,7 +878,7 @@ export default class Editor extends NestedData {
 			// won't work with compound keys since the parent link would be
 			// over multiple fields.
             if ( parentLink === this._pkey[0] && this._pkey.length === 1 ) {
-                this._removeTable( join.table, ids, [childLink] );
+                await this._removeTable( join.table, ids, [childLink] );
             }
         }
 
@@ -1002,7 +1031,7 @@ export default class Editor extends NestedData {
                 continue;
             }
 
-            // Some db's (specifically postgres) don't like having the table
+            // Some database's (specifically pg) don't like having the table
             // name prefixing the column name.
             let fieldPart = this._part( field.dbField(), 'column' );
             set[ fieldPart ] = field.val( 'set', values );
@@ -1036,7 +1065,7 @@ export default class Editor extends NestedData {
         }
     }
 
-    private _trigger( name: string, ...args ): boolean {
+    private async _trigger( name: string, ...args ): Promise<boolean> {
         let out = null;
         let events = this._events[ name ];
 
@@ -1045,7 +1074,7 @@ export default class Editor extends NestedData {
         }
 
         for ( let i=0, ien=events.length ; i<ien ; i++ ) {
-            let res = events[i].apply( this, args );
+            let res = await events[i].apply( this, args );
 
             if ( res !== null ) {
                 out = res;

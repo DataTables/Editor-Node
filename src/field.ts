@@ -260,7 +260,7 @@ export default class Field extends NestedData {
         return this._format( val, data, this._setFormatter );
     }
 
-    public async validate ( data: object, editor: Editor, id: string ): Promise<true|string> {
+    public async validate ( data: object, editor: Editor, id: string=null ): Promise<true|string> {
         if ( this._validator.length === 0 ) {
             return true;
         }

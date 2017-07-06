@@ -3,16 +3,8 @@ import Editor from './editor';
 export default Editor;
 export { Editor };
 
-import Field from './field';
-export { Field };
-
-import Validate from './validators';
-export { Validate };
-
-import Format from './formatters';
-export { Format };
-
-import Options from './options';
-export { Options };
-
-
+export { default as Field } from './field';
+export { default as Validate } from './validators';
+export { default as Format } from './formatters';
+export { default as Options } from './options';
+export { default as Mjoin } from './mjoin';
