@@ -123,7 +123,7 @@ export default class Options {
         // Create a list of the fields that we need to get from the db
         let fields = [ value ].concat( label );
 
-        // We need a defailt formatter if one isn't provided
+        // We need a default formatter if one isn't provided
         if ( ! formatter ) {
             formatter = function ( row ) {
                 let a = [];
@@ -170,8 +170,8 @@ export default class Options {
                 if ( isNumeric(a) && isNumeric(b) ) {
                     return (a.label*1) - (b.label*1);
                 }
-                return a < b ?
-                    -1 : a > b ?
+                return a.label < b.label ?
+                    -1 : a.label > b.label ?
                         1 :
                         0;
             } );
