@@ -6,6 +6,7 @@ import NestedData from './nestedData';
 import Format from './formatters';
 import Validate from './validators';
 import Mjoin from './mjoin';
+import {IUpload} from './upload';
 
 export enum Action {
     Read,
@@ -30,6 +31,9 @@ export interface DtResponse {
     draw?: number;
     recordsTotal?: number;
     recordsFiltered?: number;
+    upload?: {
+        id: string
+    };
 }
 
 export interface DtRequest {
@@ -51,7 +55,8 @@ export interface DtRequest {
     }[];
     search?: {
         value: string;
-    }
+    },
+    uploadField?: string;
 }
 
 export interface IGlobalValidator {
@@ -116,6 +121,7 @@ export default class Editor extends NestedData {
     private _validator: IGlobalValidator;
     private _tryCatch: boolean = false;
     private _knexTransaction: knex;
+    private _uploadData: IUpload;
 
 
     constructor( db: knex=null, table:string|string[]=null, pkey: string|string[]=null ) {
@@ -328,12 +334,12 @@ export default class Editor extends NestedData {
     }
 
 
-    public async process ( data: object ): Promise<Editor> {
+    public async process ( data: DtRequest, files: IUpload=null ): Promise<Editor> {
         let that = this;
         let run = async function () {
             if ( that._tryCatch ) {
                 try {
-                    await that._process( data );
+                    await that._process( data, files );
                 }
                 catch ( e ) {
                     that._out.error = e.message;
@@ -341,7 +347,7 @@ export default class Editor extends NestedData {
                 }
             }
             else {
-                await that._process( data );
+                await that._process( data, files );
             }
 
         }
@@ -431,13 +437,14 @@ export default class Editor extends NestedData {
 
 
 
-    private async _process ( data: DtRequest ): Promise<void> {
+    private async _process ( data: DtRequest, upload: IUpload ): Promise<void> {
         this._out = {
             data: [],
             fieldErrors: []
         };
 
         this._processData = data;
+        this._uploadData = upload;
         this._formData = data.data ? data.data: null;
         this._prepJoin();
 
@@ -455,12 +462,13 @@ export default class Editor extends NestedData {
 
                 this._out.data = outData.data;
                 this._out.draw = outData.draw;
+                this._out.files = outData.files;
                 this._out.options = outData.options;
                 this._out.recordsTotal = outData.recordsTotal;
                 this._out.recordsFiltered = outData.recordsFiltered;
             }
             else if ( data.action === 'upload' ) {
-                // TODO
+                await this._upload( data );
             }
             else if ( data.action === 'remove' ) {
                 await this._remove( data );
@@ -513,6 +521,70 @@ export default class Editor extends NestedData {
 
                 // TODO fileClean
             }
+        }
+    }
+
+    private async _upload ( http: DtRequest ): Promise<void> {
+        // Search for the upload field in the local fields
+        let field = this._findField( http.uploadField, 'name' );
+        let fieldName = '';
+
+        if ( ! field ) {
+            // Perhaps it is in a join instance
+            for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+                let join = this._join[i];
+                let fields = join.fields();
+
+                for ( let j=0, jen=fields.length ; j<jen ; j++ ) {
+                    let joinField = fields[j];
+                    let name = join.name()+'[].'+joinField.name();
+
+                    if ( name === http.uploadField ) {
+                        field = joinField;
+                        fieldName = name;
+                    }
+                }
+            }
+        }
+        else {
+            fieldName = field.name();
+        }
+
+        if ( ! this._uploadData ) {
+            throw new Error( 'No upload data supplied' );
+        }
+
+        if ( ! field ) {
+            throw new Error( 'Unknown upload field name submitted' );
+        }
+
+        let eventRes = await this._trigger( 'preUpload', http );
+
+        // Allow the upload to be cancelled by an event handler
+        if ( eventRes === false ) {
+            return;
+        }
+
+        let upload = field.upload();
+        if ( ! upload ) {
+            throw new Error( 'File uploaded to a field that does not have upload options configured' );
+        }
+
+        let res = await upload.exec( this, this._uploadData );
+
+        if ( ! res ) {
+            this._out.fieldErrors.push( {
+                name: fieldName,
+                status: upload.error()
+            } );
+        }
+        else {
+            let files = await this._fileData( upload.table(), res );
+
+            this._out.files = files;
+            this._out.upload = {
+                id: res
+            };
         }
     }
 
@@ -587,7 +659,8 @@ export default class Editor extends NestedData {
             draw: ssp.draw,
             options,
             recordsFiltered: ssp.recordsFiltered,
-            recordsTotal: ssp.recordsTotal
+            recordsTotal: ssp.recordsTotal,
+            files: await this._fileData()
         };
 
         // Row based joins
@@ -598,6 +671,48 @@ export default class Editor extends NestedData {
         await this._trigger( 'postGet', id, out );
 
         return response;
+    }
+
+    private async _fileData( limitTable: string=null, id: string=null ): Promise<object> {
+        let files = {};
+
+        // The fields in this instance
+        await this._fileDataFields( files, this._fields, limitTable, id );
+
+        // From joined tables
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            await this._fileDataFields( files, this._join[i].fields(), limitTable, id );
+        }
+
+        return files;
+    }
+
+    private async _fileDataFields( files: object, fields: Field[], limitTable: string, id: string=null ): Promise<void> {
+        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+            let upload = fields[i].upload();
+
+            if ( upload ) {
+                let table = upload.table();
+
+                if ( ! table ) {
+                    continue;
+                }
+
+                if ( limitTable === null && table !== limitTable ) {
+                    continue;
+                }
+
+                if ( files[ table ] ) {
+                    continue;
+                }
+
+                let fileData = await upload.data( this._db, id );
+
+                if ( fileData ) {
+                    files[ table ] = fileData;
+                }
+            }
+        }
     }
 
     private async _ssp ( query: knex.query, http: DtRequest ): Promise<SSP> {

@@ -3,6 +3,7 @@ import Editor from './editor';
 import Options, {IOption, CustomOptions} from './options';
 import {IFormatter} from './formatters';
 import NestedData from './nestedData';
+import Upload from './upload';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
 import knex from 'knex';
@@ -25,7 +26,7 @@ export default class Field extends NestedData {
     private _setFormatter: IFormatter;
     private _setValue: any;
     private _validator: IValidator[] = [];
-    private _upload;
+    private _upload: Upload;
     private _xss: Ixss;
     private _xssFormat: boolean = true;
 
@@ -155,8 +156,17 @@ export default class Field extends NestedData {
         this._setValue = val;
         return this;
     }
-    
-    // TODO upload
+
+    public upload (): Upload;
+    public upload (upload: Upload): Field;
+    public upload (upload?: Upload): any {
+        if ( upload === undefined ) {
+            return this._upload;
+        }
+
+        this._upload = upload;
+        return this;
+    }
 
     public validator (): any;
     public validator (validator: IValidator): Field;
