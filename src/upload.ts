@@ -4,6 +4,7 @@ import Editor from './editor';
 import Field from './field';
 import * as fs from 'fs';
 import * as rootPath  from 'app-root-path';
+import * as mv  from 'mv';
 
 export function asyncWrap<T>( fn: Function, scope: any = null ): Function {
 	return function (...args): Promise<T> {
@@ -27,7 +28,7 @@ export function asyncWrap<T>( fn: Function, scope: any = null ): Function {
 
 let stat = asyncWrap( fs.stat );
 let readFile = asyncWrap( fs.readFile );
-let rename = asyncWrap( fs.rename );
+let rename = asyncWrap( mv );
 
 
 export enum DbOpts {
@@ -224,7 +225,6 @@ export default class Upload {
         let to = this._path( files.upload.file, id );
 
         try {
-            // TODO - This is guff. Doesn't work.
             await( rename( files.upload.file, to ) );
         }
         catch (e) {
