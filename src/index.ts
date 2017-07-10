@@ -9,3 +9,4 @@ export { default as Mjoin } from './mjoin';
 export { default as Options } from './options';
 export { default as Upload } from './upload';
 export { default as Validate } from './validators';
+export { default as promisify } from './promisify';

@@ -3,32 +3,15 @@ import knex from 'knex';
 import Editor from './editor';
 import Field from './field';
 import * as fs from 'fs';
+import * as path from 'path';
 import * as rootPath  from 'app-root-path';
 import * as mv  from 'mv';
-
-export function asyncWrap<T>( fn: Function, scope: any = null ): Function {
-	return function (...args): Promise<T> {
-		return new Promise<T>( function ( resolve: Function, reject: Function ) {
-			// Assume the callback handler goes at the end of the arguments
-			args.push( function( err: Object, val: any ) {
-				// Assume that err is the first argument and value is the second
-				if ( err ) {
-					reject( err );
-				}
-				else {
-					resolve( val );
-				}
-			} );
-
-			fn.apply( scope || fn, args );
-		} );
-	};
-};
+import promisify from './promisify';
 
 
-let stat = asyncWrap( fs.stat );
-let readFile = asyncWrap( fs.readFile );
-let rename = asyncWrap( mv );
+let stat = promisify( fs.stat );
+let readFile = promisify( fs.readFile );
+let rename = promisify( mv );
 
 
 export enum DbOpts {
@@ -39,8 +22,10 @@ export enum DbOpts {
     FileSize,
     MimeType,
     ReadOnly,
-    SystemPath,
-    WebPath
+    SystemPath
+    // Note that the PHP and .NET libraries have a WebPath, but that isn't
+    // available here as there isn't a good and reliable way to get the web
+    // root in node (it could be anywhere!).
 }
 
 export interface IUpload {
@@ -60,7 +45,7 @@ export default class Upload {
     public static Db = DbOpts;
 
     private _action: string|Function;
-    private _dbCleanCallback;
+    private _dbCleanCallback; // async function
     private _dbCleanTableField: string;
     private _dbTable: string;
     private _dbPkey: string;
@@ -157,7 +142,10 @@ export default class Upload {
     }
 
     public async dbCleanExec ( editor: Editor, field: Field ): Promise<void> {
-        // TODO
+		// Database and file system clean up BEFORE adding the new file to
+		// the db, otherwise it will be removed immediately
+        let tables = editor.table();
+        this._dbClean( editor.db(), tables[0], field.dbField() );
     }
 
     public error () {
@@ -186,7 +174,7 @@ export default class Upload {
 
                 // We can't know what the path is, if it has moved into place
                 // by an external function - throw an error if this does happen
-                if ( typeof this._action !== 'string' && (prop === DbOpts.SystemPath || prop === DbOpts.WebPath ) ) {
+                if ( typeof this._action !== 'string' && prop === DbOpts.SystemPath ) {
                     this._error = 'Cannot set path information in the database '+
                         'if a custom method is used to save the file.';
                     
@@ -222,13 +210,13 @@ export default class Upload {
 
         // Default action - move the file to the location specified by the
         // action string
-        let to = this._path( files.upload.file, id );
+        let to = this._substitute( this._action, files.upload.file, id );
+        to = path.normalize( to );
 
         try {
-            await( rename( files.upload.file, to ) );
+            await( rename( files.upload.file, to, {mkdirp: true} ) );
         }
         catch (e) {
-            console.log( e );
             this._error = 'An error occurred while moving the uploaded file.';
             return null;
         }
@@ -239,7 +227,76 @@ export default class Upload {
     }
 
     private async _dbClean ( db: knex, editorTable: string, fieldName: string ): Promise<void> {
-        // TODO
+        let callback = this._dbCleanCallback;
+        let that = this;
+
+        if ( ! this._dbTable || ! callback ) {
+            return;
+        }
+
+		// If there is a table / field that we should use to check if the value
+		// is in use, then use that. Otherwise we'll try to use the information
+		// from the Editor / Field instance.
+        if ( this._dbCleanTableField ) {
+            fieldName = this._dbCleanTableField;
+        }
+
+        let table, field;
+        let a = fieldName.split('.');
+ 
+        if ( a.length === 1 ) {
+            table = editorTable;
+            field = a[0];
+        }
+        else if ( a.length === 2 ) {
+            table = a[0];
+            field = a[1];
+        }
+        else {
+            table = a[1];
+            field = a[2];
+        }
+
+		// Select the details requested, for the columns requested
+        let fields = this._dbFields;
+        let columns = Object.keys( fields );
+        let query = db( this._dbTable )
+            .select( this._dbPkey );
+        
+        for ( let i=0, ien=columns.length ; i<ien ; i++ ) {
+            let column = columns[i];
+            let prop = fields[ column ];
+
+            if ( prop !== DbOpts.Content ) {
+                query.select( column );
+            }
+        }
+
+        query.whereNotIn( this._dbPkey, function () {
+            this.select( field ).from( table ).whereNotNull( field );
+        } );
+
+        let rows = await query;
+        
+        if ( rows.length === 0 ) {
+            return;
+        }
+
+        let result = await callback( rows );
+
+		// Delete the selected rows, iff the developer says to do so with the
+		// returned value (i.e. acknowledge that the files have be removed from
+		// the file system)
+        if ( result === true ) {
+            let queryDel = db( this._dbTable )
+                .where( function () {
+                    for ( let i=0, ien=rows.length ; i<ien ; i++ ) {
+                        this.orWhere( { [that._dbPkey]: rows[i][that._dbPkey] } );
+                    }
+                } )
+            
+            await queryDel.del();
+        }
     }
 
     private async _dbExec ( db: knex, files: IUpload ): Promise<string> {
@@ -248,8 +305,6 @@ export default class Upload {
         let columns = Object.keys( fields );
         let set = {};
         let upload = files.upload;
-
-        console.log( upload );
         
         for ( let i=0, ien=columns.length ; i<ien ; i++ ) {
             let column = columns[i];
@@ -285,21 +340,21 @@ export default class Upload {
                     break;
                 
                 case DbOpts.SystemPath:
-                    pathFields[ column ] = DbOpts.SystemPath;
+                    pathFields[ column ] = this._action;
                     set[ column ] = '-'; // Use a temporary value to avoid cases 
                     break;               // where the db will reject empty values
-                
-                case DbOpts.WebPath:
-                    pathFields[ column ] = DbOpts.WebPath;
-                    set[ column ] = '-'; // Use a temporary value (as above) 
-                    break;
 
                 default:
-                    if ( typeof prop === 'function' ) {
-                        set[ column ] = prop( db, upload );
+                    let val = typeof prop === 'function' ?
+                        prop( db, upload ) :
+                        prop;
+                    
+                    if ( typeof val === 'string' && val.match(/\{.*\}/) ) {
+                        pathFields[ column ] = val;
+                        set[ column ] = '-';
                     }
                     else {
-                        set[ column ] = prop;
+                        set[ column ] = val;
                     }
                     break;
             }
@@ -321,16 +376,11 @@ export default class Upload {
         if ( pathKeys.length ) {
             // For this to operate the action must be a string, which is
             // validated in the `exec` method
-            let path = this._path( upload.file, id );
-            let webPath = path.replace(rootPath.toString(), '');
             let set = {};
 
-            console.log( path, webPath, rootPath.toString() );
-
             for ( let i=0, ien=pathKeys.length ; i<ien ; i++ ) {
-                set[ pathKeys[i] ] = pathFields[ pathKeys[i] ] === DbOpts.WebPath ?
-                    webPath :
-                    path;
+                let key = pathKeys[i];
+                set[ key ] = this._substitute( pathFields[key], upload.file, id );
             }
 
             await db( this._dbTable )
@@ -341,17 +391,17 @@ export default class Upload {
         return id;
     }
 
-    private _path ( uploadName: string, id: string ): string {
-        let a = uploadName.toString().split( '/' );
+    private _substitute ( convert: string, uploadPath: string, id: string ): string {
+        let a = uploadPath.toString().split( '/' );
         let fileName = a.pop();
         let fileParts = fileName.split('.');
         let extn = fileParts.pop();
         let namePart = fileParts.join('.');
-        
-        let to = this._action.toString();
-        to = to.replace( '__NAME__', namePart );
-        to = to.replace( '__ID__', id );
-        to = to.replace( '__EXTN__', extn );
+
+        let to = convert.toString();
+        to = to.replace( '{name}', namePart );
+        to = to.replace( '{id}', id );
+        to = to.replace( '{extn}', extn );
 
         return to;
     }

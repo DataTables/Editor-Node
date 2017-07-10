@@ -113,7 +113,7 @@ export default class Editor extends NestedData {
     private _join: Mjoin[] = [];
     private _pkey: string[] = ['id'];
     private _table: string[] = [];
-    private _transaction: boolean = true;
+    private _transaction: boolean = false;
     private _where = [];
     private _leftJoin: LeftJoin[] = [];
     private _out: DtResponse = {};
@@ -472,6 +472,7 @@ export default class Editor extends NestedData {
             }
             else if ( data.action === 'remove' ) {
                 await this._remove( data );
+                await this._fileClean();
             }
             else {
                 // create or edit
@@ -519,8 +520,27 @@ export default class Editor extends NestedData {
                     }
                 }
 
-                // TODO fileClean
+                await this._fileClean();
             }
+        }
+    }
+
+    private async _fileClean (): Promise<void> {
+        let that = this;
+        let run = async function ( fields ) {
+            for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+                let upload = fields[i].upload();
+
+                if ( upload ) {
+                    await upload.dbCleanExec( that, fields[i] );
+                }
+            }
+        };
+
+        await run( this._fields );
+
+        for ( let i=0, ien=this._join.length ; i<ien ; i++ ) {
+            await run( this._join[i].fields() );
         }
     }
 
@@ -698,7 +718,7 @@ export default class Editor extends NestedData {
                     continue;
                 }
 
-                if ( limitTable === null && table !== limitTable ) {
+                if ( limitTable !== null && table !== limitTable ) {
                     continue;
                 }
 
@@ -706,7 +726,7 @@ export default class Editor extends NestedData {
                     continue;
                 }
 
-                let fileData = await upload.data( this._db, id );
+                let fileData = await upload.data( this.db(), id );
 
                 if ( fileData ) {
                     files[ table ] = fileData;
