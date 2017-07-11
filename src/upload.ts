@@ -18,7 +18,8 @@ export enum DbOpts {
     Content,
     ContentType,
     Extn,
-    FileName,
+    Name,
+    FileName, // Name + Extn
     FileSize,
     MimeType,
     ReadOnly,
@@ -28,17 +29,22 @@ export enum DbOpts {
     // root in node (it could be anywhere!).
 }
 
+export interface IFile {
+    uuid: string;
+    field: string;
+    file: string; // full path
+    filename: string; // name + extn
+    encoding: string;
+    mimetype: string;
+    truncated: boolean;
+    done: boolean;
+    size: number; // Added
+    extn: string; // Added
+    name: string; // Added
+}
+
 export interface IUpload {
-    upload: {
-        uuid: string,
-        field: string,
-        file: string,
-        filename: string,
-        encoding: string,
-        mimetype: string,
-        truncated: boolean,
-        done: boolean
-    }
+    upload: IFile
 }
 
 export default class Upload {
@@ -155,9 +161,20 @@ export default class Upload {
     public async exec ( editor: Editor, upload: IUpload ): Promise <string> {
         let id;
 
+        // Add any extra information to the upload structure
+        let fileInfo = await stat( upload.upload.file );
+        upload.upload.size = fileInfo.size;
+
+        let a = upload.upload.filename.split('.');
+        upload.upload.extn = a.length > 1 ?
+            a.pop() :
+            '';
+        upload.upload.name = a.join('.');
+
         // Validation
         for ( let i=0, ien=this._validators.length ; i<ien ; i++ ) {
             let res = await this._validators[i]( upload.upload );
+            console.log( 'validator', res );
 
             if ( typeof res === 'string' ) {
                 this._error = res;
@@ -324,19 +341,19 @@ export default class Upload {
                     break;
                 
                 case DbOpts.Extn:
-                    let a = upload.file.split('/');
-                    let b = a[ a.length-1 ].split('.');
-                    set[ column ] = b[ b.length-1 ];
+                    set[ column ] = upload.extn;
                     break;
                 
                 case DbOpts.FileName:
-                    let c = upload.file.split('/');
-                    set[ column ] = c[ c.length-1 ];
+                    set[ column ] = upload.filename;
+                    break;
+                
+                case DbOpts.Name:
+                    set[ column ] = upload.name;
                     break;
                 
                 case DbOpts.FileSize:
-                    let fileInfo = await stat( upload.file );
-                    set[ column ] = fileInfo.size;
+                    set[ column ] = upload.size;
                     break;
                 
                 case DbOpts.SystemPath:

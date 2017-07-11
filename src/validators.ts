@@ -3,6 +3,7 @@ import * as knex from 'knex';
 import Editor from './editor';
 import Field from './field';
 import {default as JoinOptions} from './options';
+import {IFile} from './upload';
 import * as validUrl from 'valid-url';
 import * as moment from 'moment';
 
@@ -10,6 +11,10 @@ import * as moment from 'moment';
 // checking a value is unique against the database
 export interface IValidator {
     (val: any, data: object, host: Host): Promise<true|string>;
+}
+
+export interface IFileValidator {
+    (file: IFile): Promise<true|string>;
 }
 
 export interface HostOpts {
@@ -496,6 +501,27 @@ export default class Validator {
                 opts.message :
                 true;
         };
+    }
+
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    * File upload validators
+    */
+
+    public static fileExtensions( extns: string[], msg: string ): IFileValidator {
+        return async function ( file: IFile ) {
+            return extns.includes( file.extn ) ?
+                true :
+                msg;
+        }
+    }
+
+    public static fileSize( size: number, msg: string ): IFileValidator {
+        return async function ( file: IFile ) {
+            return file.size > size ?
+                msg :
+                true;
+        }
     }
 
 
