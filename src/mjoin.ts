@@ -1,8 +1,8 @@
+import * as knex from 'knex';
 
-import Editor, {DtResponse, DtRequest} from './editor';
+import Editor, {IDtRequest, IDtResponse} from './editor';
 import Field from './field';
 import NestedData from './nestedData';
-import * as knex from 'knex';
 
 interface JoinTable {
     table?: string;
@@ -155,7 +155,7 @@ export default class Mjoin extends NestedData {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Internal methods
      */
-    public async data ( editor: Editor, response: DtResponse ): Promise<void> {
+    public async data ( editor: Editor, response: IDtResponse ): Promise<void> {
         if ( ! this._get ) {
             return;
         }

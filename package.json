@@ -30,5 +30,15 @@
     "tslint": "^5.5.0",
     "typedoc": "^0.7.1",
     "typescript": "^2.3.4"
+  },
+  "importSort": {
+    ".js, .jsx, .es6, .es": {
+      "parser": "babylon",
+      "style": "eslint"
+    },
+    ".ts, .tsx": {
+      "parser": "typescript",
+      "style": "module"
+    }
   }
 }

@@ -1,11 +1,23 @@
 {
+	"extends": "tslint:recommended",
 	"rules": {
-		"no-unused-expression": true,
-		"no-duplicate-variable": true,
-		"no-unused-variable": true,
-		"curly": true,
-		"class-name": true,
-		"semicolon": ["always"],
-		"triple-equals": true
+		"prefer-const": false,
+		"quotemark": "single",
+		"one-line": [
+            "check-catch",
+            "check-finally",
+            "check-open-brace",
+            "check-whitespace"
+        ],
+		"only-arrow-functions": false,
+		"trailing-comma": false,
+		"indent": ["tabs"],
+    	"variable-name": [
+            "ban-keywords",
+            "check-format",
+            "allow-pascal-case",
+			"allow-leading-underscore"
+        ]
 	}
 }
+

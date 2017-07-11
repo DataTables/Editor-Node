@@ -1,12 +1,12 @@
+import knex from 'knex';
 
 import Editor from './editor';
-import Options, {IOption, CustomOptions} from './options';
 import {IFormatter} from './formatters';
 import NestedData from './nestedData';
+import Options, {CustomOptions, IOption} from './options';
 import Upload from './upload';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
-import knex from 'knex';
 
 export enum SetType {
     None,

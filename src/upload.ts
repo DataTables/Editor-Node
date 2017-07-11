@@ -1,13 +1,13 @@
-
-import knex from 'knex';
-import Editor from './editor';
-import Field from './field';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as rootPath  from 'app-root-path';
-import * as mv  from 'mv';
-import promisify from './promisify';
 
+import * as rootPath  from 'app-root-path';
+import knex from 'knex';
+import * as mv  from 'mv';
+
+import Editor from './editor';
+import Field from './field';
+import promisify from './promisify';
 
 let stat = promisify( fs.stat );
 let readFile = promisify( fs.readFile );
