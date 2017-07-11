@@ -810,7 +810,7 @@ export default class Editor extends NestedData {
     }
 
     private _sspLimit( query: knex.query, http: DtRequest ): void {
-        if ( http.length != -1 ) { // -1 is 'show all' in DataTables
+        if ( http.length !== -1 ) { // -1 is 'show all' in DataTables
             query
                 .limit( http.length*1 )
                 .offset( http.start*1 );
@@ -1115,7 +1115,7 @@ export default class Editor extends NestedData {
 				// host field was submitted
                 let field = this._findField( parentLink, 'db' );
 
-                if ( ! field || ! field.apply( 'edit', values ) ) { // TODO this isn't right could be create
+                if ( ! field || ! field.apply( 'edit', values ) ) {
                     // If not, then check if the child id was submitted
                     field = this._findField( childLink, 'db' );
                     

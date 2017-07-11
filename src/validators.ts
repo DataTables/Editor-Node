@@ -117,8 +117,8 @@ export default class Validator {
                     true;
             }
 
-            if ( val === true || val == 1 || val === 'true' || val === 't' || val === 'on' || val === 'yes' ||
-                 val === false || val == 0 || val === 'false' || val === 'f' || val === 'off' || val === 'no' )
+            if ( val === true || val === 1 || val === '1' || val === 'true' || val === 't' || val === 'on' || val === 'yes' ||
+                 val === false || val === 0 || val === '0' || val === 'false' || val === 'f' || val === 'off' || val === 'no' )
             {
                 return true;
             }
@@ -306,9 +306,8 @@ export default class Validator {
             }
 
             for ( let i=0 ; i<4 ; i++ ) {
-                let parsed = parseInt( a[i] );
-                if ( parsed != a[i] ) {
-                    // Weak type checking
+                let parsed = parseInt( a[i], 10 );
+                if ( parsed !== a[i]*1 ) {
                     return opts.message;
                 }                
 
