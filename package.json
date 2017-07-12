@@ -13,12 +13,10 @@
   "author": "SpryMedia Limited",
   "license": "MIT",
   "dependencies": {
-    "app-root-path": "^2.0.1",
     "crc": "^3.4.4",
     "knex": "^0.13.0",
     "moment": "^2.18.1",
     "mv": "^2.1.1",
-    "pg": "^6.4.0",
     "valid-url": "^1.0.9",
     "xss-filters": "^1.2.7"
   },
