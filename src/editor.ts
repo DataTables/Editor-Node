@@ -666,6 +666,10 @@ export default class Editor extends NestedData {
 		// Insert the new row
 		let id = await this._insertOrUpdate( null, values );
 
+		if ( id === null ) {
+			return null;
+		}
+
 		// Was the primary key altered as part of the edit, if so use the
 		// submitted values
 		id = this._pkey.length > 1 ?
@@ -704,7 +708,7 @@ export default class Editor extends NestedData {
 
 			// If you don't have an id yet, then the first insert will return
 			// the id we want
-			if ( id === null ) {
+			if ( res !== null && id === null ) {
 				id = res;
 			}
 		}
