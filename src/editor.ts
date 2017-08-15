@@ -832,6 +832,13 @@ export default class Editor extends NestedData {
 				a[0];
 		}
 
+		if ( name.indexOf( ' ' ) !== -1 ) {
+			let a = name.split(/ /i);
+			return type === 'alias' ?
+				a[1] :
+				a[0];
+		}
+
 		return name;
 	}
 
