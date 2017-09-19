@@ -4,24 +4,16 @@ import Editor, {IDtRequest, IDtResponse} from './editor';
 import Field from './field';
 import NestedData from './nestedData';
 
-interface JoinTable {
+interface IJoinTable {
     table?: string;
     parent: string|string[];
     child: string|string[];
 }
 
 export default class Mjoin extends NestedData {
-    constructor( table: string ) {
-        super();
-
-        this.table( table );
-        this.name( table );
-    }
-
-
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Private parameters
-     */
+    * Private parameters
+    */
 
     private _table: string;
     private _editor: Editor;
@@ -32,45 +24,54 @@ export default class Mjoin extends NestedData {
     private _fields: Field[] = [];
     private _links: string[] = [];
     private _order: string;
-    private _join: JoinTable = {
-        parent: '',
-        child: ''
+    private _join: IJoinTable = {
+        child: '',
+        parent: ''
     };
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Constructor
+     */
+    constructor( table: string ) {
+        super();
+
+        this.table( table );
+        this.name( table );
+    }
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Public methods
      */
-    public field ( nameOrField: Field|string ) {
+    public field( nameOrField: Field|string ) {
         if ( typeof nameOrField === 'string' ) {
-            for ( let i=0, ien=this._fields.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = this._fields.length ; i < ien ; i++ ) {
                 if ( this._fields[i].name() === nameOrField ) {
                     return this._fields[i];
                 }
             }
 
-            throw new Error( 'Unknown field: '+nameOrField );
+            throw new Error( 'Unknown field: ' + nameOrField );
         }
 
         this._fields.push( nameOrField );
         return this;
     }
 
-
-    public fields (): Field[];
-    public fields (...fields: Field[]): Mjoin;
-    public fields (...fields: Field[]): any {
+    public fields(): Field[];
+    public fields(...fields: Field[]): Mjoin;
+    public fields(...fields: Field[]): any {
         if ( fields === undefined || fields.length === 0 ) {
             return this._fields;
         }
 
         this._fields.push.apply( this._fields, fields );
-        
+
         return this;
     }
 
-    public get (): boolean;
-    public get (flag: boolean): Mjoin;
-    public get (flag?: boolean): any {
+    public get(): boolean;
+    public get(flag: boolean): Mjoin;
+    public get(flag?: boolean): any {
         if ( flag === undefined ) {
             return this._get;
         }
@@ -95,9 +96,9 @@ export default class Mjoin extends NestedData {
         return this;
     }
 
-    public name (): string;
-    public name (name: string): Mjoin;
-    public name (name?: string): any {
+    public name(): string;
+    public name(name: string): Mjoin;
+    public name(name?: string): any {
         if ( name === undefined ) {
             return this._name;
         }
@@ -106,9 +107,9 @@ export default class Mjoin extends NestedData {
         return this;
     }
 
-    public order (): string;
-    public order (order: string): Mjoin;
-    public order (order?: string): any {
+    public order(): string;
+    public order(order: string): Mjoin;
+    public order(order?: string): any {
         if ( order === undefined ) {
             return this._order;
         }
@@ -117,9 +118,9 @@ export default class Mjoin extends NestedData {
         return this;
     }
 
-    public set (): boolean;
-    public set (flag: boolean): Mjoin;
-    public set (flag?: boolean): any {
+    public set(): boolean;
+    public set(flag: boolean): Mjoin;
+    public set(flag?: boolean): any {
         if ( flag === undefined ) {
             return this._set;
         }
@@ -128,9 +129,9 @@ export default class Mjoin extends NestedData {
         return this;
     }
 
-    public table (): string;
-    public table (table: string): Mjoin;
-    public table (table?: string): any {
+    public table(): string;
+    public table(table: string): Mjoin;
+    public table(table?: string): any {
         if ( table === undefined ) {
             return this._table;
         }
@@ -139,23 +140,26 @@ export default class Mjoin extends NestedData {
         return this;
     }
 
-    public where (): any[];
-    public where (cond: any): Mjoin;
-    public where (cond?: any): any {
+    public where(): any[];
+    public where(cond: any): Mjoin;
+    public where(cond?: any): any {
         if ( cond === undefined ) {
             return this._where;
         }
 
         this._where.push( cond );
-        
+
         return this;
     }
-
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Internal methods
      */
-    public async data ( editor: Editor, response: IDtResponse ): Promise<void> {
+
+    /**
+     * @ignore
+     */
+    public async data( editor: Editor, response: IDtResponse ): Promise<void> {
         if ( ! this._get ) {
             return;
         }
@@ -179,12 +183,12 @@ export default class Mjoin extends NestedData {
             join.parent;
 
         let pkeyIsJoin = joinField === editor.pkey()[0] ||
-                         dteTable+'.'+joinField === editor.pkey()[0];
-        
+                         dteTable + '.' + joinField === editor.pkey()[0];
+
         // Build the basic query
         let query = editor.db()( dteTable )
-            .distinct( dteTable+'.'+joinField + ' as dteditor_pkey' );
-        
+            .distinct( dteTable + '.' + joinField + ' as dteditor_pkey' );
+
         let order = this.order();
         if ( order ) {
             let a = order.split( ' ' );
@@ -199,14 +203,14 @@ export default class Mjoin extends NestedData {
 
         this._applyWhere( query );
 
-        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
             let field = fields[i];
 
             if ( field.apply('get') && field.getValue() === undefined ) {
                 let dbField = field.dbField();
 
                 if ( dbField.indexOf('.') === -1 ) {
-                    query.select( this._table +'.'+ dbField +' as '+ dbField );
+                    query.select( this._table + '.' + dbField + ' as ' + dbField );
                 }
                 else {
                     query.select( dbField );
@@ -216,8 +220,8 @@ export default class Mjoin extends NestedData {
 
         // Create the joins
         if ( join.table ) {
-            query.leftJoin( join.table, dteTable+'.'+join.parent[0], '=', join.table+'.'+join.parent[1] );
-            query.leftJoin( this._table, this._table+'.'+join.child[0], '=', join.table+'.'+join.child[1] );
+            query.leftJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
+            query.leftJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
         }
         else {
             query.leftJoin( this._table, join.parent, '=', join.child );
@@ -228,8 +232,8 @@ export default class Mjoin extends NestedData {
         if ( res.length ) {
             let readField = '';
 
-            if ( this._propExists( dteTable+'.'+joinField, response.data[0] ) ) {
-                readField = dteTable+'.'+joinField;
+            if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
+                readField = dteTable + '.' + joinField;
             }
             else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
                 readField = joinField.toString();
@@ -245,15 +249,15 @@ export default class Mjoin extends NestedData {
             // Map the data to the primary key for fast loop up
             let joinMap = {};
 
-            for ( let i=0, ien=res.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
                 let inner = {};
 
-                for( let j=0, jen=fields.length ; j<jen ; j++ ) {
+                for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
                     fields[j].write( inner, res[i] );
                 }
 
-                let lookup = res[i]['dteditor_pkey'];
-                
+                let lookup = res[i].dteditor_pkey;
+
                 if ( ! joinMap[ lookup ] ) {
                     joinMap[ lookup ] = [];
                 }
@@ -263,12 +267,12 @@ export default class Mjoin extends NestedData {
 
             // Loop over the data in the original response and do a join based on
             // the mapped data
-            for ( let i=0, ien=response.data.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
                 let data = response.data[i];
                 let linkField = pkeyIsJoin ?
                     data['DT_RowId'].replace( editor.idPrefix(), '' ) :
                     this._readProp( readField, data );
-                
+
                 if ( joinMap[ linkField ] ) {
                     data[ this._name ] = joinMap[ linkField ];
                 }
@@ -279,25 +283,27 @@ export default class Mjoin extends NestedData {
         }
 
         // Field options
-        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
             let opts = await fields[i].optionsExec( editor.db() );
 
             if ( opts ) {
-                let name = this.name()+'[].'+fields[i].name();
+                let name = this.name() + '[].' + fields[i].name();
 
                 response.options[ name ] = opts;
             }
         }
     }
 
-
-    public async create ( editor: Editor, parentId: string, data: object ): Promise<void> {
+    /**
+     * @ignore
+     */
+    public async create( editor: Editor, parentId: string, data: object ): Promise<void> {
         // If not settable, or the many count for the join was not submitted
         // then we do nothing
         if (
             ! this._set ||
             ! data[ this._name ] ||
-            ! data[ this._name+'-many-count']
+            ! data[ this._name + '-many-count']
         ) {
             return;
         }
@@ -305,13 +311,16 @@ export default class Mjoin extends NestedData {
         this._prepare( editor );
         let db = editor.db();
 
-        for ( let i=0, ien=data[ this._name ].length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = data[ this._name ].length ; i < ien ; i++ ) {
             await this._insert( db, parentId, data[ this._name ][i] );
         }
     }
 
-    public async update ( editor: Editor, parentId: string, data: object ): Promise<void> {
-        if ( ! this._set || ! data[ this._name+'-many-count'] ) {
+    /**
+     * @ignore
+     */
+    public async update( editor: Editor, parentId: string, data: object ): Promise<void> {
+        if ( ! this._set || ! data[ this._name + '-many-count'] ) {
             return;
         }
 
@@ -321,7 +330,10 @@ export default class Mjoin extends NestedData {
         await this.create( editor, parentId, data );
     }
 
-    public async remove ( editor: Editor, ids: string[] ): Promise<void> {
+    /**
+     * @ignore
+     */
+    public async remove( editor: Editor, ids: string[] ): Promise<void> {
         if ( ! this._set ) {
             return;
         }
@@ -333,7 +345,7 @@ export default class Mjoin extends NestedData {
         if ( join.table ) {
             let query = db( join.table );
 
-            for ( let i=0, ien=ids.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
                 query.orWhere( { [join.parent[1]]: ids[i] } );
             }
 
@@ -342,8 +354,8 @@ export default class Mjoin extends NestedData {
         else {
             let query = db( this._table );
 
-            query.where( function () {
-                for ( let i=0, ien=ids.length ; i<ien ; i++ ) {
+            query.where( function() {
+                for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
                     query.orWhere( { [join.child.toString()]: ids[i] } );
                 }
             } );
@@ -354,7 +366,10 @@ export default class Mjoin extends NestedData {
         }
     }
 
-    public async validate ( errors, editor: Editor, data: object ): Promise<void> {
+    /**
+     * @ignore
+     */
+    public async validate( errors, editor: Editor, data: object ): Promise<void> {
         if ( ! this._set || ! data[ this._name ] ) {
             return;
         }
@@ -362,11 +377,10 @@ export default class Mjoin extends NestedData {
         this._prepare( editor );
         let joinData = data[ this._name ];
 
-        for ( let i=0, ien=joinData.length ; i<ien ; i++ ) {
-            await this._validateFields( errors, editor, joinData[i], this._name+'[].' );
+        for ( let i = 0, ien = joinData.length ; i < ien ; i++ ) {
+            await this._validateFields( errors, editor, joinData[i], this._name + '[].' );
         }
     }
-
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Private methods
@@ -374,12 +388,12 @@ export default class Mjoin extends NestedData {
     private _applyWhere( query: knex ): void {
         let where = this._where;
 
-        for ( let i=0, ien=where.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = where.length ; i < ien ; i++ ) {
             query.where( where[i] );
         }
     }
 
-    private async _insert ( db: knex, parentId: string, data: object ): Promise<void> {
+    private async _insert( db: knex, parentId: string, data: object ): Promise<void> {
         let join = this._join;
         let fields = this.fields();
 
@@ -397,7 +411,7 @@ export default class Mjoin extends NestedData {
                 [join.child.toString()]: parentId
             };
 
-            for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
                 let field = fields[i];
 
                 if ( field.apply('create', data) ) {
@@ -409,7 +423,6 @@ export default class Mjoin extends NestedData {
                 .insert( set );
         }
     }
-
 
     private _prepare( editor: Editor ): void {
         this._editor = editor;
@@ -452,7 +465,7 @@ export default class Mjoin extends NestedData {
                 this._join.table = f3[0];
             }
             else {
-                this._join.table = f4[0]
+                this._join.table = f4[0];
             }
 
             this._join.parent = [ f1[1], f2[1] ];
@@ -463,13 +476,13 @@ export default class Mjoin extends NestedData {
     private async _validateFields( errors, editor: Editor, data: object, prefix: string ): Promise<void> {
         let fields = this.fields();
 
-        for ( let i=0, ien=fields.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
             let field = fields[i];
             let validation = await field.validate( data, editor );
 
             if ( validation !== true ) {
                 errors.push( {
-                    name: prefix+field.name(),
+                    name: prefix + field.name(),
                     status: validation
                 } );
             }

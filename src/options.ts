@@ -1,4 +1,3 @@
-
 import knex from 'knex';
 
 function isNumeric(n) {
@@ -10,13 +9,8 @@ export interface IOption {
     value: string|number;
 }
 
-export interface IRenderer {
-    ( row: object ): string
-}
-
-export interface CustomOptions {
-    ( db: knex ): Promise<IOption[]>
-}
+export type IRenderer = ( row: object ) => string;
+export type CustomOptions = ( db: knex ) => Promise<IOption[]>;
 
 export default class Options {
     private _table: string;
@@ -27,10 +21,9 @@ export default class Options {
     private _where: any;
     private _order: string;
 
-
-    public label (): string;
-    public label (label: string[]): Options;
-    public label (label?: string[]): any {
+    public label(): string;
+    public label(label: string[]): Options;
+    public label(label?: string[]): any {
         if ( label === undefined ) {
             return this._label;
         }
@@ -45,9 +38,9 @@ export default class Options {
         return this;
     }
 
-    public limit (): number;
-    public limit (limit: number): Options;
-    public limit (limit?: number): any {
+    public limit(): number;
+    public limit(limit: number): Options;
+    public limit(limit?: number): any {
         if ( limit === undefined ) {
             return this._limit;
         }
@@ -56,9 +49,9 @@ export default class Options {
         return this;
     }
 
-    public order (): string;
-    public order (order: string): Options;
-    public order (order?: string): any {
+    public order(): string;
+    public order(order: string): Options;
+    public order(order?: string): any {
         if ( order === undefined ) {
             return this._order;
         }
@@ -67,9 +60,9 @@ export default class Options {
         return this;
     }
 
-    public render (): IRenderer;
-    public render (fn: IRenderer): Options;
-    public render (fn?: IRenderer): any {
+    public render(): IRenderer;
+    public render(fn: IRenderer): Options;
+    public render(fn?: IRenderer): any {
         if ( fn === undefined ) {
             return this._renderer;
         }
@@ -78,9 +71,9 @@ export default class Options {
         return this;
     }
 
-    public table (): string;
-    public table (table: string): Options;
-    public table (table?: string): any {
+    public table(): string;
+    public table(table: string): Options;
+    public table(table?: string): any {
         if ( table === undefined ) {
             return this._table;
         }
@@ -89,9 +82,9 @@ export default class Options {
         return this;
     }
 
-    public value (): string;
-    public value (value: string): Options;
-    public value (value?: string): any {
+    public value(): string;
+    public value(value: string): Options;
+    public value(value?: string): any {
         if ( value === undefined ) {
             return this._value;
         }
@@ -100,9 +93,9 @@ export default class Options {
         return this;
     }
 
-    public where (): any;
-    public where (where: any): Options;
-    public where (where?: any): any {
+    public where(): any;
+    public where(where: any): Options;
+    public where(where?: any): any {
         if ( where === undefined ) {
             return this._where;
         }
@@ -111,11 +104,10 @@ export default class Options {
         return this;
     }
 
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Internal methods
 	 */
-    public async exec ( db: knex ): Promise<IOption[]> {
+    public async exec( db: knex ): Promise<IOption[]> {
         let label = this._label;
         let value = this._value;
         let formatter = this._renderer;
@@ -125,10 +117,10 @@ export default class Options {
 
         // We need a default formatter if one isn't provided
         if ( ! formatter ) {
-            formatter = function ( row ) {
+            formatter = function( row ) {
                 let a = [];
 
-                for ( let i=0, ien=label.length ; i<ien ; i++ ) {
+                for ( let i = 0, ien = label.length ; i < ien ; i++ ) {
                     a.push( row[ label[i] ] );
                 }
 
@@ -140,7 +132,7 @@ export default class Options {
         let q = db( this._table )
             .distinct( fields )
             .select();
-        
+
         if ( this._where ) {
             q.where( this._where );
         }
@@ -148,7 +140,7 @@ export default class Options {
         if ( this._order ) {
             q.order( this._order );
         }
-        
+
         if ( this._limit ) {
             q.limit( this.limit );
         }
@@ -157,7 +149,7 @@ export default class Options {
         let out = [];
 
         // Create the output array
-        for ( let i=0, ien=res.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
             out.push( {
                 label: formatter( res[i] ),
                 value: res[i][ value ]
@@ -166,9 +158,9 @@ export default class Options {
 
         // Only sort if there was no SQL order field
         if ( ! this._order ) {
-            out.sort( function ( a, b ) {
+            out.sort( function( a, b ) {
                 if ( isNumeric(a) && isNumeric(b) ) {
-                    return (a.label*1) - (b.label*1);
+                    return (a.label * 1) - (b.label * 1);
                 }
                 return a.label < b.label ?
                     -1 : a.label > b.label ?

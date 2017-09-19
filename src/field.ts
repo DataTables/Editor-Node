@@ -8,13 +8,40 @@ import Upload from './upload';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
 
+/**
+ * Set types
+ * @export
+ */
 export enum SetType {
+    /** Do not set data */
     None,
-    Both,
-    Create,
-    Edit
-};
 
+    /** Write to database on both create and edit */
+    Both,
+
+    /** Write to the database only on create */
+    Create,
+
+    /** Write to the database only on edit */
+    Edit
+}
+
+/**
+ * Field definitions for the DataTables Editor.
+ *
+ * Each Database column that is used with Editor can be described with this
+ * Field method (both for Editor and Join instances). It basically tells
+ * Editor what table column to use, how to format the data and if you want
+ * to read and/or write this column.
+ *
+ * Field instances are used with the {@link Editor.field} and
+ * {@link Mjoin.field} methods to describe what fields should be interacted
+ * with by the editable table.
+ *
+ * @export
+ * @class Field
+ * @extends {NestedData}
+ */
 export default class Field extends NestedData {
     private _dbField: string;
     private _get: boolean = true;
@@ -30,8 +57,19 @@ export default class Field extends NestedData {
     private _xss: Ixss;
     private _xssFormat: boolean = true;
 
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
 
-    constructor( dbField: string=null, name:string=null ) {
+    /**
+     * Creates an instance of Field.
+     *
+     * @param {string} [dbField=null] Name of the database column
+     * @param {string} [name=null] Name to use in the JSON output from Editor and the
+     *   HTTP submit from the client-side when editing. If not given then the
+     *   `dbField` name is used.
+     */
+    constructor( dbField: string = null, name: string = null ) {
         super();
 
         if ( ! name && dbField ) {
@@ -47,9 +85,24 @@ export default class Field extends NestedData {
         }
     }
 
-    public dbField (): string;
-    public dbField (dbField: string): Field;
-    public dbField (dbField?: string): any {
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Public methods
+	 */
+
+    /**
+     * Get the database column name
+     *
+     * @returns {string} Configured column name
+     */
+    public dbField(): string;
+    /**
+     * Set the database column name
+     *
+     * @param {string} dbField Column name to set
+     * @returns {Field} Self for chaining
+     */
+    public dbField(dbField: string): Field;
+    public dbField(dbField?: string): any {
         if ( dbField === undefined ) {
             return this._dbField;
         }
@@ -58,9 +111,21 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public get (): boolean;
-    public get (flag: boolean): Field;
-    public get (flag?: boolean): any {
+    /**
+     * Get the `get` flag for the field (i.e. if the field should be
+     * read from the database).
+     *
+     * @returns {boolean} True if gettable, false otherwise.
+     */
+    public get(): boolean;
+    /**
+     * Set the `get` flag.
+     *
+     * @param {boolean} flag `true` to mark as readable, false otherwise
+     * @returns {Field} Self for chaining
+     */
+    public get(flag: boolean): Field;
+    public get(flag?: boolean): any {
         if ( flag === undefined ) {
             return this._get;
         }
@@ -69,9 +134,25 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public getFormatter (): IFormatter;
-    public getFormatter (formatter: IFormatter): Field;
-    public getFormatter (formatter?: IFormatter): any {
+    /**
+     * Get formatter for the field's data.
+     *
+     * @returns {IFormatter} Formatter
+     */
+    public getFormatter(): IFormatter;
+    /**
+     * Set the get formatter.
+     *
+     * When the data has been retrieved from the server, it can be passed through
+     * a formatter here, which will manipulate (format) the data as required. This
+     * can be useful when, for example, working with dates and a particular format
+     * is required on the client-side.
+     *
+     * @param {IFormatter} formatter Formatter to use.
+     * @returns {Field} Self for chaining.
+     */
+    public getFormatter(formatter: IFormatter): Field;
+    public getFormatter(formatter?: IFormatter): any {
         if ( formatter === undefined ) {
             return this._getFormatter;
         }
@@ -80,9 +161,23 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public getValue (): any;
-    public getValue (val: any): Field;
-    public getValue (val?: any): any {
+    /**
+     * Get the currently applied get value.
+     *
+     * @returns {*} Value - will be undefined by default.
+     */
+    public getValue(): any;
+    /**
+     * Set the get value for the field.
+     *
+     * If given, then this value is used to send to the client-side, regardless
+     * of what value is held by the database.
+     *
+     * @param {*} val Value to set
+     * @returns {Field} Self for chaining
+     */
+    public getValue(val: any): Field;
+    public getValue(val?: any): any {
         if ( val === undefined ) {
             return this._getValue;
         }
@@ -91,9 +186,26 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public name (): string;
-    public name (name: string): Field;
-    public name (name?: string): any {
+    /**
+     * Get the field's configured name.
+     *
+     * @returns {string} Current name.
+     * @memberof Field
+     */
+    public name(): string;
+    /**
+     * Set the field's name.
+     *
+     * The name is typically the same as the dbField name, since it makes things
+     * less confusing(!), but it is possible to set a different name for the data
+     * which is used in the JSON returned to DataTables in a 'get' operation and
+     * the field name used in a 'set' operation.
+     *
+     * @param {string} name Name to set
+     * @returns {Field} Self for chaining
+     */
+    public name(name: string): Field;
+    public name(name?: string): any {
         if ( name === undefined ) {
             return this._name;
         }
@@ -102,10 +214,27 @@ export default class Field extends NestedData {
         return this;
     }
 
-
-    public options (): Options & CustomOptions;
-    public options (opts: Options & CustomOptions): Field;
-    public options (opts?: Options & CustomOptions): any {
+    /**
+     * Get the currently configured options for the field.
+     *
+     * @returns {(Options & CustomOptions)} Options configuration
+     */
+    public options(): Options & CustomOptions;
+    /**
+     * Set how a list of options (values and labels) will be retrieved for the field.
+     *
+     * Gets a list of values that can be used for the options list in radio,
+     * select and checkbox inputs from the database for this field.
+     *
+     * Note that this is for simple 'label / value' pairs only. For more complex
+     * data, including pairs that require joins and where conditions, use a
+     * closure to provide a query
+     *
+     * @param {(Options & CustomOptions)} opts Options configuration
+     * @returns {Field} Self for chaining
+     */
+    public options(opts: Options & CustomOptions): Field;
+    public options(opts?: Options & CustomOptions): any {
         if ( opts === undefined ) {
             return this._opts;
         }
@@ -114,10 +243,25 @@ export default class Field extends NestedData {
         return this;
     }
 
-
-    public set (): SetType;
-    public set (flag: boolean|SetType): Field;
-    public set (flag?: boolean): any {
+    /**
+     * Get the current `set` property for the field.
+     *
+     * @returns {SetType} Set configuration
+     */
+    public set(): SetType;
+    /**
+     * Set the field's `set` configuration.
+     *
+     * A field can be marked as read only using this option, to be set only
+     * during an create or edit action or to be set during both actions. This
+     * provides the ability to have fields that are only set when a new row is
+     * created (for example a "created" time stamp).
+     *
+     * @param {(boolean|SetType)} flag Set flag.
+     * @returns {Field} Self for chaining.
+     */
+    public set(flag: boolean|SetType): Field;
+    public set(flag?: boolean): any {
         if ( flag === undefined ) {
             return this._set;
         }
@@ -135,9 +279,28 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public setFormatter (): IFormatter;
-    public setFormatter (formatter: IFormatter): Field;
-    public setFormatter (formatter?: IFormatter): any {
+    /**
+     * Set formatter for the field's data.
+     *
+     * @returns {IFormatter} Formatter
+     */
+    public setFormatter(): IFormatter;
+    /**
+     * Set the set formatter.
+     *
+     * When the data has been retrieved from the server, it can be passed through
+     * a formatter here, which will manipulate (format) the data as required. This
+     * can be useful when, for example, working with dates and a particular format
+     * is required on the client-side.
+     *
+     * Editor has a number of formatters available with the {@link Format} class
+     * which can be used directly with this method.
+     *
+     * @param {IFormatter} formatter Formatter to use.
+     * @returns {Field} Self for chaining.
+     */
+    public setFormatter(formatter: IFormatter): Field;
+    public setFormatter(formatter?: IFormatter): any {
         if ( formatter === undefined ) {
             return this._setFormatter;
         }
@@ -146,9 +309,23 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public setValue (): any;
-    public setValue (val: any): Field;
-    public setValue (val?: any): any {
+    /**
+     * Get the currently applied set value.
+     *
+     * @returns {*} Value - will be undefined by default.
+     */
+    public setValue(): any;
+    /**
+     * Set the set value for the field.
+     *
+     * If given, then this value is used to write to the database regardless
+     *  of what data is sent from the client-side.
+     *
+     * @param {*} val Value to set
+     * @returns {Field} Self for chaining
+     */
+    public setValue(val: any): Field;
+    public setValue(val?: any): any {
         if ( val === undefined ) {
             return this._setValue;
         }
@@ -157,9 +334,20 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public upload (): Upload;
-    public upload (upload: Upload): Field;
-    public upload (upload?: Upload): any {
+    /**
+     * Get the {@link Upload} class for this field.
+     *
+     * @returns {Upload} Configured upload class
+     */
+    public upload(): Upload;
+    /**
+     * Set an {@link Upload} class for this field.
+     *
+     * @param {Upload} upload Upload class instance
+     * @returns {Field} Self for chaining
+     */
+    public upload(upload: Upload): Field;
+    public upload(upload?: Upload): any {
         if ( upload === undefined ) {
             return this._upload;
         }
@@ -168,9 +356,30 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public validator (): any;
-    public validator (validator: IValidator): Field;
-    public validator (validator?: IValidator): any {
+    /**
+     * Get the validators applied to this field.
+     *
+     * @returns {IValidator[]} Array of validators
+     */
+    public validator(): IValidator[];
+    /**
+     * Set the 'validator' of the field.
+     *
+     * The validator can be used to check if any abstract piece of data is valid
+     * or not according to the given rules of the validation function used.
+     *
+     * Multiple validation options can be applied to a field instance by calling
+     * this method multiple times. For example, it would be possible to have a
+     * 'required' validation and a 'maxLength' validation with multiple calls.
+     *
+     * Editor has a number of validation available with the {@link Validate} class
+     * which can be used directly with this method.
+     *
+     * @param {IValidator} validator Validator to add to the field
+     * @returns {Field} Self for chaining
+     */
+    public validator(validator: IValidator): Field;
+    public validator(validator?: IValidator): any {
         if ( validator === undefined ) {
             return this._validator;
         }
@@ -179,9 +388,32 @@ export default class Field extends NestedData {
         return this;
     }
 
-    public xss (): any;
-    public xss (flag: boolean|Ixss): Field;
-    public xss (flag?: boolean|Ixss): any {
+    /**
+     * Get the current XSS formatter.
+     *
+     * @returns {Ixss} XSS formatter. Can be null or undefined.
+     */
+    public xss(): Ixss;
+    /**
+     * Set a formatting method that will be used for XSS checking / removal.
+     * This should be a function that takes a single argument (the value to be
+     * cleaned) and returns the cleaned value.
+     *
+     * Editor will use `xss-filters` by default for this operation, which is built
+     * into the software and no additional configuration is required, but a
+     * custom function can be used if you wish to use a different formatter.
+     *
+     * If you wish to disable this option (which you would only do if you are
+     * absolutely confident that your validation will pick up on any XSS inputs)
+     * simply provide a closure function that returns the value given to the
+     * function. This is _not_ recommended.
+     *
+     * @param {(boolean|Ixss)} flag Enable / disable XSS protection, or set a
+     *   formatter.
+     * @returns {Field} Self for chaining.
+     */
+    public xss(flag: boolean|Ixss): Field;
+    public xss(flag?: boolean|Ixss): any {
         if ( flag === undefined ) {
             return this._xss;
         }
@@ -199,12 +431,14 @@ export default class Field extends NestedData {
         return this;
     }
 
-    
-
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Internal methods
 	 * Used by the Editor class and not generally for public use
 	 */
+
+    /**
+     * @hidden
+     */
     public apply( action: 'get'|'create'|'edit', data?: object ): boolean {
         if ( action === 'get' ) {
             return this._get;
@@ -226,8 +460,10 @@ export default class Field extends NestedData {
         return true;
     }
 
-
-    public async optionsExec ( db: knex ): Promise<false|IOption[]> {
+    /**
+     * @hidden
+     */
+    public async optionsExec( db: knex ): Promise<false|IOption[]> {
         if ( this._opts instanceof Options ) {
             return await this._opts.exec( db );
         }
@@ -237,7 +473,9 @@ export default class Field extends NestedData {
         return false;
     }
 
-
+    /**
+     * @hidden
+     */
     public val( direction: 'get'|'set', data: object ): any {
         let val;
 
@@ -256,7 +494,7 @@ export default class Field extends NestedData {
 
             return this._format( val, data, this._getFormatter );
         }
-        
+
         // set - using from the payload, and thus use `name`
         if ( this._setValue !== undefined ) {
             val = typeof this._setValue === 'function' ?
@@ -270,21 +508,24 @@ export default class Field extends NestedData {
         return this._format( val, data, this._setFormatter );
     }
 
-    public async validate ( data: object, editor: Editor, id: string=null ): Promise<true|string> {
+    /**
+     * @hidden
+     */
+    public async validate( data: object, editor: Editor, id: string = null ): Promise<true|string> {
         if ( this._validator.length === 0 ) {
             return true;
         }
-        
+
         let val = this._readProp( this.name(), data );
         let host = new Validator.Host( {
-            action: editor.inData()['action'],
-            id,
-            field: this,
+            action: editor.inData().action,
+            db: editor.db(),
             editor,
-            db: editor.db()
+            field: this,
+            id
         } );
 
-        for ( let i=0, ien=this._validator.length ; i<ien ; i++ ) {
+        for ( let i = 0, ien = this._validator.length ; i < ien ; i++ ) {
             let validator = this._validator[i];
             let res = await validator( val, data, host );
 
@@ -293,15 +534,21 @@ export default class Field extends NestedData {
             }
         }
 
-        // Calidation methods all run, must be value
+        // Validation methods all run, must be value
         return true;
     }
-    
+
+    /**
+     * @hidden
+     */
     public write( out: object, srcData: object ): void {
         this._writeProp( out, this.name(), this.val('get', srcData) );
     }
 
-    public xssSafety ( val: any ) {
+    /**
+     * @hidden
+     */
+    public xssSafety( val: any ) {
         if ( ! this._xss ) {
             return val;
         }
@@ -309,7 +556,7 @@ export default class Field extends NestedData {
         if ( Array.isArray( val ) ) {
             let out = [];
 
-            for ( let i=0, ien=val.length ; i<ien ; i++ ) {
+            for ( let i = 0, ien = val.length ; i < ien ; i++ ) {
                 out.push( this._xss( val[i] ) );
             }
 
@@ -318,7 +565,6 @@ export default class Field extends NestedData {
 
         return this._xss( val );
     }
-
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
@@ -330,4 +576,3 @@ export default class Field extends NestedData {
             val;
     }
 }
-
