@@ -190,7 +190,6 @@ export default class Field extends NestedData {
      * Get the field's configured name.
      *
      * @returns {string} Current name.
-     * @memberof Field
      */
     public name(): string;
     /**
