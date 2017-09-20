@@ -178,7 +178,6 @@ interface ILeftJoin {
 	operator: string;
 }
 
-
 /**
  * DataTables Editor base class for creating editable tables.
  *
@@ -256,7 +255,6 @@ export default class Editor extends NestedData {
 	private _knexTransaction: knex;
 	private _uploadData: IUpload;
 
-
 	/**
 	 * Creates an instance of Editor.
 	 * @param {knex} [db=null] Database connection object
@@ -281,7 +279,6 @@ export default class Editor extends NestedData {
 			this.pkey( pkey );
 		}
 	}
-
 
 	/**
 	 * Get the data constructed in this instance.
@@ -343,7 +340,6 @@ export default class Editor extends NestedData {
 	 * Add one or more fields to the instance.
 	 * @param {...Field[]} fields Fields to add
 	 * @returns {Editor} Self for chaining
-	 * @memberof Editor
 	 */
 	public fields(...fields: Field[]): Editor;
 	public fields(...fields: Field[]): any {
@@ -361,7 +357,7 @@ export default class Editor extends NestedData {
 	 *
 	 * Typically primary keys are numeric and this is not a valid ID value in an
 	 * HTML document - is also increases the likelihood of an ID clash if multiple
-	 * tables are used on a single page. As such, a prefix is assigned to the 
+	 * tables are used on a single page. As such, a prefix is assigned to the
 	 * primary key value for each row, and this is used as the DOM ID, so Editor
 	 * can track individual rows.
 	 * @returns {string} id prefix
@@ -394,7 +390,7 @@ export default class Editor extends NestedData {
 
 	/**
 	 * Get the configured Mjoin instances.
-	 * 
+	 *
 	 * Note that for the majority of use cases you will want to use the
 	 * `leftJoin()` method. It is significantly easier to use if you are just
 	 * doing a simple left join!

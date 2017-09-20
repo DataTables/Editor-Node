@@ -12,6 +12,18 @@ export interface IOption {
 export type IRenderer = ( row: object ) => string;
 export type CustomOptions = ( db: knex ) => Promise<IOption[]>;
 
+/**
+ * The Options class provides a convenient method of specifying where Editor
+ * should get the list of options for a `select`, `radio` or `checkbox` field.
+ * This is normally from a table that is _left joined_ to the main table being
+ * edited, and a list of the values available from the joined table is shown to
+ * the end user to let them select from.
+ *
+ * `Options` instances are used with the {@link Field.options} method.
+ *
+ * @export
+ * @class Options
+ */
 export default class Options {
     private _table: string;
     private _value: string;
@@ -21,7 +33,22 @@ export default class Options {
     private _where: any;
     private _order: string;
 
-    public label(): string;
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Public methods
+	 */
+
+    /**
+     * Get the column(s) to be used for the label
+     *
+     * @returns {string[]} Label columns
+     */
+    public label(): string[];
+    /**
+     * Set the column(s) to be used for the label
+     *
+     * @param {string[]} label Database column names
+     * @returns {Options} Self for chaining
+     */
     public label(label: string[]): Options;
     public label(label?: string[]): any {
         if ( label === undefined ) {
@@ -38,7 +65,18 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the currently applied LIMIT
+     *
+     * @returns {number} Limit
+     */
     public limit(): number;
+    /**
+     * Set the LIMIT clause to limit the number of records returned
+     *
+     * @param {number} limit Limit
+     * @returns {Options} Self for chaining
+     */
     public limit(limit: number): Options;
     public limit(limit?: number): any {
         if ( limit === undefined ) {
@@ -49,7 +87,20 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the ORDER BY clause for the SQL.
+     *
+     * @returns {string} ORDER BY clause
+     */
     public order(): string;
+    /**
+     * Set the ORDER BY clause to use in the SQL. If this option is not
+     * provided the ordering will be based on the rendered output, either
+     * numerically or alphabetically based on the data returned by the renderer.
+     *
+     * @param {string} order ORDER BY statement
+     * @returns {Options} Self for chaining
+     */
     public order(order: string): Options;
     public order(order?: string): any {
         if ( order === undefined ) {
@@ -60,7 +111,20 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the configured label renderer
+     *
+     * @returns {IRenderer} Self for chaining
+     */
     public render(): IRenderer;
+    /**
+     * Set the label renderer. The renderer can be used to combine
+     * multiple database columns into a single string that is shown as the label
+     * to the end user in the list of options.
+     *
+     * @param {IRenderer} fn Renderering function
+     * @returns {Options} Self for chaining
+     */
     public render(fn: IRenderer): Options;
     public render(fn?: IRenderer): any {
         if ( fn === undefined ) {
@@ -71,7 +135,18 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the table that the options will be gathered from.
+     *
+     * @returns {string} Table name
+     */
     public table(): string;
+    /**
+     * Set the database table from which to gather the options for the list.
+     *
+     * @param {string} table Table name
+     * @returns {Options} Self for chaining
+     */
     public table(table: string): Options;
     public table(table?: string): any {
         if ( table === undefined ) {
@@ -82,7 +157,19 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the column name to use for the value in the options list.
+     *
+     * @returns {string} Column name
+     */
     public value(): string;
+    /**
+     * Set the column name to use for the value in the options list. This would
+     * normally be the primary key for the table.
+     *
+     * @param {string} value Column name
+     * @returns {Options} Self for chaining
+     */
     public value(value: string): Options;
     public value(value?: string): any {
         if ( value === undefined ) {
@@ -93,7 +180,19 @@ export default class Options {
         return this;
     }
 
+    /**
+     * Get the WHERE condition for this option set.
+     *
+     * @returns {*} Knex WHERE condition
+     */
     public where(): any;
+    /**
+     * Set the method to use for a WHERE condition if one is to be applied to
+     * the query to get the options.
+     *
+     * @param {*} where Knex WHERE condition
+     * @returns {Options} Self for chaining
+     */
     public where(where: any): Options;
     public where(where?: any): any {
         if ( where === undefined ) {
@@ -107,6 +206,10 @@ export default class Options {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Internal methods
 	 */
+
+     /**
+      * @ignore
+      */
     public async exec( db: knex ): Promise<IOption[]> {
         let label = this._label;
         let value = this._value;
