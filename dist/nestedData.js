@@ -1,8 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Class that provides methods to read and write from nested JSON objects,
+ * using dot notation strings for the nesting. This class should be extended
+ * by any wishing to use these abilities.
+ * @export
+ * @class NestedData
+ */
 var NestedData = (function () {
     function NestedData() {
     }
+    /**
+     * @hidden
+     * Check if a nested property exists in a data set.
+     * @protected
+     * @param {string} name Property name
+     * @param {object} data Data set to check
+     * @returns {boolean} `true` if present, `false` otherwise
+     */
     NestedData.prototype._propExists = function (name, data) {
         if (name.indexOf('.') === -1) {
             return data[name] === undefined ?
@@ -21,6 +36,14 @@ var NestedData = (function () {
             false :
             true;
     };
+    /**
+     * @hidden
+     * Get a nested property value.
+     * @protected
+     * @param {string} name Property name
+     * @param {object} data Data set to check
+     * @returns {*} Value
+     */
     NestedData.prototype._readProp = function (name, data) {
         if (name.indexOf('.') === -1) {
             return data[name] !== undefined ?
@@ -40,6 +63,15 @@ var NestedData = (function () {
             inner[idx] :
             null;
     };
+    /**
+     * @hidden
+     * Write a value to a nested data object.
+     * @protected
+     * @param {object} out Data object to write the value into
+     * @param {string} name Nested property name to write to
+     * @param {*} value Value to write
+     * @returns {void} No return.
+     */
     NestedData.prototype._writeProp = function (out, name, value) {
         if (name.indexOf('.') === -1) {
             out[name] = value;
@@ -61,7 +93,7 @@ var NestedData = (function () {
         }
         var idx = names[names.length - 1];
         if (inner[idx] !== undefined) {
-            throw new Error('Duplicate field deletected - a field with the name ' +
+            throw new Error('Duplicate field detected - a field with the name ' +
                 '`' + name + '` already exists');
         }
         inner[idx] = value;

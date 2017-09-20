@@ -46,8 +46,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var nestedData_1 = require("./nestedData");
+/**
+ * The MJoin class provides a one-to-many join link for Editor. This can
+ * be useful in cases were an attribute can take multiple values at the
+ * same time - for example cumulative security access levels.
+ *
+ * Typically the MJoin class should be used with a link table, but this is
+ * optional. Please note that if you don't use a link table you should be
+ * aware that on edit the linked rows are deleted and then reinserted, thus
+ * if any values should be retained they should also be submitted.
+ *
+ * Please refer to the Editor Node documentation for further information
+ * https://editor.datatables.net/manual/node
+ *
+ * @export
+ * @class Mjoin
+ * @extends {NestedData}
+ */
 var Mjoin = (function (_super) {
     __extends(Mjoin, _super);
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Constructor
+     */
+    /**
+     * Creates an instance of Mjoin.
+     *
+     * @param {string} table Table name being joined to
+     */
     function Mjoin(table) {
         var _this = _super.call(this) || this;
         _this._get = true;
@@ -56,8 +81,8 @@ var Mjoin = (function (_super) {
         _this._fields = [];
         _this._links = [];
         _this._join = {
-            parent: '',
-            child: ''
+            child: '',
+            parent: ''
         };
         _this.table(table);
         _this.name(table);
@@ -65,6 +90,12 @@ var Mjoin = (function (_super) {
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Public methods
+     */
+    /**
+     * Get or field by name, or add a field instance.
+     *
+     * @param {(Field|string)} nameOrField Field instance to add, or field name to get
+     * @returns Mjoin instance if adding a field, Field instance if getting a field.
      */
     Mjoin.prototype.field = function (nameOrField) {
         if (typeof nameOrField === 'string') {
@@ -96,6 +127,24 @@ var Mjoin = (function (_super) {
         this._get = flag;
         return this;
     };
+    /**
+     * Create a join link between two tables. The order of the fields does not
+     * matter, but each field must contain the table name as well as the field
+     * name.
+     *
+     * This method can be called a maximum of two times for an Mjoin instance:
+     *
+     * * First time, creates a link between the Editor host table and a join
+     *   table
+     * * Second time creates the links required for a link table.
+     *
+     * Please refer to the Editor Mjoin documentation for further details:
+     * https://editor.datatables.net/manual/php
+     *
+     * @param {string} field1 Table and field name
+     * @param {string} field2 Table and field name
+     * @returns {Mjoin} Self for chaining
+     */
     Mjoin.prototype.link = function (field1, field2) {
         if (field1.indexOf('.') === -1 || field2.indexOf('.') === -1) {
             throw new Error('Mjoin fields must contain both the table name and the column name');
@@ -145,6 +194,9 @@ var Mjoin = (function (_super) {
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Internal methods
+     */
+    /**
+     * @ignore
      */
     Mjoin.prototype.data = function (editor, response) {
         return __awaiter(this, void 0, void 0, function () {
@@ -225,7 +277,7 @@ var Mjoin = (function (_super) {
                                 for (j = 0, jen = fields.length; j < jen; j++) {
                                     fields[j].write(inner, res[i]);
                                 }
-                                lookup = res[i]['dteditor_pkey'];
+                                lookup = res[i].dteditor_pkey;
                                 if (!joinMap[lookup]) {
                                     joinMap[lookup] = [];
                                 }
@@ -266,6 +318,9 @@ var Mjoin = (function (_super) {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Mjoin.prototype.create = function (editor, parentId, data) {
         return __awaiter(this, void 0, void 0, function () {
             var db, i, ien;
@@ -297,6 +352,9 @@ var Mjoin = (function (_super) {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Mjoin.prototype.update = function (editor, parentId, data) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -320,6 +378,9 @@ var Mjoin = (function (_super) {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Mjoin.prototype.remove = function (editor, ids) {
         return __awaiter(this, void 0, void 0, function () {
             var db, join, query, i, ien, query_1, _a;
@@ -359,6 +420,9 @@ var Mjoin = (function (_super) {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Mjoin.prototype.validate = function (errors, editor, data) {
         return __awaiter(this, void 0, void 0, function () {
             var joinData, i, ien;

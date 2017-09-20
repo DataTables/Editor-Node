@@ -57,7 +57,39 @@ var DbOpts;
     // available here as there isn't a good and reliable way to get the web
     // root in node (it could be anywhere!).
 })(DbOpts = exports.DbOpts || (exports.DbOpts = {}));
+/**
+ * Upload class for Editor. This class provides the ability to easily specify
+ * file upload information, specifically how the file should be recorded on
+ * the server (database and file system).
+ *
+ * An instance of this class is attached to a field using the {@link
+ * Field.upload} method. When Editor detects a file upload for that file the
+ * information provided for this instance is executed.
+ *
+ * The configuration is primarily driven through the {@link db} and {@link
+ * action} methods:
+ *
+ * * {@link db} Describes how information about the uploaded file is to be
+ *   stored on the database.
+ * * {@link action} Describes where the file should be stored on the file system
+ *   and provides the option of specifying a custom action when a file is
+ *   uploaded.
+ *
+ * Both methods are optional - you can store the file on the server using the
+ * {@link db} method only if you want to store the file in the database, or if
+ * you don't want to store relational data on the database us only {@link
+ * action}. However, the majority of the time it is best to use both - store
+ * information about the file on the database for fast retrieval (using a {@link
+ * Editor.leftJoin()} for example) and the file on the file system for direct
+ * web access.
+ *
+ * @export
+ * @class Upload
+ */
 var Upload = (function () {
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Constructor
+     */
     function Upload(action) {
         if (action === void 0) { action = null; }
         this._validators = [];
@@ -66,16 +98,67 @@ var Upload = (function () {
             this.action(action);
         }
     }
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Public methods
+     */
+    /**
+     * Set the action to take when a file is uploaded. This can be either of:
+     *
+     * * A string - the value given is the full system path to where the
+     *   uploaded file is written to. The value given can include three "macros"
+     *   which are replaced by the script dependent on the uploaded file:
+     *   * `__EXTN__` - the file extension
+     *   * `__NAME__` - the uploaded file's name (including the extension)
+     *   * `__ID__` - Database primary key value if the {@link db} method is
+     *     used.
+     * * A closure - if a function is given the responsibility of what to do
+     *   with the uploaded file is transferred to this function. That will
+     *   typically involve writing it to the file system so it can be used
+     *   later.
+     *
+     * @param {(string|Function)} action Upload action
+     * @returns {Upload} Self for chaining
+     */
     Upload.prototype.action = function (action) {
         this._action = action;
         return this;
     };
+    /**
+     * Database configuration method. When used, this method will tell Editor
+     * what information you want written to a database on file upload, should
+     * you wish to store relational information about your file on the database
+     * (this is generally recommended).
+     *
+     * @param {string} table The name of the table where the file information
+     *     should be stored
+     * @param {string} pkey Primary key column name. The `Upload` class
+     *     requires that the database table have a single primary key so each
+     *     row can be uniquely identified.
+     * @param {object} fields A list of the fields to be written to on upload.
+     *     The property names are the database columns and the values can be
+     *     defined by the constants of this class. The value can also be a
+     *     string or a closure function if you wish to send custom information
+     *     to the database.
+     * @returns {Upload} Self for chaining
+     */
     Upload.prototype.db = function (table, pkey, fields) {
         this._dbTable = table;
         this._dbPkey = pkey;
         this._dbFields = fields;
         return this;
     };
+    /**
+     * Set a callback function that is used to remove files which no longer have
+     * a reference in a source table.
+     *
+     * @param {(string|Function)} tableField Table field to be used for the delete match
+     * @param {Function} [callback=null] Function that will be executed on clean. It is
+     *   given an array of information from the database about the orphaned
+     *   rows, and can return true to indicate that the rows should be
+     *   removed from the database. Any other return value (including none)
+     *   will result in the records being retained.
+     * @returns {Upload} Self for chaining
+     */
     Upload.prototype.dbClean = function (tableField, callback) {
         if (callback === void 0) { callback = null; }
         // Argument swapping
@@ -89,16 +172,38 @@ var Upload = (function () {
         }
         return this;
     };
+    /**
+     * Add a validation method to check file uploads. Multiple validators can be
+     * added by calling this method multiple times - they will be executed in
+     * sequence when a file has been uploaded.
+     *
+     * @param {any} fn Validation function. A files parameter is
+     *   passed in for the uploaded file and the return is either a string
+     *   (validation failed and error message), or `true` (validation passed).
+     * @returns {Upload} Self for chaining
+     */
     Upload.prototype.validator = function (fn) {
         this._validators.push(fn);
         return this;
     };
+    /**
+     * Add a condition to the data to be retrieved from the database. This
+     * must be given as a function to be executed (usually anonymous) and
+     * will be passed in a single argument, the `Query` object, to which
+     * conditions can be added. Multiple calls to this method can be made.
+     *
+     * @param {any} fn Knex WHERE condition
+     * @returns {Upload} Self for chaining
+     */
     Upload.prototype.where = function (fn) {
         this._where.push(fn);
         return this;
     };
     /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
      * Internal methods
+     */
+    /**
+     * @ignore
      */
     Upload.prototype.data = function (db, id) {
         if (id === void 0) { id = null; }
@@ -137,6 +242,9 @@ var Upload = (function () {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Upload.prototype.dbCleanExec = function (editor, field) {
         return __awaiter(this, void 0, void 0, function () {
             var tables;
@@ -147,12 +255,18 @@ var Upload = (function () {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Upload.prototype.error = function () {
         return this._error;
     };
+    /**
+     * @ignore
+     */
     Upload.prototype.exec = function (editor, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var id, fileInfo, a, i, ien, res_1, fields, i, ien, prop, res;
+            var id, fileInfo, a, i, ien, result, fields, i, ien, prop, res;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, stat(upload.upload.file)];
@@ -170,10 +284,9 @@ var Upload = (function () {
                         if (!(i < ien)) return [3 /*break*/, 5];
                         return [4 /*yield*/, this._validators[i](upload.upload)];
                     case 3:
-                        res_1 = _a.sent();
-                        console.log('validator', res_1);
-                        if (typeof res_1 === 'string') {
-                            this._error = res_1;
+                        result = _a.sent();
+                        if (typeof result === 'string') {
+                            this._error = result;
                             return [2 /*return*/, null];
                         }
                         _a.label = 4;
@@ -206,9 +319,15 @@ var Upload = (function () {
             });
         });
     };
+    /**
+     * @ignore
+     */
     Upload.prototype.pkey = function () {
         return this._dbPkey;
     };
+    /**
+     * @ignore
+     */
     Upload.prototype.table = function () {
         return this._dbTable;
     };
@@ -319,7 +438,7 @@ var Upload = (function () {
     };
     Upload.prototype._dbExec = function (db, files) {
         return __awaiter(this, void 0, void 0, function () {
-            var pathFields, fields, columns, set, upload, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, set_1, i, ien, key, _d;
+            var pathFields, fields, columns, set, upload, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, toSet, i, ien, key, _d;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -372,7 +491,7 @@ var Upload = (function () {
                         return [3 /*break*/, 12];
                     case 10:
                         pathFields[column] = this._action;
-                        set[column] = '-'; // Use a temporary value to avoid cases 
+                        set[column] = '-'; // Use a temporary value to avoid cases
                         return [3 /*break*/, 12]; // where the db will reject empty values
                     case 11:
                         val = typeof prop === 'function' ?
@@ -397,13 +516,13 @@ var Upload = (function () {
                         id = res[0];
                         pathKeys = Object.keys(pathFields);
                         if (!pathKeys.length) return [3 /*break*/, 16];
-                        set_1 = {};
+                        toSet = {};
                         for (i = 0, ien = pathKeys.length; i < ien; i++) {
                             key = pathKeys[i];
-                            set_1[key] = this._substitute(pathFields[key], upload.file, id);
+                            toSet[key] = this._substitute(pathFields[key], upload.file, id);
                         }
                         return [4 /*yield*/, db(this._dbTable)
-                                .update(set_1)
+                                .update(toSet)
                                 .where((_d = {}, _d[this._dbPkey] = id, _d))];
                     case 15:
                         _e.sent();

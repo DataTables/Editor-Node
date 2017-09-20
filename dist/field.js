@@ -49,16 +49,50 @@ var nestedData_1 = require("./nestedData");
 var options_1 = require("./options");
 var validators_1 = require("./validators");
 var xss_1 = require("./xss");
+/**
+ * Set types
+ * @export
+ */
 var SetType;
 (function (SetType) {
+    /** Do not set data */
     SetType[SetType["None"] = 0] = "None";
+    /** Write to database on both create and edit */
     SetType[SetType["Both"] = 1] = "Both";
+    /** Write to the database only on create */
     SetType[SetType["Create"] = 2] = "Create";
+    /** Write to the database only on edit */
     SetType[SetType["Edit"] = 3] = "Edit";
 })(SetType = exports.SetType || (exports.SetType = {}));
-;
+/**
+ * Field definitions for the DataTables Editor.
+ *
+ * Each Database column that is used with Editor can be described with this
+ * Field method (both for Editor and Join instances). It basically tells
+ * Editor what table column to use, how to format the data and if you want
+ * to read and/or write this column.
+ *
+ * Field instances are used with the {@link Editor.field} and
+ * {@link Mjoin.field} methods to describe what fields should be interacted
+ * with by the editable table.
+ *
+ * @export
+ * @class Field
+ * @extends {NestedData}
+ */
 var Field = (function (_super) {
     __extends(Field, _super);
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Constructor
+     */
+    /**
+     * Creates an instance of Field.
+     *
+     * @param {string} [dbField=null] Name of the database column
+     * @param {string} [name=null] Name to use in the JSON output from Editor and the
+     *   HTTP submit from the client-side when editing. If not given then the
+     *   `dbField` name is used.
+     */
     function Field(dbField, name) {
         if (dbField === void 0) { dbField = null; }
         if (name === void 0) { name = null; }
@@ -184,6 +218,9 @@ var Field = (function (_super) {
      * Internal methods
      * Used by the Editor class and not generally for public use
      */
+    /**
+     * @hidden
+     */
     Field.prototype.apply = function (action, data) {
         if (action === 'get') {
             return this._get;
@@ -201,6 +238,9 @@ var Field = (function (_super) {
         // In the data set, so use it
         return true;
     };
+    /**
+     * @hidden
+     */
     Field.prototype.optionsExec = function (db) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -218,6 +258,9 @@ var Field = (function (_super) {
             });
         });
     };
+    /**
+     * @hidden
+     */
     Field.prototype.val = function (direction, data) {
         var val;
         if (direction === 'get') {
@@ -245,6 +288,9 @@ var Field = (function (_super) {
         }
         return this._format(val, data, this._setFormatter);
     };
+    /**
+     * @hidden
+     */
     Field.prototype.validate = function (data, editor, id) {
         if (id === void 0) { id = null; }
         return __awaiter(this, void 0, void 0, function () {
@@ -257,11 +303,11 @@ var Field = (function (_super) {
                         }
                         val = this._readProp(this.name(), data);
                         host = new validators_1.default.Host({
-                            action: editor.inData()['action'],
-                            id: id,
-                            field: this,
+                            action: editor.inData().action,
+                            db: editor.db(),
                             editor: editor,
-                            db: editor.db()
+                            field: this,
+                            id: id
                         });
                         i = 0, ien = this._validator.length;
                         _a.label = 1;
@@ -279,15 +325,21 @@ var Field = (function (_super) {
                         i++;
                         return [3 /*break*/, 1];
                     case 4: 
-                    // Calidation methods all run, must be value
+                    // Validation methods all run, must be value
                     return [2 /*return*/, true];
                 }
             });
         });
     };
+    /**
+     * @hidden
+     */
     Field.prototype.write = function (out, srcData) {
         this._writeProp(out, this.name(), this.val('get', srcData));
     };
+    /**
+     * @hidden
+     */
     Field.prototype.xssSafety = function (val) {
         if (!this._xss) {
             return val;

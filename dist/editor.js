@@ -48,12 +48,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var crc = require("crc");
 var field_1 = require("./field");
 var nestedData_1 = require("./nestedData");
+/**
+ * Action that has been requested by the client-side
+ * (based on the `action` parameter).
+ * @export
+ */
 var Action;
 (function (Action) {
+    /** Get data (used by DataTables). */
     Action[Action["Read"] = 0] = "Read";
+    /** Create a new row. */
     Action[Action["Create"] = 1] = "Create";
+    /** Edit one or more rows. */
     Action[Action["Edit"] = 2] = "Edit";
+    /** Delete one or more rows. */
     Action[Action["Delete"] = 3] = "Delete";
+    /** Upload a file. */
     Action[Action["Upload"] = 4] = "Upload";
 })(Action = exports.Action || (exports.Action = {}));
 /**
@@ -147,7 +157,6 @@ var Editor = (function (_super) {
     /**
      * Get the data constructed in this instance.
      * @returns {IDtResponse} Data object
-     * @memberof Editor
      */
     Editor.prototype.data = function () {
         return this._out;
@@ -161,6 +170,12 @@ var Editor = (function (_super) {
         this._db = db;
         return this;
     };
+    /**
+     * Get or field by name, or add a field instance.
+     * @param nameOrField Field instance to add, or field name to get
+     * @returns {Editor|Field} Editor instance returned if adding a field,
+     *   Field instance returned if getting a field.
+     */
     Editor.prototype.field = function (nameOrField) {
         if (typeof nameOrField === 'string') {
             for (var i = 0, ien = this._fields.length; i < ien; i++) {
@@ -191,6 +206,12 @@ var Editor = (function (_super) {
         this._idPrefix = idPrefix;
         return this;
     };
+    /**
+     * Get the data that is being processed by the Editor instance. This is only
+     * useful once the `process()` method has been called, and is available for
+     * use in validation and formatter methods.
+     * @returns {IDtRequest} Data that has been passed into {@link Editor.process()}
+     */
     Editor.prototype.inData = function () {
         return this._processData;
     };
@@ -205,6 +226,38 @@ var Editor = (function (_super) {
         this._join.push.apply(this._join, join);
         return this;
     };
+    /**
+     * Add a left join condition to the Editor instance, allowing it to operate
+     * over multiple tables. Multiple `leftJoin()` calls can be made for a
+     * single Editor instance to join multiple tables.
+     *
+     * A left join is the most common type of join that is used with Editor
+     * so this method is provided to make its use very easy to configure. Its
+     * parameters are basically the same as writing an SQL left join statement,
+     * but in this case Editor will handle the create, update and remove
+     * requirements of the join for you:
+     *
+     * * Create - On create Editor will insert the data into the primary table
+     *   and then into the joined tables - selecting the required data for each
+     *   table.
+     * * Edit - On edit Editor will update the main table, and then either
+     *   update the existing rows in the joined table that match the join and
+     *   edit conditions, or insert a new row into the joined table if required.
+     * * Remove - On delete Editor will remove the main row and then loop over
+     *   each of the joined tables and remove the joined data matching the join
+     *   link from the main table.
+     *
+     * Please note that when using join tables, Editor requires that you fully
+     * qualify each field with the field's table name. SQL can result table
+     * names for ambiguous field names, but for Editor to provide its full CRUD
+     * options, the table name must also be given. For example the field
+     * `first_name` in the table `users` would be given as `users.first_name`.
+     * @param {string} table Table name to do a join onto
+     * @param {string} field1 Field from the parent table to use as the join link
+     * @param {string} operator Join condition (`=`, '<`, etc)
+     * @param {string} field2 Field from the child table to use as the join link
+     * @returns {Editor} Self for chaining
+     */
     Editor.prototype.leftJoin = function (table, field1, operator, field2) {
         this._leftJoin.push({
             field1: field1,
@@ -214,6 +267,14 @@ var Editor = (function (_super) {
         });
         return this;
     };
+    /**
+     * Add an event listener. The `Editor` class will trigger an number of
+     * events that some action can be taken on.
+     * @param {string} name Event name
+     * @param {Function} callback Event callback function that will be executed
+     *   when the event occurs.
+     * @returns {Editor} Self for chaining.
+     */
     Editor.prototype.on = function (name, callback) {
         if (!this._events[name]) {
             this._events[name] = [];
@@ -252,6 +313,14 @@ var Editor = (function (_super) {
         }
         return this;
     };
+    /**
+     * Convert a primary key array of field values to a combined value.
+     * @param {object} row The row of data that the primary key value should
+     *   be extracted from.
+     * @param {boolean} [flat=false] Flag to indicate if the given array is flat
+     *   (useful for `where` conditions) or nested for join tables.
+     * @returns {string} The created primary key value.
+     */
     Editor.prototype.pkeyToValue = function (row, flat) {
         if (flat === void 0) { flat = false; }
         var pkey = this.pkey();
@@ -274,6 +343,15 @@ var Editor = (function (_super) {
         }
         return id.join(this._pkeySeparator());
     };
+    /**
+     * Convert a primary key combined value to an array of field values.
+     * @param {string} value The id that should be split apart
+     * @param {boolean} [flat=false] Flag to indicate if the returned array should be
+     *   flat (useful for `where` conditions) or nested for join tables.
+     * @param {string[]} [pkey=null] The primary key name - will use the instance value
+     *   if not given
+     * @returns {object} Array of field values that the id was made up of
+     */
     Editor.prototype.pkeyToObject = function (value, flat, pkey) {
         if (flat === void 0) { flat = false; }
         if (pkey === void 0) { pkey = null; }
@@ -296,6 +374,15 @@ var Editor = (function (_super) {
         }
         return arr;
     };
+    /**
+     * Process a request from the Editor client-side to get / set data.
+     * @param {IDtRequest} data Form data sent from the client-side -
+     *   e.g. `req.body`
+     * @param {IUpload} [files=null] File information, used for upload
+     *   requests - e.g. `req.files`
+     * @returns {Promise<Editor>} Promise that is fulfilled when Editor
+     *   has completed its processing - result is the Editor instance.
+     */
     Editor.prototype.process = function (data, files) {
         if (files === void 0) { files = null; }
         return __awaiter(this, void 0, void 0, function () {
@@ -367,6 +454,21 @@ var Editor = (function (_super) {
         this._tryCatch = tryCatch;
         return this;
     };
+    /**
+     * Perform validation on a data set.
+     *
+     * Note that validation is performed on data only when the action is
+     * `create` or `edit`. Additionally, validation is performed on the _wire
+     * data_ - i.e. that which is submitted from the client, without formatting.
+     * Any formatting required by `setFormatter` is performed after the data
+     * from the client has been validated.
+     * @param {IDtError[]} errors Output array to which field error information will
+     *   be written. Each element in the array represents a field in an error
+     *   condition. These elements are themselves arrays with two properties
+     *   set; `name` and `status`.
+     * @param {IDtRequest} http The format data to check
+     * @returns {Promise<boolean>} `true` if the data is valid, `false` if not.
+     */
     Editor.prototype.validate = function (errors, http) {
         return __awaiter(this, void 0, void 0, function () {
             var keys, fields, idPrefix, i, ien, values, j, jen, field, validation, j, jen;
@@ -438,6 +540,9 @@ var Editor = (function (_super) {
         this._where.push(cond);
         return this;
     };
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Private methods
+     */
     Editor.prototype._fileClean = function () {
         return __awaiter(this, void 0, void 0, function () {
             var that, run, i, ien;
@@ -690,6 +795,9 @@ var Editor = (function (_super) {
                         return [4 /*yield*/, this._insertOrUpdate(null, values)];
                     case 1:
                         id = _a.sent();
+                        if (id === null) {
+                            return [2 /*return*/, null];
+                        }
                         // Was the primary key altered as part of the edit, if so use the
                         // submitted values
                         id = this._pkey.length > 1 ?
@@ -734,7 +842,7 @@ var Editor = (function (_super) {
                         res = _b.sent();
                         // If you don't have an id yet, then the first insert will return
                         // the id we want
-                        if (id === null) {
+                        if (res !== null && id === null) {
                             id = res;
                         }
                         _b.label = 3;
@@ -841,6 +949,12 @@ var Editor = (function (_super) {
         if (type === void 0) { type = 'alias'; }
         if (name.indexOf(' as ') !== -1) {
             var a = name.split(/ as /i);
+            return type === 'alias' ?
+                a[1] :
+                a[0];
+        }
+        if (name.indexOf(' ') !== -1) {
+            var a = name.split(/ /i);
             return type === 'alias' ?
                 a[1] :
                 a[0];

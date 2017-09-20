@@ -38,6 +38,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
+/**
+ * The Options class provides a convenient method of specifying where Editor
+ * should get the list of options for a `select`, `radio` or `checkbox` field.
+ * This is normally from a table that is _left joined_ to the main table being
+ * edited, and a list of the values available from the joined table is shown to
+ * the end user to let them select from.
+ *
+ * `Options` instances are used with the {@link Field.options} method.
+ *
+ * @export
+ * @class Options
+ */
 var Options = (function () {
     function Options() {
     }
@@ -97,6 +109,9 @@ var Options = (function () {
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Internal methods
+     */
+    /**
+     * @ignore
      */
     Options.prototype.exec = function (db) {
         return __awaiter(this, void 0, void 0, function () {

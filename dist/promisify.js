@@ -1,5 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Wrap an async function which uses a callback for completion in a Promise
+ * so it can be used with `await`.
+ *
+ * @export
+ * @template T Return type
+ * @param {Function} fn Function to execute
+ * @param {*} [scope=null] Scope
+ * @returns {Function} Promise wrapper function
+ */
 function promisify(fn, scope) {
     if (scope === void 0) { scope = null; }
     return function () {
@@ -23,6 +33,5 @@ function promisify(fn, scope) {
     };
 }
 exports.default = promisify;
-;
 
 //# sourceMappingURL=promisify.js.map

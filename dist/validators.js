@@ -35,39 +35,39 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var options_1 = require("./options");
-var validUrl = require("valid-url");
 var moment = require("moment");
-var Options = (function () {
-    function Options() {
-        this.message = "Input not valid";
-        this.empty = true;
-        this.optional = true;
-    }
-    // internal
-    Options.select = function (user) {
-        if (user) {
-            return user;
-        }
-        return new Options();
-    };
-    return Options;
-}());
-exports.Options = Options;
-var Host = (function () {
-    function Host(opts) {
-        this.action = opts.action;
-        this.id = opts.id;
-        this.field = opts.field;
-        this.editor = opts.editor;
-        this.db = opts.db;
-    }
-    return Host;
-}());
-exports.Host = Host;
+var validUrl = require("valid-url");
+var options_1 = require("./options");
+var validationHost_1 = require("./validationHost");
+var validationOptions_1 = require("./validationOptions");
+/**
+ * Validation methods for DataTables Editor fields. All of the methods
+ * defined in this class return a function that can be used by
+ * {@link Field} instance's {@link Field.Validator} method.
+ *
+ * Each method may define its own parameters that configure how the
+ * formatter operates. For example the `minLen` validator takes information
+ * on the minimum length of value to accept.
+ *
+ * Additionally each method can optionally take a `ValidationOptions`
+ * instance that controls common validation options and error messages.
+ *
+ * The validation functions return `true` for valid data and a string for
+ * invalid data, with the string being the error message.
+ *
+ * @export
+ * @class Validator
+ */
 var Validator = (function () {
     function Validator() {
     }
+    /**
+     * No validation - all inputs are valid
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.none = function (cfg) {
         if (cfg === void 0) { cfg = null; }
         return function (val, data, host) {
@@ -78,9 +78,19 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Basic validation - this is used to perform the validation provided by the
+     * validation options only. If the validation options pass (e.g. `required`,
+     * `empty` and `optional`) then the validation will pass regardless of the
+     * actual value.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.basic = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -93,9 +103,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Required field - there must be a value and it must be a non-empty value
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.required = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         opts.empty = false;
         opts.optional = false;
         return function (val, data, host) {
@@ -110,9 +127,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Optional field, but if given there must be a non-empty value
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.notEmpty = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         opts.empty = false;
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
@@ -126,9 +150,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Validate an input as a boolean value.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.boolean = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -139,8 +170,9 @@ var Validator = (function () {
                                 opts.message :
                                 true];
                     }
-                    if (val === true || val === 1 || val === '1' || val === 'true' || val === 't' || val === 'on' || val === 'yes' ||
-                        val === false || val === 0 || val === '0' || val === 'false' || val === 'f' || val === 'off' || val === 'no') {
+                    if (val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
+                        val === 'on' || val === 'yes' || val === false || val === 0 || val === '0' ||
+                        val === 'false' || val === 'f' || val === 'off' || val === 'no') {
                         return [2 /*return*/, true];
                     }
                     return [2 /*return*/, opts.message];
@@ -151,10 +183,18 @@ var Validator = (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Number validation methods
      */
+    /**
+     * Check that any input is numeric.
+     *
+     * @static
+     * @param {string} [decimal='.'] Character to use as the decimal place
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.numeric = function (decimal, cfg) {
         if (decimal === void 0) { decimal = '.'; }
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -175,10 +215,19 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check for a numeric input and that it is greater than a given value.
+     *
+     * @static
+     * @param {number} min Minimum value
+     * @param {string} [decimal='.'] Character to use as the decimal place
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.minNum = function (min, decimal, cfg) {
         if (decimal === void 0) { decimal = '.'; }
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var numeric;
@@ -201,10 +250,19 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check for a numeric input and that it is less than a given value.
+     *
+     * @static
+     * @param {number} max Maximum value
+     * @param {string} [decimal='.'] Character to use as the decimal place
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.maxNum = function (max, decimal, cfg) {
         if (decimal === void 0) { decimal = '.'; }
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var numeric;
@@ -227,10 +285,20 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check for a numeric input and that it is in between two given values.
+     *
+     * @static
+     * @param {number} min Minimum value
+     * @param {number} max Maximum value
+     * @param {string} [decimal='.'] Character to use as the decimal place
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.minMaxNum = function (min, max, decimal, cfg) {
         if (decimal === void 0) { decimal = '.'; }
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var numeric;
@@ -254,12 +322,18 @@ var Validator = (function () {
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Number validation methods
+     * String validation methods
      */
-    Validator.email = function (decimal, cfg) {
-        if (decimal === void 0) { decimal = '.'; }
+    /**
+     * Validate an input as an e-mail address.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
+    Validator.email = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, re;
@@ -278,9 +352,17 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Validate a string has a minimum length.
+     *
+     * @static
+     * @param {number} min Minimum length
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.minLen = function (min, cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -298,9 +380,17 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Validate a string is less or equal to a maximum length.
+     *
+     * @static
+     * @param {number} max Maximum length
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.maxLen = function (max, cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -318,9 +408,18 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Require a string with a certain minimum or maximum number of characters.
+     *
+     * @static
+     * @param {number} min Minimum length
+     * @param {number} max Maximum length
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.minMaxLen = function (min, max, cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -338,9 +437,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Validate as an IP address.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.ip = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, a, i, parsed;
@@ -369,9 +475,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Validate as a URL.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.url = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -389,9 +502,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check if string could contain an XSS attack string
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.xss = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, field;
@@ -410,9 +530,17 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Confirm that the value submitted is in a list of allowable values
+     *
+     * @static
+     * @param {any[]} values List of values that are valid
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.values = function (values, cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -430,9 +558,16 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Ensure that the submitted string does not contain HTML tags
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.noTags = function (cfg) {
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
@@ -453,10 +588,19 @@ var Validator = (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     * Date validation methods
     */
+    /**
+     * Check that a valid date input is given. Uses MomentJS
+     *
+     * @static
+     * @param {string} format MomentJS date format
+     * @param {string} [locale=null] MomentJS locale
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @returns {IValidator} Configured validation function
+     */
     Validator.dateFormat = function (format, locale, cfg) {
         if (locale === void 0) { locale = null; }
         if (cfg === void 0) { cfg = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, res;
@@ -480,12 +624,25 @@ var Validator = (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     * Database validation
     */
+    /**
+     * Check that the given value is unique in the database
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @param {string} [column=null] Column name to use to check as a unique
+     *   value. If not given the host field's database column name is used
+     * @param {string} [table=null] Table to check that this value is uniquely
+     *   valid on. If not given the host Editor's table name is used
+     * @param {knex} [db=null] Database connection. If not given the host
+     *   Editor's database connection is used
+     * @returns {IValidator} Configured validation function
+     */
     Validator.dbUnique = function (cfg, column, table, db) {
         if (cfg === void 0) { cfg = null; }
         if (column === void 0) { column = null; }
         if (table === void 0) { table = null; }
         if (db === void 0) { db = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, q, cond, res;
@@ -527,12 +684,29 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check that the given value is a value that is available in a database -
+     * i.e. a join primary key. This will attempt to automatically use the table
+     * name and value column from the field's `Options` method (under the
+     * assumption that it will typically be used with a joined field), but the
+     * table and field can also be specified via the options.
+     *
+     * @static
+     * @param {ValidationOptions} [cfg=null] Validation options
+     * @param {string} [column=null] Column name to use to check as a unique
+     *   value. If not given the host field's database column name is used
+     * @param {string} [table=null] Table to check that this value is uniquely
+     *   valid on. If not given the host Editor's table name is used
+     * @param {knex} [db=null] Database connection. If not given the host
+     *   Editor's database connection is used
+     * @returns {IValidator} Configured validation function
+     */
     Validator.dbValues = function (cfg, column, table, db) {
         if (cfg === void 0) { cfg = null; }
         if (column === void 0) { column = null; }
         if (table === void 0) { table = null; }
         if (db === void 0) { db = null; }
-        var opts = Options.select(cfg);
+        var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common, options, res, _a;
@@ -556,7 +730,8 @@ var Validator = (function () {
                                 column = options.value();
                             }
                             if (table === null || column === null) {
-                                throw new Error('Table or column for database value check is not defined for field ' + host.field.name());
+                                throw new Error('Table or column for database value check is not ' +
+                                    'defined for field ' + host.field.name());
                             }
                             return [4 /*yield*/, db(table)
                                     .select(column)
@@ -574,6 +749,14 @@ var Validator = (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     * File upload validators
     */
+    /**
+     * Check that the uploaded file has a given extension
+     *
+     * @static
+     * @param {string[]} extns Allowed extensions
+     * @param {string} msg Error message to return if not valid
+     * @returns {IValidator} Configured validation function
+     */
     Validator.fileExtensions = function (extns, msg) {
         return function (file) {
             return __awaiter(this, void 0, void 0, function () {
@@ -585,6 +768,13 @@ var Validator = (function () {
             });
         };
     };
+    /**
+     * Check that the uploaded file is equal or less than a given size.
+     *
+     * @static
+     * @param {string[]} size Max file size in bytes
+     * @returns {IValidator} Configured validation function
+     */
     Validator.fileSize = function (size, msg) {
         return function (file) {
             return __awaiter(this, void 0, void 0, function () {
@@ -621,8 +811,8 @@ var Validator = (function () {
     };
     return Validator;
 }());
-Validator.Options = Options;
-Validator.Host = Host;
+Validator.Options = validationOptions_1.default;
+Validator.Host = validationHost_1.default;
 exports.default = Validator;
 
 //# sourceMappingURL=validators.js.map
