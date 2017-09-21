@@ -203,6 +203,8 @@ interface ILeftJoin {
  * @extends {NestedData}
  */
 export default class Editor extends NestedData {
+	public static Action = Action;
+
 	public static version: string = '1.7.0-dev';
 
 	/**
@@ -1580,6 +1582,8 @@ export default class Editor extends NestedData {
 		if ( ! this._events[ name ] ) {
 			return;
 		}
+
+		args.unshift( this );
 
 		for ( let i = 0, ien = events.length; i < ien; i++ ) {
 			let res = await events[i].apply( this, args );

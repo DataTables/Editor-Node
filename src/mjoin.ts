@@ -359,65 +359,62 @@ export default class Mjoin extends NestedData {
 
         // Create the joins
         if ( join.table ) {
-            query.leftJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
-            query.leftJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
+            query.rightJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
+            query.rightJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
         }
         else {
-            query.leftJoin( this._table, join.parent, '=', join.child );
+            query.rightJoin( this._table, join.parent, '=', join.child );
         }
 
         let res = await query;
+        let readField = '';
 
-        if ( res.length ) {
-            let readField = '';
+        if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
+            readField = dteTable + '.' + joinField;
+        }
+        else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
+            readField = joinField.toString();
+        }
+        else if ( !pkeyIsJoin ) {
+            throw new Error(
+                "Join was performed on the field '" + joinField + "' which was not " +
+                "included in the Editor field list. The join field must be " +
+                "included as a regular field in the Editor instance."
+            );
+        }
 
-            if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
-                readField = dteTable + '.' + joinField;
-            }
-            else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
-                readField = joinField.toString();
-            }
-            else if ( !pkeyIsJoin ) {
-                throw new Error(
-                    "Join was performed on the field '" + joinField + "' which was not " +
-                    "included in the Editor field list. The join field must be " +
-                    "included as a regular field in the Editor instance."
-                );
-            }
+        // Map the data to the primary key for fast loop up
+        let joinMap = {};
 
-            // Map the data to the primary key for fast loop up
-            let joinMap = {};
+        for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
+            let inner = {};
 
-            for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
-                let inner = {};
-
-                for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
-                    fields[j].write( inner, res[i] );
-                }
-
-                let lookup = res[i].dteditor_pkey;
-
-                if ( ! joinMap[ lookup ] ) {
-                    joinMap[ lookup ] = [];
-                }
-
-                joinMap[ lookup ].push( inner );
+            for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
+                fields[j].write( inner, res[i] );
             }
 
-            // Loop over the data in the original response and do a join based on
-            // the mapped data
-            for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
-                let data = response.data[i];
-                let linkField = pkeyIsJoin ?
-                    data['DT_RowId'].replace( editor.idPrefix(), '' ) :
-                    this._readProp( readField, data );
+            let lookup = res[i].dteditor_pkey;
 
-                if ( joinMap[ linkField ] ) {
-                    data[ this._name ] = joinMap[ linkField ];
-                }
-                else {
-                    data[ this._name ] = [];
-                }
+            if ( ! joinMap[ lookup ] ) {
+                joinMap[ lookup ] = [];
+            }
+
+            joinMap[ lookup ].push( inner );
+        }
+
+        // Loop over the data in the original response and do a join based on
+        // the mapped data
+        for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
+            let data = response.data[i];
+            let linkField = pkeyIsJoin ?
+                data['DT_RowId'].replace( editor.idPrefix(), '' ) :
+                this._readProp( readField, data );
+
+            if ( joinMap[ linkField ] ) {
+                data[ this._name ] = joinMap[ linkField ];
+            }
+            else {
+                data[ this._name ] = [];
             }
         }
 

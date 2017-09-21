@@ -1421,6 +1421,7 @@ var Editor = (function (_super) {
                         if (!this._events[name]) {
                             return [2 /*return*/];
                         }
+                        args.unshift(this);
                         i = 0, ien = events.length;
                         _a.label = 1;
                     case 1:
@@ -1551,6 +1552,7 @@ var Editor = (function (_super) {
     };
     return Editor;
 }(nestedData_1.default));
+Editor.Action = Action;
 Editor.version = '1.7.0-dev';
 exports.default = Editor;
 

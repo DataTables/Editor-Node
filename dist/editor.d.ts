@@ -141,6 +141,7 @@ export declare type IGlobalValidator = (editor: Editor, action: string, http: ID
  * @extends {NestedData}
  */
 export default class Editor extends NestedData {
+    static Action: typeof Action;
     static version: string;
     /**
      * Determine the request type from an HTTP request.

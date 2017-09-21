@@ -249,53 +249,51 @@ var Mjoin = (function (_super) {
                         }
                         // Create the joins
                         if (join.table) {
-                            query.leftJoin(join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1]);
-                            query.leftJoin(this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1]);
+                            query.rightJoin(join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1]);
+                            query.rightJoin(this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1]);
                         }
                         else {
-                            query.leftJoin(this._table, join.parent, '=', join.child);
+                            query.rightJoin(this._table, join.parent, '=', join.child);
                         }
                         return [4 /*yield*/, query];
                     case 1:
                         res = _a.sent();
-                        if (res.length) {
-                            readField = '';
-                            if (this._propExists(dteTable + '.' + joinField, response.data[0])) {
-                                readField = dteTable + '.' + joinField;
+                        readField = '';
+                        if (this._propExists(dteTable + '.' + joinField, response.data[0])) {
+                            readField = dteTable + '.' + joinField;
+                        }
+                        else if (this._propExists(joinField.toString(), response.data[0])) {
+                            readField = joinField.toString();
+                        }
+                        else if (!pkeyIsJoin) {
+                            throw new Error("Join was performed on the field '" + joinField + "' which was not " +
+                                "included in the Editor field list. The join field must be " +
+                                "included as a regular field in the Editor instance.");
+                        }
+                        joinMap = {};
+                        for (i = 0, ien = res.length; i < ien; i++) {
+                            inner = {};
+                            for (j = 0, jen = fields.length; j < jen; j++) {
+                                fields[j].write(inner, res[i]);
                             }
-                            else if (this._propExists(joinField.toString(), response.data[0])) {
-                                readField = joinField.toString();
+                            lookup = res[i].dteditor_pkey;
+                            if (!joinMap[lookup]) {
+                                joinMap[lookup] = [];
                             }
-                            else if (!pkeyIsJoin) {
-                                throw new Error("Join was performed on the field '" + joinField + "' which was not " +
-                                    "included in the Editor field list. The join field must be " +
-                                    "included as a regular field in the Editor instance.");
+                            joinMap[lookup].push(inner);
+                        }
+                        // Loop over the data in the original response and do a join based on
+                        // the mapped data
+                        for (i = 0, ien = response.data.length; i < ien; i++) {
+                            data = response.data[i];
+                            linkField = pkeyIsJoin ?
+                                data['DT_RowId'].replace(editor.idPrefix(), '') :
+                                this._readProp(readField, data);
+                            if (joinMap[linkField]) {
+                                data[this._name] = joinMap[linkField];
                             }
-                            joinMap = {};
-                            for (i = 0, ien = res.length; i < ien; i++) {
-                                inner = {};
-                                for (j = 0, jen = fields.length; j < jen; j++) {
-                                    fields[j].write(inner, res[i]);
-                                }
-                                lookup = res[i].dteditor_pkey;
-                                if (!joinMap[lookup]) {
-                                    joinMap[lookup] = [];
-                                }
-                                joinMap[lookup].push(inner);
-                            }
-                            // Loop over the data in the original response and do a join based on
-                            // the mapped data
-                            for (i = 0, ien = response.data.length; i < ien; i++) {
-                                data = response.data[i];
-                                linkField = pkeyIsJoin ?
-                                    data['DT_RowId'].replace(editor.idPrefix(), '') :
-                                    this._readProp(readField, data);
-                                if (joinMap[linkField]) {
-                                    data[this._name] = joinMap[linkField];
-                                }
-                                else {
-                                    data[this._name] = [];
-                                }
+                            else {
+                                data[this._name] = [];
                             }
                         }
                         i = 0, ien = fields.length;
