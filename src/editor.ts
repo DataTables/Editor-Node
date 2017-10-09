@@ -1134,7 +1134,9 @@ export default class Editor extends NestedData {
 				.insert( set )
 				.returning( this._pkey );
 
-			return res[0].toString();
+			return typeof res[0] === 'object' ?
+				res[0][ this._pkey[0] ].toString() :
+				res[0].toString();
 		}
 		else {
 			await this

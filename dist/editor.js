@@ -932,7 +932,9 @@ var Editor = (function (_super) {
                                 .returning(this._pkey)];
                     case 1:
                         res = _a.sent();
-                        return [2 /*return*/, res[0].toString()];
+                        return [2 /*return*/, typeof res[0] === 'object' ?
+                                res[0][this._pkey[0]].toString() :
+                                res[0].toString()];
                     case 2: return [4 /*yield*/, this
                             ._db(table)
                             .update(set)
