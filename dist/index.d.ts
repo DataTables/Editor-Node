@@ -1,10 +1,17 @@
 import Editor from './editor';
-export default Editor;
-export { Editor };
-export { default as Field } from './field';
-export { default as Format } from './formatters';
-export { default as Mjoin } from './mjoin';
-export { default as Options } from './options';
-export { default as Upload } from './upload';
-export { default as Validate } from './validators';
-export { default as promisify } from './promisify';
+import Field from './field';
+import Format from './formatters';
+import Mjoin from './mjoin';
+import Options from './options';
+import promisify from './promisify';
+import Upload from './upload';
+import Validate from './validators';
+export default class  extends Editor {
+    static Field: typeof Field;
+    static Format: typeof Format;
+    static Mjoin: typeof Mjoin;
+    static Options: typeof Options;
+    static promisify: typeof promisify;
+    static Upload: typeof Upload;
+    static Validate: typeof Validate;
+}
