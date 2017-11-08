@@ -533,7 +533,11 @@ var Editor = (function (_super) {
         this._validator = fn;
         return this;
     };
-    Editor.prototype.where = function (cond) {
+    Editor.prototype.where = function () {
+        var cond = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            cond[_i] = arguments[_i];
+        }
         if (cond === undefined) {
             return this._where;
         }
@@ -778,7 +782,7 @@ var Editor = (function (_super) {
     Editor.prototype._getWhere = function (query) {
         var where = this.where();
         for (var i = 0, ien = where.length; i < ien; i++) {
-            query.where(where[i]);
+            query.where.apply(query, where[i]);
         }
     };
     Editor.prototype._insert = function (values) {

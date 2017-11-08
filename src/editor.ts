@@ -786,8 +786,8 @@ export default class Editor extends NestedData {
 	 * @param {*} cond Knex query condition
 	 * @returns {Editor} Self for chaining.
 	 */
-	public where(cond: any): Editor;
-	public where(cond?: any): any {
+	public where(...cond: any[]): Editor;
+	public where(...cond: any[]): any {
 		if ( cond === undefined ) {
 			return this._where;
 		}
@@ -972,7 +972,7 @@ export default class Editor extends NestedData {
 		let where = this.where();
 
 		for ( let i = 0, ien = where.length; i < ien; i++ ) {
-			query.where( where[i] );
+			query.where( ...where[i] );
 		}
 	}
 

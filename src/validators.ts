@@ -682,9 +682,13 @@ export default class Validator {
      */
     public static fileExtensions( extns: string[], msg: string ): IFileValidator {
         return async function( file: IFile ) {
-            return extns.includes( file.extn ) ?
-                true :
-                msg;
+            for ( let i = 0, ien = extns.length; i < ien; i++ ) {
+                if ( file.extn.toLowerCase() === extns[i].toLowerCase() ) {
+                    return true;
+                }
+            }
+
+            return msg;
         };
     }
 

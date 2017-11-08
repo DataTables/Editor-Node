@@ -432,7 +432,7 @@ export default class Editor extends NestedData {
      * @param {*} cond Knex query condition
      * @returns {Editor} Self for chaining.
      */
-    where(cond: any): Editor;
+    where(...cond: any[]): Editor;
     private _fileClean();
     private _fileData(limitTable?, id?);
     private _fileDataFields(files, fields, limitTable, id?);

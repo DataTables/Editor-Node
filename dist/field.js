@@ -363,6 +363,7 @@ var Field = (function (_super) {
     };
     return Field;
 }(nestedData_1.default));
+Field.SetType = SetType;
 exports.default = Field;
 
 //# sourceMappingURL=field.js.map

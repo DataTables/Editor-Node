@@ -43,6 +43,8 @@ export enum SetType {
  * @extends {NestedData}
  */
 export default class Field extends NestedData {
+    public static SetType = SetType;
+
     private _dbField: string;
     private _get: boolean = true;
     private _getFormatter: IFormatter;

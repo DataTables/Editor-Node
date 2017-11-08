@@ -760,10 +760,14 @@ var Validator = (function () {
     Validator.fileExtensions = function (extns, msg) {
         return function (file) {
             return __awaiter(this, void 0, void 0, function () {
+                var i, ien;
                 return __generator(this, function (_a) {
-                    return [2 /*return*/, extns.includes(file.extn) ?
-                            true :
-                            msg];
+                    for (i = 0, ien = extns.length; i < ien; i++) {
+                        if (file.extn.toLowerCase() === extns[i].toLowerCase()) {
+                            return [2 /*return*/, true];
+                        }
+                    }
+                    return [2 /*return*/, msg];
                 });
             });
         };
