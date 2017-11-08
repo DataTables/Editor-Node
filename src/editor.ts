@@ -788,7 +788,7 @@ export default class Editor extends NestedData {
 	 */
 	public where(...cond: any[]): Editor;
 	public where(...cond: any[]): any {
-		if ( cond === undefined ) {
+		if ( cond.length === 0 ) {
 			return this._where;
 		}
 

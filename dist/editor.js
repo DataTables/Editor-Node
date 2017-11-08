@@ -538,7 +538,7 @@ var Editor = (function (_super) {
         for (var _i = 0; _i < arguments.length; _i++) {
             cond[_i] = arguments[_i];
         }
-        if (cond === undefined) {
+        if (cond.length === 0) {
             return this._where;
         }
         this._where.push(cond);
