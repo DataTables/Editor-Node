@@ -681,7 +681,7 @@ var Editor = (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, ssp, result, out, i, ien, inner, j, jen, i, ien, opts, response, _a, i, ien;
+            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, ssp, result, out, i, ien, inner, j, jen, i, ien, opts, response, _a, i, ien;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this._trigger('preGet', id)];
@@ -702,8 +702,13 @@ var Editor = (function (_super) {
                                 continue;
                             }
                             if (fields[i].apply('get') && fields[i].getValue() === undefined) {
-                                // Use the `as` to ensure that the table name is included, if using a join
-                                query.select(fields[i].dbField() + ' as ' + fields[i].dbField());
+                                dbField = fields[i].dbField();
+                                if (dbField.indexOf('(') === -1) {
+                                    query.select(dbField + ' as ' + dbField);
+                                }
+                                else {
+                                    query.select(this.db().raw(dbField + ' as "' + dbField + '"'));
+                                }
                             }
                         }
                         this._getWhere(query);

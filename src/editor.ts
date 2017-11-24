@@ -903,7 +903,14 @@ export default class Editor extends NestedData {
 
 			if ( fields[i].apply('get') && fields[i].getValue() === undefined ) {
 				// Use the `as` to ensure that the table name is included, if using a join
-				query.select( fields[i].dbField() + ' as ' + fields[i].dbField() );
+				var dbField = fields[i].dbField();
+
+				if ( dbField.indexOf( '(') === -1 ) {
+					query.select( dbField + ' as ' + dbField );
+				}
+				else {
+					query.select( this.db().raw(dbField + ' as "' + dbField+'"') );
+				}
 			}
 		}
 
