@@ -239,7 +239,10 @@ var Mjoin = (function (_super) {
                             field = fields[i];
                             if (field.apply('get') && field.getValue() === undefined) {
                                 dbField = field.dbField();
-                                if (dbField.indexOf('.') === -1) {
+                                if (dbField.indexOf('(') !== -1) {
+                                    query.select(editor.db().raw(dbField + ' as "' + dbField + '"'));
+                                }
+                                else if (dbField.indexOf('.') === -1) {
                                     query.select(this._table + '.' + dbField + ' as ' + dbField);
                                 }
                                 else {
