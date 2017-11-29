@@ -626,7 +626,8 @@ export default class Validator {
         cfg: ValidationOptions = null,
         column: string = null,
         table: string = null,
-        db: knex = null
+        db: knex = null,
+        values: any[] = []
     ): IValidator {
         let opts = ValidationOptions.select( cfg );
 
@@ -638,6 +639,10 @@ export default class Validator {
                 return common === false ?
                     opts.message :
                     true;
+            }
+
+            if ( values.indexOf(val) !== -1 ) {
+                return true;
             }
 
             if ( db === null ) {

@@ -226,7 +226,7 @@ export default class Validator {
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    static dbValues(cfg?: ValidationOptions, column?: string, table?: string, db?: knex): IValidator;
+    static dbValues(cfg?: ValidationOptions, column?: string, table?: string, db?: knex, values?: any[]): IValidator;
     /**
      * Check that the uploaded file has a given extension
      *

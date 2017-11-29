@@ -701,11 +701,12 @@ var Validator = (function () {
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    Validator.dbValues = function (cfg, column, table, db) {
+    Validator.dbValues = function (cfg, column, table, db, values) {
         if (cfg === void 0) { cfg = null; }
         if (column === void 0) { column = null; }
         if (table === void 0) { table = null; }
         if (db === void 0) { db = null; }
+        if (values === void 0) { values = []; }
         var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
@@ -719,6 +720,9 @@ var Validator = (function () {
                                 return [2 /*return*/, common === false ?
                                         opts.message :
                                         true];
+                            }
+                            if (values.indexOf(val) !== -1) {
+                                return [2 /*return*/, true];
                             }
                             if (db === null) {
                                 db = host.db;
