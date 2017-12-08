@@ -50,7 +50,7 @@ function isNumeric(n) {
  * @export
  * @class Options
  */
-var Options = (function () {
+var Options = /** @class */ (function () {
     function Options() {
     }
     Options.prototype.label = function (label) {

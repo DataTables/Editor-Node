@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @export
  * @class NestedData
  */
-var NestedData = (function () {
+var NestedData = /** @class */ (function () {
     function NestedData() {
     }
     /**

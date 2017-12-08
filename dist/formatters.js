@@ -12,7 +12,7 @@ var moment = require("moment");
  *
  * @export
  */
-var Formatter = (function () {
+var Formatter = /** @class */ (function () {
     function Formatter() {
     }
     /**

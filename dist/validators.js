@@ -58,7 +58,7 @@ var validationOptions_1 = require("./validationOptions");
  * @export
  * @class Validator
  */
-var Validator = (function () {
+var Validator = /** @class */ (function () {
     function Validator() {
     }
     /**
@@ -817,10 +817,10 @@ var Validator = (function () {
         // Have the specific validation function perform its tests
         return null;
     };
+    Validator.Options = validationOptions_1.default;
+    Validator.Host = validationHost_1.default;
     return Validator;
 }());
-Validator.Options = validationOptions_1.default;
-Validator.Host = validationHost_1.default;
 exports.default = Validator;
 
 //# sourceMappingURL=validators.js.map

@@ -86,7 +86,7 @@ var DbOpts;
  * @export
  * @class Upload
  */
-var Upload = (function () {
+var Upload = /** @class */ (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Constructor
      */
@@ -544,9 +544,9 @@ var Upload = (function () {
         to = to.replace('{extn}', extn);
         return to;
     };
+    Upload.Db = DbOpts;
     return Upload;
 }());
-Upload.Db = DbOpts;
 exports.default = Upload;
 
 //# sourceMappingURL=upload.js.map

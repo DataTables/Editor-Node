@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  *
  * @export
  */
-var ValidationHost = (function () {
+var ValidationHost = /** @class */ (function () {
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Constructor
      */

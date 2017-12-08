@@ -80,7 +80,7 @@ var SetType;
  * @class Field
  * @extends {NestedData}
  */
-var Field = (function (_super) {
+var Field = /** @class */ (function (_super) {
     __extends(Field, _super);
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Constructor
@@ -361,9 +361,9 @@ var Field = (function (_super) {
             formatter(val, data) :
             val;
     };
+    Field.SetType = SetType;
     return Field;
 }(nestedData_1.default));
-Field.SetType = SetType;
 exports.default = Field;
 
 //# sourceMappingURL=field.js.map

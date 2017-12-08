@@ -1,6 +1,6 @@
 {
   "name": "datatables.net-editor-server",
-  "version": "0.0.3",
+  "version": "1.7.0",
   "description": "NodeJS server-side support for the DataTables Editor library",
   "main": "dist/index.js",
   "scripts": {
@@ -41,5 +41,9 @@
       "parser": "typescript",
       "style": "module"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DataTables/Editor-Node.git"
   }
 }

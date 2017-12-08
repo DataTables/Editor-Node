@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @export
  * @class ValidationOptions
  */
-var ValidationOptions = (function () {
+var ValidationOptions = /** @class */ (function () {
     function ValidationOptions() {
         /**
          * Error message should the validation fail

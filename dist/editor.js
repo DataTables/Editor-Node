@@ -90,7 +90,7 @@ var Action;
  * @class Editor
  * @extends {NestedData}
  */
-var Editor = (function (_super) {
+var Editor = /** @class */ (function (_super) {
     __extends(Editor, _super);
     /**
      * Creates an instance of Editor.
@@ -1561,10 +1561,10 @@ var Editor = (function (_super) {
             });
         });
     };
+    Editor.Action = Action;
+    Editor.version = '1.7.0';
     return Editor;
 }(nestedData_1.default));
-Editor.Action = Action;
-Editor.version = '1.7.0-dev';
 exports.default = Editor;
 
 //# sourceMappingURL=editor.js.map

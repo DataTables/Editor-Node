@@ -63,7 +63,7 @@ var nestedData_1 = require("./nestedData");
  * @class Mjoin
  * @extends {NestedData}
  */
-var Mjoin = (function (_super) {
+var Mjoin = /** @class */ (function (_super) {
     __extends(Mjoin, _super);
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Constructor
