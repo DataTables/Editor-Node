@@ -1,4 +1,4 @@
-import knex from 'knex';
+import * as knex from 'knex';
 
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);

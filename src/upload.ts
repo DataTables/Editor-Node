@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as rootPath from 'app-root-path';
-import knex from 'knex';
+import * as knex from 'knex';
 import * as mv from 'mv';
 
 import Editor from './editor';

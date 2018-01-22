@@ -1,5 +1,5 @@
 import * as crc from 'crc';
-import knex from 'knex';
+import * as knex from 'knex';
 
 import Field, {SetType} from './field';
 import Format from './formatters';
