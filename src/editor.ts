@@ -145,6 +145,9 @@ export interface IDtResponse {
 	upload?: {
 		id: string
 	};
+
+	/** Debug information if enabled by Editor.debug() */
+	debug?: any[];
 }
 
 /**
@@ -256,6 +259,8 @@ export default class Editor extends NestedData {
 	private _tryCatch: boolean = false;
 	private _knexTransaction: knex;
 	private _uploadData: IUpload;
+	private _debug: boolean = false;
+	private _debugInfo: any[] = [];
 
 	/**
 	 * Creates an instance of Editor.
@@ -309,6 +314,38 @@ export default class Editor extends NestedData {
 		}
 
 		this._db = db;
+		return this;
+	}
+
+	/**
+	 * Get the debug setting for this instance
+	 * @returns {boolean} Debug enabled (true) or not
+	 */
+	public debug(): boolean;
+	/**
+	 * Set the debug setting for this instance
+	 * @param {boolean} set Debug flag
+	 * @returns {Editor} Self for chaining
+	 */
+	public debug(set: boolean): Editor;
+	/**
+	 * Add a debug message
+	 * @param {any} message Message to add
+	 * @returns {Editor} Self for chaining
+	 */
+	public debug(message: any): Editor;
+	public debug(param?: any): any {
+		if ( param === undefined ) {
+			return this._debug;
+		}
+		else if ( param === true || param === false ) {
+			this._debug = param;
+			return this;
+		}
+
+		// Otherwise its a message
+		this._debugInfo.push( param );
+
 		return this;
 	}
 
@@ -908,7 +945,7 @@ export default class Editor extends NestedData {
 					query.select( dbField + ' as ' + dbField );
 				}
 				else {
-					query.select( this.db().raw(dbField + ' as "' + dbField+'"') );
+					query.select( this.db().raw(dbField + ' as "' + dbField + '"') );
 				}
 			}
 		}
@@ -1370,6 +1407,10 @@ export default class Editor extends NestedData {
 
 				await this._fileClean();
 			}
+		}
+
+		if ( this._debug ) {
+			this._out.debug = this._debugInfo.slice();
 		}
 	}
 
