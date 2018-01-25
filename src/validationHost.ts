@@ -4,11 +4,11 @@ import Editor from './editor';
 import Field from './field';
 
 export interface IHostOpts {
-    action: string;
-    id: string;
-    field: Field;
-    editor: Editor;
-    db: knex;
+	action: string;
+	id: string;
+	field: Field;
+	editor: Editor;
+	db: knex;
 }
 
 /**
@@ -18,55 +18,55 @@ export interface IHostOpts {
  * @export
  */
 export default class ValidationHost {
-    /**
-     * Action being performed (edit, create or remove)
-     *
-     * @type {string}
-     */
-    public action: string;
+	/**
+	 * Action being performed (edit, create or remove)
+	 *
+	 * @type {string}
+	 */
+	public action: string;
 
-    /**
-     * Id of the row being edited or removed. Will be undefined for create
-     *
-     * @type {string}
-     */
-    public id: string;
+	/**
+	 * Id of the row being edited or removed. Will be undefined for create
+	 *
+	 * @type {string}
+	 */
+	public id: string;
 
-    /**
-     * Field instance
-     *
-     * @type {Field}
-     */
-    public field: Field;
+	/**
+	 * Field instance
+	 *
+	 * @type {Field}
+	 */
+	public field: Field;
 
-    /**
-     * Editor instance
-     *
-     * @type {Editor}
-     */
-    public editor: Editor;
+	/**
+	 * Editor instance
+	 *
+	 * @type {Editor}
+	 */
+	public editor: Editor;
 
-    /**
-     * Database connection
-     *
-     * @type {knex}
-     */
-    public db: knex;
+	/**
+	 * Database connection
+	 *
+	 * @type {knex}
+	 */
+	public db: knex;
 
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     * Constructor
-     */
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	 * Constructor
+	 */
 
-    /**
-     * Creates an instance of ValidationHost.
-     *
-     * @param {IHostOpts} opts Host information
-     */
-    constructor( opts: IHostOpts ) {
-        this.action = opts.action;
-        this.id = opts.id;
-        this.field = opts.field;
-        this.editor = opts.editor;
-        this.db = opts.db;
-    }
+	/**
+	 * Creates an instance of ValidationHost.
+	 *
+	 * @param {IHostOpts} opts Host information
+	 */
+	constructor( opts: IHostOpts ) {
+		this.action = opts.action;
+		this.id = opts.id;
+		this.field = opts.field;
+		this.editor = opts.editor;
+		this.db = opts.db;
+	}
 }

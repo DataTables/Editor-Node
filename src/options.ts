@@ -1,12 +1,12 @@
 import * as knex from 'knex';
 
 function isNumeric(n) {
-    return !isNaN(parseFloat(n)) && isFinite(n);
+	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 export interface IOption {
-    label: string;
-    value: string|number;
+	label: string;
+	value: string|number;
 }
 
 export type IRenderer = ( row: object ) => string;
@@ -25,253 +25,253 @@ export type CustomOptions = ( db: knex ) => Promise<IOption[]>;
  * @class Options
  */
 export default class Options {
-    private _table: string;
-    private _value: string;
-    private _label: string[];
-    private _limit: number;
-    private _renderer: IRenderer;
-    private _where: any;
-    private _order: string;
+	private _table: string;
+	private _value: string;
+	private _label: string[];
+	private _limit: number;
+	private _renderer: IRenderer;
+	private _where: any;
+	private _order: string;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
 	 */
 
-    /**
-     * Get the column(s) to be used for the label
-     *
-     * @returns {string[]} Label columns
-     */
-    public label(): string[];
-    /**
-     * Set the column(s) to be used for the label
-     *
-     * @param {string[]} label Database column names
-     * @returns {Options} Self for chaining
-     */
-    public label(label: string[]): Options;
-    public label(label?: string[]): any {
-        if ( label === undefined ) {
-            return this._label;
-        }
+	/**
+	 * Get the column(s) to be used for the label
+	 *
+	 * @returns {string[]} Label columns
+	 */
+	public label(): string[];
+	/**
+	 * Set the column(s) to be used for the label
+	 *
+	 * @param {string[]} label Database column names
+	 * @returns {Options} Self for chaining
+	 */
+	public label(label: string[]): Options;
+	public label(label?: string[]): any {
+		if ( label === undefined ) {
+			return this._label;
+		}
 
-        if ( Array.isArray( label ) ) {
-            this._label = label;
-        }
-        else {
-            this._label = [ label ];
-        }
+		if ( Array.isArray( label ) ) {
+			this._label = label;
+		}
+		else {
+			this._label = [ label ];
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    /**
-     * Get the currently applied LIMIT
-     *
-     * @returns {number} Limit
-     */
-    public limit(): number;
-    /**
-     * Set the LIMIT clause to limit the number of records returned
-     *
-     * @param {number} limit Limit
-     * @returns {Options} Self for chaining
-     */
-    public limit(limit: number): Options;
-    public limit(limit?: number): any {
-        if ( limit === undefined ) {
-            return this._limit;
-        }
+	/**
+	 * Get the currently applied LIMIT
+	 *
+	 * @returns {number} Limit
+	 */
+	public limit(): number;
+	/**
+	 * Set the LIMIT clause to limit the number of records returned
+	 *
+	 * @param {number} limit Limit
+	 * @returns {Options} Self for chaining
+	 */
+	public limit(limit: number): Options;
+	public limit(limit?: number): any {
+		if ( limit === undefined ) {
+			return this._limit;
+		}
 
-        this._limit = limit;
-        return this;
-    }
+		this._limit = limit;
+		return this;
+	}
 
-    /**
-     * Get the ORDER BY clause for the SQL.
-     *
-     * @returns {string} ORDER BY clause
-     */
-    public order(): string;
-    /**
-     * Set the ORDER BY clause to use in the SQL. If this option is not
-     * provided the ordering will be based on the rendered output, either
-     * numerically or alphabetically based on the data returned by the renderer.
-     *
-     * @param {string} order ORDER BY statement
-     * @returns {Options} Self for chaining
-     */
-    public order(order: string): Options;
-    public order(order?: string): any {
-        if ( order === undefined ) {
-            return this._order;
-        }
+	/**
+	 * Get the ORDER BY clause for the SQL.
+	 *
+	 * @returns {string} ORDER BY clause
+	 */
+	public order(): string;
+	/**
+	 * Set the ORDER BY clause to use in the SQL. If this option is not
+	 * provided the ordering will be based on the rendered output, either
+	 * numerically or alphabetically based on the data returned by the renderer.
+	 *
+	 * @param {string} order ORDER BY statement
+	 * @returns {Options} Self for chaining
+	 */
+	public order(order: string): Options;
+	public order(order?: string): any {
+		if ( order === undefined ) {
+			return this._order;
+		}
 
-        this._order = order;
-        return this;
-    }
+		this._order = order;
+		return this;
+	}
 
-    /**
-     * Get the configured label renderer
-     *
-     * @returns {IRenderer} Self for chaining
-     */
-    public render(): IRenderer;
-    /**
-     * Set the label renderer. The renderer can be used to combine
-     * multiple database columns into a single string that is shown as the label
-     * to the end user in the list of options.
-     *
-     * @param {IRenderer} fn Renderering function
-     * @returns {Options} Self for chaining
-     */
-    public render(fn: IRenderer): Options;
-    public render(fn?: IRenderer): any {
-        if ( fn === undefined ) {
-            return this._renderer;
-        }
+	/**
+	 * Get the configured label renderer
+	 *
+	 * @returns {IRenderer} Self for chaining
+	 */
+	public render(): IRenderer;
+	/**
+	 * Set the label renderer. The renderer can be used to combine
+	 * multiple database columns into a single string that is shown as the label
+	 * to the end user in the list of options.
+	 *
+	 * @param {IRenderer} fn Renderering function
+	 * @returns {Options} Self for chaining
+	 */
+	public render(fn: IRenderer): Options;
+	public render(fn?: IRenderer): any {
+		if ( fn === undefined ) {
+			return this._renderer;
+		}
 
-        this._renderer = fn;
-        return this;
-    }
+		this._renderer = fn;
+		return this;
+	}
 
-    /**
-     * Get the table that the options will be gathered from.
-     *
-     * @returns {string} Table name
-     */
-    public table(): string;
-    /**
-     * Set the database table from which to gather the options for the list.
-     *
-     * @param {string} table Table name
-     * @returns {Options} Self for chaining
-     */
-    public table(table: string): Options;
-    public table(table?: string): any {
-        if ( table === undefined ) {
-            return this._table;
-        }
+	/**
+	 * Get the table that the options will be gathered from.
+	 *
+	 * @returns {string} Table name
+	 */
+	public table(): string;
+	/**
+	 * Set the database table from which to gather the options for the list.
+	 *
+	 * @param {string} table Table name
+	 * @returns {Options} Self for chaining
+	 */
+	public table(table: string): Options;
+	public table(table?: string): any {
+		if ( table === undefined ) {
+			return this._table;
+		}
 
-        this._table = table;
-        return this;
-    }
+		this._table = table;
+		return this;
+	}
 
-    /**
-     * Get the column name to use for the value in the options list.
-     *
-     * @returns {string} Column name
-     */
-    public value(): string;
-    /**
-     * Set the column name to use for the value in the options list. This would
-     * normally be the primary key for the table.
-     *
-     * @param {string} value Column name
-     * @returns {Options} Self for chaining
-     */
-    public value(value: string): Options;
-    public value(value?: string): any {
-        if ( value === undefined ) {
-            return this._value;
-        }
+	/**
+	 * Get the column name to use for the value in the options list.
+	 *
+	 * @returns {string} Column name
+	 */
+	public value(): string;
+	/**
+	 * Set the column name to use for the value in the options list. This would
+	 * normally be the primary key for the table.
+	 *
+	 * @param {string} value Column name
+	 * @returns {Options} Self for chaining
+	 */
+	public value(value: string): Options;
+	public value(value?: string): any {
+		if ( value === undefined ) {
+			return this._value;
+		}
 
-        this._value = value;
-        return this;
-    }
+		this._value = value;
+		return this;
+	}
 
-    /**
-     * Get the WHERE condition for this option set.
-     *
-     * @returns {*} Knex WHERE condition
-     */
-    public where(): any;
-    /**
-     * Set the method to use for a WHERE condition if one is to be applied to
-     * the query to get the options.
-     *
-     * @param {*} where Knex WHERE condition
-     * @returns {Options} Self for chaining
-     */
-    public where(where: any): Options;
-    public where(where?: any): any {
-        if ( where === undefined ) {
-            return this._where;
-        }
+	/**
+	 * Get the WHERE condition for this option set.
+	 *
+	 * @returns {*} Knex WHERE condition
+	 */
+	public where(): any;
+	/**
+	 * Set the method to use for a WHERE condition if one is to be applied to
+	 * the query to get the options.
+	 *
+	 * @param {*} where Knex WHERE condition
+	 * @returns {Options} Self for chaining
+	 */
+	public where(where: any): Options;
+	public where(where?: any): any {
+		if ( where === undefined ) {
+			return this._where;
+		}
 
-        this._where = where;
-        return this;
-    }
+		this._where = where;
+		return this;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Internal methods
 	 */
 
-     /**
-      * @ignore
-      */
-    public async exec( db: knex ): Promise<IOption[]> {
-        let label = this._label;
-        let value = this._value;
-        let formatter = this._renderer;
+	/**
+	 * @ignore
+	 */
+	public async exec( db: knex ): Promise<IOption[]> {
+		let label = this._label;
+		let value = this._value;
+		let formatter = this._renderer;
 
-        // Create a list of the fields that we need to get from the db
-        let fields = [ value ].concat( label );
+		// Create a list of the fields that we need to get from the db
+		let fields = [ value ].concat( label );
 
-        // We need a default formatter if one isn't provided
-        if ( ! formatter ) {
-            formatter = function( row ) {
-                let a = [];
+		// We need a default formatter if one isn't provided
+		if ( ! formatter ) {
+			formatter = function( row ) {
+				let a = [];
 
-                for ( let i = 0, ien = label.length ; i < ien ; i++ ) {
-                    a.push( row[ label[i] ] );
-                }
+				for ( let i = 0, ien = label.length ; i < ien ; i++ ) {
+					a.push( row[ label[i] ] );
+				}
 
-                return a.join(' ');
-            };
-        }
+				return a.join(' ');
+			};
+		}
 
-        // Get the data
-        let q = db( this._table )
-            .distinct( fields )
-            .select();
+		// Get the data
+		let q = db( this._table )
+			.distinct( fields )
+			.select();
 
-        if ( this._where ) {
-            q.where( this._where );
-        }
+		if ( this._where ) {
+			q.where( this._where );
+		}
 
-        if ( this._order ) {
-            q.order( this._order );
-        }
+		if ( this._order ) {
+			q.order( this._order );
+		}
 
-        if ( this._limit ) {
-            q.limit( this.limit );
-        }
+		if ( this._limit ) {
+			q.limit( this.limit );
+		}
 
-        let res = await q;
-        let out = [];
+		let res = await q;
+		let out = [];
 
-        // Create the output array
-        for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
-            out.push( {
-                label: formatter( res[i] ),
-                value: res[i][ value ]
-            } );
-        }
+		// Create the output array
+		for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
+			out.push( {
+				label: formatter( res[i] ),
+				value: res[i][ value ]
+			} );
+		}
 
-        // Only sort if there was no SQL order field
-        if ( ! this._order ) {
-            out.sort( function( a, b ) {
-                if ( isNumeric(a) && isNumeric(b) ) {
-                    return (a.label * 1) - (b.label * 1);
-                }
-                return a.label < b.label ?
-                    -1 : a.label > b.label ?
-                        1 :
-                        0;
-            } );
-        }
+		// Only sort if there was no SQL order field
+		if ( ! this._order ) {
+			out.sort( function( a, b ) {
+				if ( isNumeric(a) && isNumeric(b) ) {
+					return (a.label * 1) - (b.label * 1);
+				}
+				return a.label < b.label ?
+					-1 : a.label > b.label ?
+						1 :
+						0;
+			} );
+		}
 
-        return out;
-    }
+		return out;
+	}
 }

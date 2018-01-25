@@ -2,8 +2,9 @@
 	"extends": "tslint:recommended",
 	"rules": {
 		"prefer-const": false,
-		"quotemark": "single",
+		"quotemark": [ true, "single" ],
 		"one-line": [
+			true,
             "check-catch",
             "check-finally",
             "check-open-brace",
@@ -11,8 +12,9 @@
         ],
 		"only-arrow-functions": false,
 		"trailing-comma": false,
-		"indent": ["tabs"],
+		"indent": [true, "tabs"],
     	"variable-name": [
+			true,
             "ban-keywords",
             "check-format",
             "allow-pascal-case",

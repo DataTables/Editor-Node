@@ -587,8 +587,8 @@ export default class Editor extends NestedData {
 
 			if ( flat ) {
 				val = row[ column ] ?
-				 row[ column ] :
-				 null;
+					row[ column ] :
+					null;
 			}
 			else {
 				val = this._readProp( column, row );
@@ -654,8 +654,7 @@ export default class Editor extends NestedData {
 			if ( that._tryCatch ) {
 				try {
 					await that._process( data, files );
-				}
-				catch ( e ) {
+				} catch ( e ) {
 					that._out.error = e.message;
 					// knex does the rollback if an exception occurs
 				}
@@ -903,7 +902,7 @@ export default class Editor extends NestedData {
 
 			if ( fields[i].apply('get') && fields[i].getValue() === undefined ) {
 				// Use the `as` to ensure that the table name is included, if using a join
-				var dbField = fields[i].dbField();
+				let dbField = fields[i].dbField();
 
 				if ( dbField.indexOf( '(') === -1 ) {
 					query.select( dbField + ' as ' + dbField );

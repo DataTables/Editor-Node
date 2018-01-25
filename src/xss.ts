@@ -11,5 +11,5 @@ export type Ixss = (str: string) => string;
  * @returns {string} Sanitized string
  */
 export default function xss( str: string ): string {
-    return xssFilters.inHTMLData( str );
+	return xssFilters.inHTMLData( str );
 }
