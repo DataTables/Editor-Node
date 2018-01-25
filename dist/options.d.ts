@@ -1,4 +1,4 @@
-import knex from 'knex';
+import * as knex from 'knex';
 export interface IOption {
     label: string;
     value: string | number;

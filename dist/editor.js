@@ -117,6 +117,8 @@ var Editor = /** @class */ (function (_super) {
         _this._out = {};
         _this._events = [];
         _this._tryCatch = false;
+        _this._debug = false;
+        _this._debugInfo = [];
         if (db) {
             _this.db(db);
         }
@@ -168,6 +170,18 @@ var Editor = /** @class */ (function (_super) {
                 this._db;
         }
         this._db = db;
+        return this;
+    };
+    Editor.prototype.debug = function (param) {
+        if (param === undefined) {
+            return this._debug;
+        }
+        else if (param === true || param === false) {
+            this._debug = param;
+            return this;
+        }
+        // Otherwise its a message
+        this._debugInfo.push(param);
         return this;
     };
     /**
@@ -1181,7 +1195,11 @@ var Editor = /** @class */ (function (_super) {
                     case 25:
                         _b.sent();
                         _b.label = 26;
-                    case 26: return [2 /*return*/];
+                    case 26:
+                        if (this._debug) {
+                            this._out.debug = this._debugInfo.slice();
+                        }
+                        return [2 /*return*/];
                 }
             });
         });

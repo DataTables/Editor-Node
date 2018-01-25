@@ -269,9 +269,9 @@ var Mjoin = /** @class */ (function (_super) {
                             readField = joinField.toString();
                         }
                         else if (!pkeyIsJoin) {
-                            throw new Error("Join was performed on the field '" + joinField + "' which was not " +
-                                "included in the Editor field list. The join field must be " +
-                                "included as a regular field in the Editor instance.");
+                            throw new Error('Join was performed on the field "' + joinField + '" which was not ' +
+                                'included in the Editor field list. The join field must be ' +
+                                'included as a regular field in the Editor instance.');
                         }
                         joinMap = {};
                         for (i = 0, ien = res.length; i < ien; i++) {
@@ -290,7 +290,7 @@ var Mjoin = /** @class */ (function (_super) {
                         for (i = 0, ien = response.data.length; i < ien; i++) {
                             data = response.data[i];
                             linkField = pkeyIsJoin ?
-                                data['DT_RowId'].replace(editor.idPrefix(), '') :
+                                data.DT_RowId.replace(editor.idPrefix(), '') :
                                 this._readProp(readField, data);
                             if (joinMap[linkField]) {
                                 data[this._name] = joinMap[linkField];

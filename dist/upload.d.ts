@@ -1,4 +1,4 @@
-import knex from 'knex';
+import * as knex from 'knex';
 import Editor from './editor';
 import Field from './field';
 export declare enum DbOpts {

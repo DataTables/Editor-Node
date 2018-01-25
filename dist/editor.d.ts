@@ -1,4 +1,4 @@
-import knex from 'knex';
+import * as knex from 'knex';
 import Field from './field';
 import Mjoin from './mjoin';
 import NestedData from './nestedData';
@@ -109,6 +109,8 @@ export interface IDtResponse {
     upload?: {
         id: string;
     };
+    /** Debug information if enabled by Editor.debug() */
+    debug?: any[];
 }
 /**
  * Global validation is performed when Editor submits a create, edit or
@@ -170,6 +172,8 @@ export default class Editor extends NestedData {
     private _tryCatch;
     private _knexTransaction;
     private _uploadData;
+    private _debug;
+    private _debugInfo;
     /**
      * Creates an instance of Editor.
      * @param {knex} [db=null] Database connection object
@@ -196,6 +200,23 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     db(db: knex): Editor;
+    /**
+     * Get the debug setting for this instance
+     * @returns {boolean} Debug enabled (true) or not
+     */
+    debug(): boolean;
+    /**
+     * Set the debug setting for this instance
+     * @param {boolean} set Debug flag
+     * @returns {Editor} Self for chaining
+     */
+    debug(set: boolean): Editor;
+    /**
+     * Add a debug message
+     * @param {any} message Message to add
+     * @returns {Editor} Self for chaining
+     */
+    debug(message: any): Editor;
     /**
      * Get or field by name, or add a field instance.
      * @param nameOrField Field instance to add, or field name to get

@@ -13,7 +13,7 @@ var ValidationOptions = /** @class */ (function () {
          *
          * @type {string}
          */
-        this.message = "Input not valid";
+        this.message = 'Input not valid';
         /**
          * Allow a field to be empty, i.e. a zero length string -
          * `''` (`true` - default) or require it to be non-zero length (`false`).
