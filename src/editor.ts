@@ -925,7 +925,7 @@ export default class Editor extends NestedData {
 
 		let fields = this.fields();
 		let pkeys = this.pkey();
-		let query = this.db()( this.table() );
+		let query = this.db()( this.table()[0] );
 		let options = {};
 
 		for ( let i = 0, ien = pkeys.length; i < ien; i++ ) {

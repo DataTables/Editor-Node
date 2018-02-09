@@ -706,7 +706,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         fields = this.fields();
                         pkeys = this.pkey();
-                        query = this.db()(this.table());
+                        query = this.db()(this.table()[0]);
                         options = {};
                         for (i = 0, ien = pkeys.length; i < ien; i++) {
                             query.select(pkeys[i] + ' as ' + pkeys[i]);
@@ -1580,7 +1580,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.7.1';
+    Editor.version = '1.7.2';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
