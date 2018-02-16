@@ -623,7 +623,7 @@ export default class Editor extends NestedData {
 			let column = pkey[i];
 
 			if ( flat ) {
-				val = row[ column ] ?
+				val = row[ column ] !== undefined ?
 					row[ column ] :
 					null;
 			}
