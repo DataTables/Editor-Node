@@ -343,7 +343,7 @@ var Editor = /** @class */ (function (_super) {
         for (var i = 0, ien = pkey.length; i < ien; i++) {
             var column = pkey[i];
             if (flat) {
-                val = row[column] ?
+                val = row[column] !== undefined ?
                     row[column] :
                     null;
             }
@@ -1580,7 +1580,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.7.2';
+    Editor.version = '1.7.3';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
