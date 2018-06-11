@@ -343,7 +343,7 @@ var Editor = /** @class */ (function (_super) {
         for (var i = 0, ien = pkey.length; i < ien; i++) {
             var column = pkey[i];
             if (flat) {
-                val = row[column] ?
+                val = row[column] !== undefined ?
                     row[column] :
                     null;
             }

@@ -43,4 +43,20 @@ export default class ValidationOptions {
 	 * @type {boolean}
 	 */
 	public optional: boolean = true;
+
+	/**
+	 * Create options
+	 * @param options Options
+	 */
+	constructor( options: {message?: string, empty?: boolean, optional?: boolean} = {} ) {
+		if ( options.message ) {
+			this.message = options.message;
+		}
+		if ( options.empty ) {
+			this.empty = options.empty;
+		}
+		if ( options.optional ) {
+			this.optional = options.optional;
+		}
+	}
 }

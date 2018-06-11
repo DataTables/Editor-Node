@@ -33,4 +33,13 @@ export default class ValidationOptions {
      * @type {boolean}
      */
     optional: boolean;
+    /**
+     * Create options
+     * @param options Options
+     */
+    constructor(options?: {
+        message?: string;
+        empty?: boolean;
+        optional?: boolean;
+    });
 }

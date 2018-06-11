@@ -7,7 +7,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * @class ValidationOptions
  */
 var ValidationOptions = /** @class */ (function () {
-    function ValidationOptions() {
+    /**
+     * Create options
+     * @param options Options
+     */
+    function ValidationOptions(options) {
+        if (options === void 0) { options = {}; }
         /**
          * Error message should the validation fail
          *
@@ -32,6 +37,15 @@ var ValidationOptions = /** @class */ (function () {
          * @type {boolean}
          */
         this.optional = true;
+        if (options.message) {
+            this.message = options.message;
+        }
+        if (options.empty) {
+            this.empty = options.empty;
+        }
+        if (options.optional) {
+            this.optional = options.optional;
+        }
     }
     /**
      * @ignore
