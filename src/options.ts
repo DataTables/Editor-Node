@@ -241,7 +241,21 @@ export default class Options {
 		}
 
 		if ( this._order ) {
-			q.order( this._order );
+			// For cases where we are ordering by a field which isn't included in the list
+			// of fields to display, we need to add the ordering field, due to the
+			// select distinct.
+			this._order.split(',').forEach( (val) => {
+				let field = val.toLocaleLowerCase()
+					.replace(' asc', '')
+					.replace( 'desc', '')
+					.trim();
+
+				if ( ! fields.includes( field ) ) {
+					q.select( field );
+				}
+			} );
+
+			q.orderBy( this._order );
 		}
 
 		if ( this._limit ) {
