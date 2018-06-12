@@ -1341,6 +1341,10 @@ export default class Editor extends NestedData {
 			}
 		}
 
+		if ( data.action && ! data.data ) {
+			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
+		}
+
 		if ( ! this._out.error ) {
 			if ( ! data.action ) {
 				let outData = await this._get( null, data );
