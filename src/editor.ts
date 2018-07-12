@@ -1341,7 +1341,7 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		if ( data.action && ! data.data ) {
+		if ( data.action && data.action !== 'upload' && ! data.data ) {
 			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 

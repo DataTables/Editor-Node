@@ -1105,7 +1105,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         _b.label = 2;
                     case 2:
-                        if (data.action && !data.data) {
+                        if (data.action && data.action !== 'upload' && !data.data) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
                         if (!!this._out.error) return [3 /*break*/, 26];
