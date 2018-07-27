@@ -16,6 +16,9 @@ export default class NestedData {
 	 * @returns {boolean} `true` if present, `false` otherwise
 	 */
 	protected _propExists( name: string, data: object ): boolean {
+		if (data === undefined) {
+		  return false;
+		}
 		if ( name.indexOf('.') === -1 ) {
 			return data[ name ] === undefined ?
 				false :
