@@ -1531,7 +1531,7 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the result set
 		let setCount = this
-			._db( this.table() )
+			._db( this.table()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( setCount );
@@ -1543,7 +1543,7 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the full set
 		let fullCount = this
-			._db( this.table() )
+			._db( this.table()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( fullCount );

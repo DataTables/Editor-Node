@@ -1359,7 +1359,7 @@ var Editor = /** @class */ (function (_super) {
                         this._sspSort(query, http);
                         this._sspFilter(query, http);
                         setCount = this
-                            ._db(this.table())
+                            ._db(this.table()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(setCount);
                         this._sspFilter(setCount, http);
@@ -1369,7 +1369,7 @@ var Editor = /** @class */ (function (_super) {
                         res = _a.sent();
                         recordsFiltered = res[0].cnt;
                         fullCount = this
-                            ._db(this.table())
+                            ._db(this.table()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(fullCount);
                         if (this._where.length) {
