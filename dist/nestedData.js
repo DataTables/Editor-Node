@@ -19,6 +19,9 @@ var NestedData = /** @class */ (function () {
      * @returns {boolean} `true` if present, `false` otherwise
      */
     NestedData.prototype._propExists = function (name, data) {
+        if (data === undefined) {
+            return false;
+        }
         if (name.indexOf('.') === -1) {
             return data[name] === undefined ?
                 false :

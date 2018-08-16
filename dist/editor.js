@@ -918,7 +918,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._insertOrUpdateTable = function (table, values, where) {
         if (where === void 0) { where = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var set, res, action, tableAlias, fields, i, ien, field, tablePart, fieldPart;
+            var set, res, action, tableAlias, fields, i, ien, field, tablePart, fieldPart, pkey;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -948,15 +948,16 @@ var Editor = /** @class */ (function (_super) {
                         if (Object.keys(set).length === 0) {
                             return [2 /*return*/, null];
                         }
+                        pkey = this._pkey[0].split('.')[0];
                         if (!(action === 'create')) return [3 /*break*/, 2];
                         return [4 /*yield*/, this
                                 ._db(table)
                                 .insert(set)
-                                .returning(this._pkey)];
+                                .returning(pkey)];
                     case 1:
                         res = _a.sent();
                         return [2 /*return*/, typeof res[0] === 'object' ?
-                                res[0][this._pkey[0]].toString() :
+                                res[0][pkey].toString() :
                                 res[0].toString()];
                     case 2: return [4 /*yield*/, this
                             ._db(table)
@@ -1407,7 +1408,7 @@ var Editor = /** @class */ (function (_super) {
         if (http.search.value) {
             query.where(function (q) {
                 for (var i = 0, ien = http.columns.length; i < ien; i++) {
-                    if (http.columns[i].searchable) {
+                    if (http.columns[i].searchable === 'true') {
                         var field = _this._sspField(http, i);
                         if (field) {
                             q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
@@ -1420,7 +1421,7 @@ var Editor = /** @class */ (function (_super) {
         for (var i = 0, ien = http.columns.length; i < ien; i++) {
             var column = http.columns[i];
             var search = column.search.value;
-            if (search !== '' && column.searchable) {
+            if (search !== '' && column.searchable === 'true') {
                 query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
             }
         }

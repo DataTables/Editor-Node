@@ -1171,14 +1171,16 @@ export default class Editor extends NestedData {
 			return null;
 		}
 
+		let pkey = this._pkey[0].split('.')[0];
+
 		if ( action === 'create' ) {
 			res = await this
 				._db( table )
 				.insert( set )
-				.returning( this._pkey );
+				.returning( pkey );
 
 			return typeof res[0] === 'object' ?
-				res[0][ this._pkey[0] ].toString() :
+				res[0][pkey].toString() :
 				res[0].toString();
 		}
 		else {
