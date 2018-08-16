@@ -948,7 +948,7 @@ var Editor = /** @class */ (function (_super) {
                         if (Object.keys(set).length === 0) {
                             return [2 /*return*/, null];
                         }
-                        pkey = this._pkey[0].split('.')[0];
+                        pkey = this._part(this._pkey[0], 'column');
                         if (!(action === 'create')) return [3 /*break*/, 2];
                         return [4 /*yield*/, this
                                 ._db(table)

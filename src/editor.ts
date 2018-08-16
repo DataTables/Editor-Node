@@ -1171,7 +1171,7 @@ export default class Editor extends NestedData {
 			return null;
 		}
 
-		let pkey = this._pkey[0].split('.')[0];
+		let pkey = this._part( this._pkey[0], 'column' );
 
 		if ( action === 'create' ) {
 			res = await this
