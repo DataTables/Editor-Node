@@ -18,7 +18,7 @@ export declare enum SetType {
     /** Write to the database only on create */
     Create = 2,
     /** Write to the database only on edit */
-    Edit = 3,
+    Edit = 3
 }
 /**
  * Field definitions for the DataTables Editor.
@@ -299,5 +299,5 @@ export default class Field extends NestedData {
      * @hidden
      */
     xssSafety(val: any): any;
-    private _format(val, data, formatter);
+    private _format;
 }

@@ -18,7 +18,7 @@ export declare enum Action {
     /** Delete one or more rows. */
     Delete = 3,
     /** Upload a file. */
-    Upload = 4,
+    Upload = 4
 }
 /**
  * Field error object.
@@ -454,31 +454,31 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining.
      */
     where(...cond: any[]): Editor;
-    private _fileClean();
-    private _fileData(limitTable?, id?);
-    private _fileDataFields(files, fields, limitTable, id?);
-    private _findField(name, type);
-    private _get(id, http?);
-    private _getWhere(query);
-    private _insert(values);
-    private _insertOrUpdate(id, values);
-    private _insertOrUpdateTable(table, values, where?);
-    private _alias(name, type?);
-    private _part(name, type?);
-    private _prepJoin();
-    private _performLeftJoin(query);
-    private _pkeySeparator();
-    private _pkeySubmitMerge(pkeyVal, row);
-    private _pkeyValidateInsert(row);
-    private _process(data, upload);
-    private _remove(http);
-    private _removeTable(table, ids, pkey?);
-    private _ssp(query, http);
-    private _sspField(http, index);
-    private _sspFilter(query, http);
-    private _sspLimit(query, http);
-    private _sspSort(query, http);
-    private _trigger(name, ...args);
-    private _update(id, values);
-    private _upload(http);
+    private _fileClean;
+    private _fileData;
+    private _fileDataFields;
+    private _findField;
+    private _get;
+    private _getWhere;
+    private _insert;
+    private _insertOrUpdate;
+    private _insertOrUpdateTable;
+    private _alias;
+    private _part;
+    private _prepJoin;
+    private _performLeftJoin;
+    private _pkeySeparator;
+    private _pkeySubmitMerge;
+    private _pkeyValidateInsert;
+    private _process;
+    private _remove;
+    private _removeTable;
+    private _ssp;
+    private _sspField;
+    private _sspFilter;
+    private _sspLimit;
+    private _sspSort;
+    private _trigger;
+    private _update;
+    private _upload;
 }

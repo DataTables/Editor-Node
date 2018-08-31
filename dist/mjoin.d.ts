@@ -186,8 +186,8 @@ export default class Mjoin extends NestedData {
      * @ignore
      */
     validate(errors: any, editor: Editor, data: object): Promise<void>;
-    private _applyWhere(query);
-    private _insert(db, parentId, data);
-    private _prepare(editor);
-    private _validateFields(errors, editor, data, prefix);
+    private _applyWhere;
+    private _insert;
+    private _prepare;
+    private _validateFields;
 }

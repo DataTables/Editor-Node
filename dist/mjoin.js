@@ -24,8 +24,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -384,7 +384,7 @@ var Mjoin = /** @class */ (function (_super) {
      */
     Mjoin.prototype.remove = function (editor, ids) {
         return __awaiter(this, void 0, void 0, function () {
-            var db, join, query, i, ien, query_1, _a;
+            var _a, db, join, query, i, ien, query_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -406,10 +406,10 @@ var Mjoin = /** @class */ (function (_super) {
                     case 2:
                         query_1 = db(this._table);
                         query_1.where(function () {
+                            var _a;
                             for (var i = 0, ien = ids.length; i < ien; i++) {
                                 query_1.orWhere((_a = {}, _a[join.child.toString()] = ids[i], _a));
                             }
-                            var _a;
                         });
                         this._applyWhere(query_1);
                         return [4 /*yield*/, query_1.del()];
@@ -462,7 +462,7 @@ var Mjoin = /** @class */ (function (_super) {
     };
     Mjoin.prototype._insert = function (db, parentId, data) {
         return __awaiter(this, void 0, void 0, function () {
-            var join, fields, set, i, ien, field, _a, _b;
+            var _a, _b, join, fields, set, i, ien, field;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:

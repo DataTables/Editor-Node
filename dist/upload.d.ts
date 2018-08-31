@@ -10,7 +10,7 @@ export declare enum DbOpts {
     FileSize = 5,
     MimeType = 6,
     ReadOnly = 7,
-    SystemPath = 8,
+    SystemPath = 8
 }
 export interface IFile {
     uuid: string;
@@ -165,8 +165,8 @@ export default class Upload {
      * @ignore
      */
     table(): string;
-    private _actionExec(id, files);
-    private _dbClean(db, editorTable, fieldName);
-    private _dbExec(db, files);
-    private _substitute(convert, uploadPath, id);
+    private _actionExec;
+    private _dbClean;
+    private _dbExec;
+    private _substitute;
 }

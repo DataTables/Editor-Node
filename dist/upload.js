@@ -14,8 +14,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -208,7 +208,7 @@ var Upload = /** @class */ (function () {
     Upload.prototype.data = function (db, id) {
         if (id === void 0) { id = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var query, keys, i, ien, key, i, ien, result, out, i, ien, _a;
+            var _a, query, keys, i, ien, key, i, ien, result, out, i, ien;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -422,10 +422,10 @@ var Upload = /** @class */ (function () {
                         if (!(result === true)) return [3 /*break*/, 4];
                         queryDel = db(this._dbTable)
                             .where(function () {
+                            var _a;
                             for (var i = 0, ien = rows.length; i < ien; i++) {
                                 this.orWhere((_a = {}, _a[that._dbPkey] = rows[i][that._dbPkey], _a));
                             }
-                            var _a;
                         });
                         return [4 /*yield*/, queryDel.del()];
                     case 3:
@@ -438,7 +438,7 @@ var Upload = /** @class */ (function () {
     };
     Upload.prototype._dbExec = function (db, files) {
         return __awaiter(this, void 0, void 0, function () {
-            var pathFields, fields, columns, set, upload, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, toSet, i, ien, key, _d;
+            var _a, pathFields, fields, columns, set, upload, i, ien, column, prop, _b, _c, _d, val, res, id, pathKeys, toSet, i, ien, key;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -453,8 +453,8 @@ var Upload = /** @class */ (function () {
                         if (!(i < ien)) return [3 /*break*/, 13];
                         column = columns[i];
                         prop = fields[column];
-                        _a = prop;
-                        switch (_a) {
+                        _b = prop;
+                        switch (_b) {
                             case DbOpts.ReadOnly: return [3 /*break*/, 2];
                             case DbOpts.Content: return [3 /*break*/, 3];
                             case DbOpts.ContentType: return [3 /*break*/, 5];
@@ -468,11 +468,11 @@ var Upload = /** @class */ (function () {
                         return [3 /*break*/, 11];
                     case 2: return [3 /*break*/, 12];
                     case 3:
-                        _b = set;
-                        _c = column;
+                        _c = set;
+                        _d = column;
                         return [4 /*yield*/, readFile(upload.file)];
                     case 4:
-                        _b[_c] = _e.sent();
+                        _c[_d] = _e.sent();
                         return [3 /*break*/, 12];
                     case 5:
                         set[column] = upload.mimetype;
@@ -523,7 +523,7 @@ var Upload = /** @class */ (function () {
                         }
                         return [4 /*yield*/, db(this._dbTable)
                                 .update(toSet)
-                                .where((_d = {}, _d[this._dbPkey] = id, _d))];
+                                .where((_a = {}, _a[this._dbPkey] = id, _a))];
                     case 15:
                         _e.sent();
                         _e.label = 16;

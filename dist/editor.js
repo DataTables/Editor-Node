@@ -24,8 +24,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
         while (_) try {
-            if (f = 1, y && (t = y[op[0] & 2 ? "return" : op[0] ? "throw" : "next"]) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [0, t.value];
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
                 case 0: case 1: t = op; break;
                 case 4: _.label++; return { value: op[1], done: false };
@@ -849,7 +849,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._insertOrUpdate = function (id, values) {
         return __awaiter(this, void 0, void 0, function () {
-            var tables, i, ien, res, i, ien, join, joinTable, tablePart, parentLink, childLink, whereVal, field, whereName, _a;
+            var _a, tables, i, ien, res, i, ien, join, joinTable, tablePart, parentLink, childLink, whereVal, field, whereName;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -1373,7 +1373,7 @@ var Editor = /** @class */ (function (_super) {
                             ._db(this.table()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(fullCount);
-                        if (this._where.length) {
+                        if (this._where.length) { // only needed if there is a where condition
                             this._performLeftJoin(fullCount);
                         }
                         return [4 /*yield*/, fullCount];
@@ -1427,7 +1427,7 @@ var Editor = /** @class */ (function (_super) {
         }
     };
     Editor.prototype._sspLimit = function (query, http) {
-        if (http.length !== -1) {
+        if (http.length !== -1) { // -1 is 'show all' in DataTables
             query
                 .limit(http.length * 1)
                 .offset(http.start * 1);

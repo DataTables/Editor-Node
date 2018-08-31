@@ -244,5 +244,5 @@ export default class Validator {
      * @returns {IValidator} Configured validation function
      */
     static fileSize(size: number, msg: string): IFileValidator;
-    private static _common(val, opts);
+    private static _common;
 }
