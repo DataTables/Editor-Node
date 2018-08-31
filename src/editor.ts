@@ -1585,7 +1585,7 @@ export default class Editor extends NestedData {
 		if ( http.search.value ) {
 			query.where( (q) => {
 				for ( let i = 0, ien = http.columns.length; i < ien; i++ ) {
-					if ( http.columns[i].searchable === 'true' ) {
+					if ( http.columns[i].searchable.toString() === 'true' ) {
 						let field = this._sspField( http, i );
 
 						if ( field ) {
@@ -1601,7 +1601,7 @@ export default class Editor extends NestedData {
 			let column = http.columns[i];
 			let search = column.search.value;
 
-			if ( search !== '' && column.searchable === 'true' ) {
+			if ( search !== '' && column.searchable.toString() === 'true' ) {
 				query.where(
 					this._sspField( http, i ),
 					'LIKE',

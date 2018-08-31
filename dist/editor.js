@@ -1408,7 +1408,7 @@ var Editor = /** @class */ (function (_super) {
         if (http.search.value) {
             query.where(function (q) {
                 for (var i = 0, ien = http.columns.length; i < ien; i++) {
-                    if (http.columns[i].searchable === 'true') {
+                    if (http.columns[i].searchable.toString() === 'true') {
                         var field = _this._sspField(http, i);
                         if (field) {
                             q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
@@ -1421,7 +1421,7 @@ var Editor = /** @class */ (function (_super) {
         for (var i = 0, ien = http.columns.length; i < ien; i++) {
             var column = http.columns[i];
             var search = column.search.value;
-            if (search !== '' && column.searchable === 'true') {
+            if (search !== '' && column.searchable.toString() === 'true') {
                 query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
             }
         }

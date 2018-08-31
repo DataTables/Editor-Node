@@ -469,7 +469,7 @@ export default class Field extends NestedData {
 			return await this._opts.exec( db );
 		}
 		else if ( this._opts ) {
-			return await this._opts( db );
+			return await (this._opts as any)( db );
 		}
 		return false;
 	}
