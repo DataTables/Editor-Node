@@ -52,7 +52,27 @@ function isNumeric(n) {
  */
 var Options = /** @class */ (function () {
     function Options() {
+        this._manualOpts = [];
     }
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     * Public methods
+     */
+    /**
+     * Add extra options to the list, in addition to any obtained from the database
+     *
+     * @param label Label
+     * @param value Value
+     */
+    Options.prototype.add = function (label, value) {
+        if (value === undefined) {
+            value = label;
+        }
+        this._manualOpts.push({
+            label: label,
+            value: value
+        });
+        return this;
+    };
     Options.prototype.label = function (label) {
         if (label === undefined) {
             return this._label;
@@ -167,6 +187,10 @@ var Options = /** @class */ (function () {
                                 label: formatter(res[i]),
                                 value: res[i][value]
                             });
+                        }
+                        // Stick on any extra manually added options
+                        if (this._manualOpts.length) {
+                            out = out.concat(this._manualOpts);
                         }
                         // Only sort if there was no SQL order field
                         if (!this._order) {

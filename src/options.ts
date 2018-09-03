@@ -32,10 +32,30 @@ export default class Options {
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
+	private _manualOpts: IOption[] = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
 	 */
+
+	/**
+	 * Add extra options to the list, in addition to any obtained from the database
+	 *
+	 * @param label Label
+	 * @param value Value
+	 */
+	public add( label: string, value?: string ) {
+		if ( value === undefined ) {
+			value = label;
+		}
+
+		this._manualOpts.push( {
+			label,
+			value
+		} );
+
+		return this;
+	}
 
 	/**
 	 * Get the column(s) to be used for the label
@@ -271,6 +291,11 @@ export default class Options {
 				label: formatter( res[i] ),
 				value: res[i][ value ]
 			} );
+		}
+
+		// Stick on any extra manually added options
+		if ( this._manualOpts.length ) {
+			out = out.concat( this._manualOpts );
 		}
 
 		// Only sort if there was no SQL order field

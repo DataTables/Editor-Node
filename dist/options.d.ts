@@ -25,6 +25,14 @@ export default class Options {
     private _renderer;
     private _where;
     private _order;
+    private _manualOpts;
+    /**
+     * Add extra options to the list, in addition to any obtained from the database
+     *
+     * @param label Label
+     * @param value Value
+     */
+    add(label: string, value?: string): this;
     /**
      * Get the column(s) to be used for the label
      *
