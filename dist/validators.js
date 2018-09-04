@@ -645,9 +645,9 @@ var Validator = /** @class */ (function () {
         var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
-                var common, q, cond, res;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                var _a, common, q, cond, res;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
                         case 0:
                             common = Validator._common(val, opts);
                             if (common !== null) {
@@ -664,19 +664,21 @@ var Validator = /** @class */ (function () {
                             if (column === null) {
                                 column = host.field.dbField();
                             }
-                            q = host.db()(table)
+                            q = db(table)
                                 .select(column)
-                                .where({ column: val });
+                                .where((_a = {}, _a[column] = val, _a));
                             // If doing an edit then we need to also discount the current row,
                             // since it is of course already validly unique
                             if (host.action === 'edit') {
                                 cond = host.editor.pkeyToObject(host.id, true);
                                 q.whereNot(cond);
                             }
+                            console.log(q.toSQL());
                             return [4 /*yield*/, q];
                         case 1:
-                            res = _a.sent();
-                            return [2 /*return*/, !res ?
+                            res = _b.sent();
+                            console.log(res);
+                            return [2 /*return*/, res.length ?
                                     opts.message :
                                     true];
                     }

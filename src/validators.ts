@@ -587,9 +587,9 @@ export default class Validator {
 				column = host.field.dbField();
 			}
 
-			let q = host.db()( table )
+			let q = db( table )
 				.select( column )
-				.where( { column: val } );
+				.where( { [column]: val } );
 
 			// If doing an edit then we need to also discount the current row,
 			// since it is of course already validly unique
@@ -600,7 +600,7 @@ export default class Validator {
 
 			let res = await q;
 
-			return ! res ?
+			return res.length ?
 				opts.message :
 				true;
 		};
