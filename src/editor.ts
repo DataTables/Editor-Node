@@ -502,14 +502,14 @@ export default class Editor extends NestedData {
 	}
 
 	/**
-	 * Indicate if a remove should be performed on left joined tables when deleting
-	 * from the parent row. Note that this is disabled by default and will be
-	 * removed completely in v2. Use `ON DELETE CASCADE` in your database instead.
+	 * Get the left join remove value.
 	 * @returns {boolean} Value
 	 */
 	public leftJoinRemove(): boolean;
 	/**
-	 * Get the left join remove value.
+	 * Indicate if a remove should be performed on left joined tables when deleting
+	 * from the parent row. Note that this is disabled by default and will be
+	 * removed completely in v2. Use `ON DELETE CASCADE` in your database instead.
 	 * @param {boolean} remove Value
 	 * @returns {Editor} Self for chaining
 	 */
