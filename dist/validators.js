@@ -673,11 +673,9 @@ var Validator = /** @class */ (function () {
                                 cond = host.editor.pkeyToObject(host.id, true);
                                 q.whereNot(cond);
                             }
-                            console.log(q.toSQL());
                             return [4 /*yield*/, q];
                         case 1:
                             res = _b.sent();
-                            console.log(res);
                             return [2 /*return*/, res.length ?
                                     opts.message :
                                     true];

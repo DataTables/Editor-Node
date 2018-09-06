@@ -119,6 +119,7 @@ var Editor = /** @class */ (function (_super) {
         _this._tryCatch = false;
         _this._debug = false;
         _this._debugInfo = [];
+        _this._leftJoinRemove = false;
         if (db) {
             _this.db(db);
         }
@@ -279,6 +280,13 @@ var Editor = /** @class */ (function (_super) {
             operator: operator,
             table: table,
         });
+        return this;
+    };
+    Editor.prototype.leftJoinRemove = function (remove) {
+        if (remove === undefined) {
+            return this._leftJoinRemove;
+        }
+        this._leftJoinRemove = remove;
         return this;
     };
     /**
@@ -1251,6 +1259,7 @@ var Editor = /** @class */ (function (_super) {
                         i++;
                         return [3 /*break*/, 5];
                     case 8:
+                        if (!this._leftJoinRemove) return [3 /*break*/, 12];
                         i = 0, ien = this._leftJoin.length;
                         _a.label = 9;
                     case 9:

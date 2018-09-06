@@ -261,6 +261,7 @@ export default class Editor extends NestedData {
 	private _uploadData: IUpload;
 	private _debug: boolean = false;
 	private _debugInfo: any[] = [];
+	private _leftJoinRemove: boolean = false;
 
 	/**
 	 * Creates an instance of Editor.
@@ -497,6 +498,28 @@ export default class Editor extends NestedData {
 			table,
 		} );
 
+		return this;
+	}
+
+	/**
+	 * Indicate if a remove should be performed on left joined tables when deleting
+	 * from the parent row. Note that this is disabled by default and will be
+	 * removed completely in v2. Use `ON DELETE CASCADE` in your database instead.
+	 * @returns {boolean} Value
+	 */
+	public leftJoinRemove(): boolean;
+	/**
+	 * Get the left join remove value.
+	 * @param {boolean} remove Value
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoinRemove(remove: boolean): Editor;
+	public leftJoinRemove(remove?: boolean): any {
+		if ( remove === undefined ) {
+			return this._leftJoinRemove;
+		}
+
+		this._leftJoinRemove = remove;
 		return this;
 	}
 
@@ -1450,28 +1473,30 @@ export default class Editor extends NestedData {
 		}
 
 		// Remove from the left join tables
-		for ( let i = 0, ien = this._leftJoin.length; i < ien; i++ ) {
-			let join = this._leftJoin[i];
-			let table = this._alias( join.table, 'orig' );
-			let parentLink;
-			let childLink;
+		if ( this._leftJoinRemove ) {
+			for ( let i = 0, ien = this._leftJoin.length; i < ien; i++ ) {
+				let join = this._leftJoin[i];
+				let table = this._alias( join.table, 'orig' );
+				let parentLink;
+				let childLink;
 
-			// Which side of the join refers to the parent table?
-			if ( join.field1.indexOf( join.table ) === 0 ) {
-				parentLink = join.field2;
-				childLink = join.field1;
-			}
-			else {
-				parentLink = join.field1;
-				childLink = join.field2;
-			}
+				// Which side of the join refers to the parent table?
+				if ( join.field1.indexOf( join.table ) === 0 ) {
+					parentLink = join.field2;
+					childLink = join.field1;
+				}
+				else {
+					parentLink = join.field1;
+					childLink = join.field2;
+				}
 
-			// Only delete on the primary key, since that is what the ids refer
-			// to - otherwise we'd be deleting random data! Note that this
-			// won't work with compound keys since the parent link would be
-			// over multiple fields.
-			if ( parentLink === this._pkey[0] && this._pkey.length === 1 ) {
-				await this._removeTable( join.table, ids, [childLink] );
+				// Only delete on the primary key, since that is what the ids refer
+				// to - otherwise we'd be deleting random data! Note that this
+				// won't work with compound keys since the parent link would be
+				// over multiple fields.
+				if ( parentLink === this._pkey[0] && this._pkey.length === 1 ) {
+					await this._removeTable( join.table, ids, [childLink] );
+				}
 			}
 		}
 

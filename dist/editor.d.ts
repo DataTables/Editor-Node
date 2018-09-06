@@ -174,6 +174,7 @@ export default class Editor extends NestedData {
     private _uploadData;
     private _debug;
     private _debugInfo;
+    private _leftJoinRemove;
     /**
      * Creates an instance of Editor.
      * @param {knex} [db=null] Database connection object
@@ -312,6 +313,19 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     leftJoin(table: string, field1: string, operator: string, field2: string): Editor;
+    /**
+     * Indicate if a remove should be performed on left joined tables when deleting
+     * from the parent row. Note that this is disabled by default and will be
+     * removed completely in v2. Use `ON DELETE CASCADE` in your database instead.
+     * @returns {boolean} Value
+     */
+    leftJoinRemove(): boolean;
+    /**
+     * Get the left join remove value.
+     * @param {boolean} remove Value
+     * @returns {Editor} Self for chaining
+     */
+    leftJoinRemove(remove: boolean): Editor;
     /**
      * Add an event listener. The `Editor` class will trigger an number of
      * events that some action can be taken on.
