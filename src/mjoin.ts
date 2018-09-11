@@ -369,6 +369,29 @@ export default class Mjoin extends NestedData {
 			query.rightJoin( this._table, join.parent, '=', join.child );
 		}
 
+
+		// Get list of pkey values and apply as a WHERE IN condition
+		// This is primarily useful in server-side processing mode and when filtering
+		// the table as it means only a sub-set will be selected
+		// This is only applied for "sensible" data sets. It will just complicate
+		// matters for really large data sets:
+		// https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
+		if ( response.data.length < 1000 ) {
+			let blah = ''; // FIXME!
+			let whereIn = [];
+			let data = response.data;
+
+			for ( let i = 0, ien = data.length; i < ien; i++ ) {
+				let linkValue = pkeyIsJoin ?
+					(data[i] as any).DT_RowId.replace( editor.idPrefix(), '' ) :
+					this._readProp( blah, data[i] );
+
+				whereIn.push( linkValue );
+			}
+
+			query.whereIn( dteTable + '.' + joinField, whereIn );
+		}
+
 		let res = await query;
 		let readField = '';
 

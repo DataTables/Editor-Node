@@ -200,7 +200,7 @@ var Mjoin = /** @class */ (function (_super) {
      */
     Mjoin.prototype.data = function (editor, response) {
         return __awaiter(this, void 0, void 0, function () {
-            var fields, join, dteTable, joinField, pkeyIsJoin, query, order, a, i, ien, field, dbField, res, readField, joinMap, i, ien, inner, j, jen, lookup, i, ien, data, linkField, i, ien, opts, name_1;
+            var fields, join, dteTable, joinField, pkeyIsJoin, query, order, a, i, ien, field, dbField, blah, whereIn, data, i, ien, linkValue, res, readField, joinMap, i, ien, inner, j, jen, lookup, i, ien, data, linkField, i, ien, opts, name_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -257,6 +257,24 @@ var Mjoin = /** @class */ (function (_super) {
                         }
                         else {
                             query.rightJoin(this._table, join.parent, '=', join.child);
+                        }
+                        // Get list of pkey values and apply as a WHERE IN condition
+                        // This is primarily useful in server-side processing mode and when filtering
+                        // the table as it means only a sub-set will be selected
+                        // This is only applied for "sensible" data sets. It will just complicate
+                        // matters for really large data sets:
+                        // https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
+                        if (response.data.length < 1000) {
+                            blah = '';
+                            whereIn = [];
+                            data = response.data;
+                            for (i = 0, ien = data.length; i < ien; i++) {
+                                linkValue = pkeyIsJoin ?
+                                    data[i].DT_RowId.replace(editor.idPrefix(), '') :
+                                    this._readProp(blah, data[i]);
+                                whereIn.push(linkValue);
+                            }
+                            query.whereIn(dteTable + '.' + joinField, whereIn);
                         }
                         return [4 /*yield*/, query];
                     case 1:
