@@ -216,6 +216,7 @@ var Mjoin = /** @class */ (function (_super) {
                         if (editor.pkey().length > 1) {
                             throw new Error('Mjoin is not currently supported with a compound primary key for the main table');
                         }
+                        if (!response.data.length) return [3 /*break*/, 2];
                         dteTable = editor.table()[0];
                         joinField = join.table ?
                             join.parent[0] :
@@ -316,22 +317,24 @@ var Mjoin = /** @class */ (function (_super) {
                                 data[this._name] = [];
                             }
                         }
-                        i = 0, ien = fields.length;
                         _a.label = 2;
                     case 2:
-                        if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, fields[i].optionsExec(editor.db())];
+                        i = 0, ien = fields.length;
+                        _a.label = 3;
                     case 3:
+                        if (!(i < ien)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, fields[i].optionsExec(editor.db())];
+                    case 4:
                         opts = _a.sent();
                         if (opts) {
                             name_1 = this.name() + '[].' + fields[i].name();
                             response.options[name_1] = opts;
                         }
-                        _a.label = 4;
-                    case 4:
+                        _a.label = 5;
+                    case 5:
                         i++;
-                        return [3 /*break*/, 2];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 3];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

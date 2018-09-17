@@ -314,131 +314,133 @@ export default class Mjoin extends NestedData {
 			throw new Error( 'Mjoin is not currently supported with a compound primary key for the main table' );
 		}
 
-		// If the Editor primary key is join key, then it is read automatically
-		// and into Editor's primary key store
-		let dteTable = editor.table()[0];
-		let joinField = join.table ?
-			join.parent[0] :
-			join.parent;
+		if ( response.data.length ) {
+			// If the Editor primary key is join key, then it is read automatically
+			// and into Editor's primary key store
+			let dteTable = editor.table()[0];
+			let joinField = join.table ?
+				join.parent[0] :
+				join.parent;
 
-		let pkeyIsJoin = joinField === editor.pkey()[0] ||
-			dteTable + '.' + joinField === editor.pkey()[0];
+			let pkeyIsJoin = joinField === editor.pkey()[0] ||
+				dteTable + '.' + joinField === editor.pkey()[0];
 
-		// Build the basic query
-		let query = editor.db()( dteTable )
-			.distinct( dteTable + '.' + joinField + ' as dteditor_pkey' );
+			// Build the basic query
+			let query = editor.db()( dteTable )
+				.distinct( dteTable + '.' + joinField + ' as dteditor_pkey' );
 
-		let order = this.order();
-		if ( order ) {
-			let a = order.split( ' ' );
+			let order = this.order();
+			if ( order ) {
+				let a = order.split( ' ' );
 
-			if ( a.length > 1 ) {
-				query.orderBy( a[0], a[1] );
-			}
-			else {
-				query.orderBy( a );
-			}
-		}
-
-		this._applyWhere( query );
-
-		for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
-			let field = fields[i];
-
-			if ( field.apply('get') && field.getValue() === undefined ) {
-				let dbField = field.dbField();
-
-				if (dbField.indexOf('(') !== -1 ) {
-					query.select( editor.db().raw( dbField + ' as "' + dbField + '"' ) );
-				}
-				else if ( dbField.indexOf('.') === -1 ) {
-					query.select( this._table + '.' + dbField + ' as ' + dbField );
+				if ( a.length > 1 ) {
+					query.orderBy( a[0], a[1] );
 				}
 				else {
-					query.select( dbField );
+					query.orderBy( a );
 				}
 			}
-		}
 
-		// Create the joins
-		if ( join.table ) {
-			query.rightJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
-			query.rightJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
-		}
-		else {
-			query.rightJoin( this._table, join.parent, '=', join.child );
-		}
+			this._applyWhere( query );
 
-		let readField = '';
-		if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
-			readField = dteTable + '.' + joinField;
-		}
-		else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
-			readField = joinField.toString();
-		}
-		else if ( !pkeyIsJoin ) {
-			throw new Error(
-				'Join was performed on the field "' + joinField + '" which was not ' +
-				'included in the Editor field list. The join field must be ' +
-				'included as a regular field in the Editor instance.'
-			);
-		}
+			for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
+				let field = fields[i];
 
-		// Get list of pkey values and apply as a WHERE IN condition
-		// This is primarily useful in server-side processing mode and when filtering
-		// the table as it means only a sub-set will be selected
-		// This is only applied for "sensible" data sets. It will just complicate
-		// matters for really large data sets:
-		// https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
-		if ( response.data.length < 1000 ) {
-			let whereIn = [];
-			let data = response.data;
+				if ( field.apply('get') && field.getValue() === undefined ) {
+					let dbField = field.dbField();
 
-			for ( let i = 0, ien = data.length; i < ien; i++ ) {
-				let linkValue = pkeyIsJoin ?
-					(data[i] as any).DT_RowId.replace( editor.idPrefix(), '' ) :
-					this._readProp( readField, data[i] );
-
-				whereIn.push( linkValue );
+					if (dbField.indexOf('(') !== -1 ) {
+						query.select( editor.db().raw( dbField + ' as "' + dbField + '"' ) );
+					}
+					else if ( dbField.indexOf('.') === -1 ) {
+						query.select( this._table + '.' + dbField + ' as ' + dbField );
+					}
+					else {
+						query.select( dbField );
+					}
+				}
 			}
 
-			query.whereIn( dteTable + '.' + joinField, whereIn );
-		}
-
-		let res = await query;
-
-		// Map the data to the primary key for fast loop up
-		let joinMap = {};
-
-		for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
-			let inner = {};
-
-			for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
-				fields[j].write( inner, res[i] );
-			}
-
-			let lookup = res[i].dteditor_pkey;
-
-			if ( ! joinMap[ lookup ] ) {
-				joinMap[ lookup ] = [];
-			}
-
-			joinMap[ lookup ].push( inner );
-		}
-
-		// Loop over the data in the original response and do a join based on
-		// the mapped data
-		for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
-			let data = response.data[i];
-			let linkField = pkeyIsJoin ?
-				(data as any).DT_RowId.replace( editor.idPrefix(), '' ) :
-				this._readProp( readField, data );
-
-			if ( joinMap[ linkField ] ) {
-				data[ this._name ] = joinMap[ linkField ];
+			// Create the joins
+			if ( join.table ) {
+				query.rightJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
+				query.rightJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
 			}
 			else {
-				data[ this._name ] = [];
+				query.rightJoin( this._table, join.parent, '=', join.child );
+			}
+
+			let readField = '';
+			if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
+				readField = dteTable + '.' + joinField;
+			}
+			else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
+				readField = joinField.toString();
+			}
+			else if ( !pkeyIsJoin ) {
+				throw new Error(
+					'Join was performed on the field "' + joinField + '" which was not ' +
+					'included in the Editor field list. The join field must be ' +
+					'included as a regular field in the Editor instance.'
+				);
+			}
+
+			// Get list of pkey values and apply as a WHERE IN condition
+			// This is primarily useful in server-side processing mode and when filtering
+			// the table as it means only a sub-set will be selected
+			// This is only applied for "sensible" data sets. It will just complicate
+			// matters for really large data sets:
+			// https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
+			if ( response.data.length < 1000 ) {
+				let whereIn = [];
+				let data = response.data;
+
+				for ( let i = 0, ien = data.length; i < ien; i++ ) {
+					let linkValue = pkeyIsJoin ?
+						(data[i] as any).DT_RowId.replace( editor.idPrefix(), '' ) :
+						this._readProp( readField, data[i] );
+
+					whereIn.push( linkValue );
+				}
+
+				query.whereIn( dteTable + '.' + joinField, whereIn );
+			}
+
+			let res = await query;
+
+			// Map the data to the primary key for fast loop up
+			let joinMap = {};
+
+			for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
+				let inner = {};
+
+				for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
+					fields[j].write( inner, res[i] );
+				}
+
+				let lookup = res[i].dteditor_pkey;
+
+				if ( ! joinMap[ lookup ] ) {
+					joinMap[ lookup ] = [];
+				}
+
+				joinMap[ lookup ].push( inner );
+			}
+
+			// Loop over the data in the original response and do a join based on
+			// the mapped data
+			for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
+				let data = response.data[i];
+				let linkField = pkeyIsJoin ?
+					(data as any).DT_RowId.replace( editor.idPrefix(), '' ) :
+					this._readProp( readField, data );
+
+				if ( joinMap[ linkField ] ) {
+					data[ this._name ] = joinMap[ linkField ];
+				}
+				else {
+					data[ this._name ] = [];
+				}
 			}
 		}
 
