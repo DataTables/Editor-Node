@@ -879,22 +879,38 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _fileData( limitTable: string = null, id: string = null ): Promise<object> {
+	private async _fileData( limitTable: string = null, ids: string[] = null, data: any[] = null ): Promise<object> {
 		let files = {};
 
 		// The fields in this instance
-		await this._fileDataFields( files, this._fields, limitTable, id );
+		await this._fileDataFields( files, this._fields, limitTable, ids, data );
 
 		// From joined tables
 		for ( let i = 0, ien = this._join.length; i < ien; i++ ) {
-			await this._fileDataFields( files, this._join[i].fields(), limitTable, id );
+			let joinData = null;
+
+			// If we have data from the get, it is nested from the join, so we need to
+			// un-nest it (i.e. get the array of joined data for each row)
+			if ( data ) {
+				joinData = [];
+
+				for ( let j = 0, jen = data.length; j < jen ; j++ ) {
+					let innerData = data[j][this._join[i].name()];
+
+					if ( innerData ) {
+						joinData.push.apply( joinData, innerData );
+					}
+				}
+			}
+
+			await this._fileDataFields( files, this._join[i].fields(), limitTable, ids, joinData );
 		}
 
 		return files;
 	}
 
 	private async _fileDataFields(
-		files: object, fields: Field[], limitTable: string, id: string = null
+		files: object, fields: Field[], limitTable: string, ids: string[] = null, data: any[] = null
 	): Promise<void> {
 		for ( let i = 0, ien = fields.length; i < ien; i++ ) {
 			let upload = fields[i].upload();
@@ -914,7 +930,32 @@ export default class Editor extends NestedData {
 					continue;
 				}
 
-				let fileData = await upload.data( this.db(), id );
+				// Make a collection of the ids used in this data set to get a limited data set
+				// in return (security and performance)
+				if ( ids === null ) {
+					ids = [];
+				}
+
+				if ( data !== null ) {
+					for ( let j = 0, jen = data.length; j < jen; j++ ) {
+						let val = fields[i].val('set', data[j]);
+
+						if ( val ) {
+							ids.push( val );
+						}
+					}
+
+					if ( ids.length === 0 ) {
+						// If no data to fetch, then don't bother
+						return;
+					}
+					else if ( ids.length > 1000 ) {
+						// Don't use WHERE IN for really large arrays
+						ids = [];
+					}
+				}
+
+				let fileData = await upload.data( this.db(), ids );
 
 				if ( fileData ) {
 					files[ table ] = fileData;
@@ -1018,7 +1059,7 @@ export default class Editor extends NestedData {
 		let response = {
 			data: out,
 			draw: ssp.draw,
-			files: await this._fileData(),
+			files: {},
 			options,
 			recordsFiltered: ssp.recordsFiltered,
 			recordsTotal: ssp.recordsTotal
@@ -1028,6 +1069,8 @@ export default class Editor extends NestedData {
 		for ( let i = 0, ien = this._join.length; i < ien; i++ ) {
 			await this._join[i].data( this, response );
 		}
+
+		response.files = await this._fileData( null, null, response.data );
 
 		await this._trigger( 'postGet', id, out );
 
@@ -1759,7 +1802,7 @@ export default class Editor extends NestedData {
 			} );
 		}
 		else {
-			let files = await this._fileData( upload.table(), res );
+			let files = await this._fileData( upload.table(), [res] );
 
 			this._out.files = files;
 			this._out.upload = {

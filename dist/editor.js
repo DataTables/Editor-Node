@@ -619,17 +619,18 @@ var Editor = /** @class */ (function (_super) {
             });
         });
     };
-    Editor.prototype._fileData = function (limitTable, id) {
+    Editor.prototype._fileData = function (limitTable, ids, data) {
         if (limitTable === void 0) { limitTable = null; }
-        if (id === void 0) { id = null; }
+        if (ids === void 0) { ids = null; }
+        if (data === void 0) { data = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var files, i, ien;
+            var files, i, ien, joinData, j, jen, innerData;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         files = {};
                         // The fields in this instance
-                        return [4 /*yield*/, this._fileDataFields(files, this._fields, limitTable, id)];
+                        return [4 /*yield*/, this._fileDataFields(files, this._fields, limitTable, ids, data)];
                     case 1:
                         // The fields in this instance
                         _a.sent();
@@ -637,7 +638,19 @@ var Editor = /** @class */ (function (_super) {
                         _a.label = 2;
                     case 2:
                         if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._fileDataFields(files, this._join[i].fields(), limitTable, id)];
+                        joinData = null;
+                        // If we have data from the get, it is nested from the join, so we need to
+                        // un-nest it (i.e. get the array of joined data for each row)
+                        if (data) {
+                            joinData = [];
+                            for (j = 0, jen = data.length; j < jen; j++) {
+                                innerData = data[j][this._join[i].name()];
+                                if (innerData) {
+                                    joinData.push.apply(joinData, innerData);
+                                }
+                            }
+                        }
+                        return [4 /*yield*/, this._fileDataFields(files, this._join[i].fields(), limitTable, ids, joinData)];
                     case 3:
                         _a.sent();
                         _a.label = 4;
@@ -649,10 +662,11 @@ var Editor = /** @class */ (function (_super) {
             });
         });
     };
-    Editor.prototype._fileDataFields = function (files, fields, limitTable, id) {
-        if (id === void 0) { id = null; }
+    Editor.prototype._fileDataFields = function (files, fields, limitTable, ids, data) {
+        if (ids === void 0) { ids = null; }
+        if (data === void 0) { data = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var i, ien, upload, table, fileData;
+            var i, ien, upload, table, j, jen, val, fileData;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -672,7 +686,28 @@ var Editor = /** @class */ (function (_super) {
                         if (files[table]) {
                             return [3 /*break*/, 3];
                         }
-                        return [4 /*yield*/, upload.data(this.db(), id)];
+                        // Make a collection of the ids used in this data set to get a limited data set
+                        // in return (security and performance)
+                        if (ids === null) {
+                            ids = [];
+                        }
+                        if (data !== null) {
+                            for (j = 0, jen = data.length; j < jen; j++) {
+                                val = fields[i].val('set', data[j]);
+                                if (val) {
+                                    ids.push(val);
+                                }
+                            }
+                            if (ids.length === 0) {
+                                // If no data to fetch, then don't bother
+                                return [2 /*return*/];
+                            }
+                            else if (ids.length > 1000) {
+                                // Don't use WHERE IN for really large arrays
+                                ids = [];
+                            }
+                        }
+                        return [4 /*yield*/, upload.data(this.db(), ids)];
                     case 2:
                         fileData = _a.sent();
                         if (fileData) {
@@ -703,7 +738,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, ssp, result, out, i, ien, inner, j, jen, i, ien, opts, response, _a, i, ien;
+            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, ssp, result, out, i, ien, inner, j, jen, i, ien, opts, response, i, ien, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this._trigger('preGet', id)];
@@ -776,29 +811,31 @@ var Editor = /** @class */ (function (_super) {
                         i++;
                         return [3 /*break*/, 4];
                     case 7:
-                        _a = {
+                        response = {
                             data: out,
-                            draw: ssp.draw
+                            draw: ssp.draw,
+                            files: {},
+                            options: options,
+                            recordsFiltered: ssp.recordsFiltered,
+                            recordsTotal: ssp.recordsTotal
                         };
-                        return [4 /*yield*/, this._fileData()];
-                    case 8:
-                        response = (_a.files = _b.sent(),
-                            _a.options = options,
-                            _a.recordsFiltered = ssp.recordsFiltered,
-                            _a.recordsTotal = ssp.recordsTotal,
-                            _a);
                         i = 0, ien = this._join.length;
-                        _b.label = 9;
-                    case 9:
-                        if (!(i < ien)) return [3 /*break*/, 12];
+                        _b.label = 8;
+                    case 8:
+                        if (!(i < ien)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._join[i].data(this, response)];
-                    case 10:
+                    case 9:
                         _b.sent();
-                        _b.label = 11;
-                    case 11:
+                        _b.label = 10;
+                    case 10:
                         i++;
-                        return [3 /*break*/, 9];
-                    case 12: return [4 /*yield*/, this._trigger('postGet', id, out)];
+                        return [3 /*break*/, 8];
+                    case 11:
+                        _a = response;
+                        return [4 /*yield*/, this._fileData(null, null, response.data)];
+                    case 12:
+                        _a.files = _b.sent();
+                        return [4 /*yield*/, this._trigger('postGet', id, out)];
                     case 13:
                         _b.sent();
                         return [2 /*return*/, response];
@@ -1579,7 +1616,7 @@ var Editor = /** @class */ (function (_super) {
                             status: upload.error()
                         });
                         return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, this._fileData(upload.table(), res)];
+                    case 3: return [4 /*yield*/, this._fileData(upload.table(), [res])];
                     case 4:
                         files = _a.sent();
                         this._out.files = files;

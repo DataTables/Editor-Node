@@ -216,7 +216,7 @@ export default class Upload {
 	/**
 	 * @ignore
 	 */
-	public async data( db: knex, id: string = null ): Promise<object> {
+	public async data( db: knex, ids: string[] = null ): Promise<object> {
 		if ( ! this._dbTable ) {
 			return null;
 		}
@@ -234,8 +234,8 @@ export default class Upload {
 			}
 		}
 
-		if ( id !== null ) {
-			query.where( { [this._dbPkey]: id } );
+		if ( ids !== null ) {
+			query.whereIn( this._dbPkey, ids );
 		}
 
 		for ( let i = 0, ien = this._where.length ; i < ien ; i++ ) {

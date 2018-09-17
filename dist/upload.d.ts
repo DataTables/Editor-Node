@@ -144,7 +144,7 @@ export default class Upload {
     /**
      * @ignore
      */
-    data(db: knex, id?: string): Promise<object>;
+    data(db: knex, ids?: string[]): Promise<object>;
     /**
      * @ignore
      */

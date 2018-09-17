@@ -205,12 +205,12 @@ var Upload = /** @class */ (function () {
     /**
      * @ignore
      */
-    Upload.prototype.data = function (db, id) {
-        if (id === void 0) { id = null; }
+    Upload.prototype.data = function (db, ids) {
+        if (ids === void 0) { ids = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var _a, query, keys, i, ien, key, i, ien, result, out, i, ien;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var query, keys, i, ien, key, i, ien, result, out, i, ien;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         if (!this._dbTable) {
                             return [2 /*return*/, null];
@@ -224,15 +224,15 @@ var Upload = /** @class */ (function () {
                                 query.select(key);
                             }
                         }
-                        if (id !== null) {
-                            query.where((_a = {}, _a[this._dbPkey] = id, _a));
+                        if (ids !== null) {
+                            query.whereIn(this._dbPkey, ids);
                         }
                         for (i = 0, ien = this._where.length; i < ien; i++) {
                             query.where(this._where[i]);
                         }
                         return [4 /*yield*/, query];
                     case 1:
-                        result = _b.sent();
+                        result = _a.sent();
                         out = {};
                         for (i = 0, ien = result.length; i < ien; i++) {
                             out[result[i][this._dbPkey]] = result[i];
