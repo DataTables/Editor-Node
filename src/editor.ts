@@ -250,6 +250,7 @@ export default class Editor extends NestedData {
 	private _join: Mjoin[] = [];
 	private _pkey: string[] = ['id'];
 	private _table: string[] = [];
+	private _readTableNames: string[] = [];
 	private _transaction: boolean = false;
 	private _where = [];
 	private _leftJoin: ILeftJoin[] = [];
@@ -537,6 +538,35 @@ export default class Editor extends NestedData {
 		}
 
 		this._events[ name ].push( callback );
+
+		return this;
+	}
+
+	/**
+	 * Get CRUD read table name.
+	 * @returns {string[]} Configured read table name
+	 */
+	public readTable(): string[];
+	/**
+	 * Set CRUD read table name. If this method is used, Editor will create from the
+	 * table name(s) given rather than those given by `Editor->table()`. This can be
+	 * a useful distinction to allow a read from a VIEW (which could make use of a
+	 * complex SELECT) while writing to a different table.
+	 * @param {(string|string[])} table Database table name to use for reading from
+	 * @returns {Editor} Self for chaining
+	 */
+	public readTable(table: string|string[]): Editor;
+	public readTable(table?: string|string[]): any {
+		if ( table === undefined || table.length === 0 ) {
+			return this._readTableNames;
+		}
+
+		if ( typeof table === 'string' ) {
+			this._readTableNames.push( table );
+		}
+		else {
+			this._readTableNames.push.apply( this._readTableNames, table );
+		}
 
 		return this;
 	}
@@ -989,7 +1019,7 @@ export default class Editor extends NestedData {
 
 		let fields = this.fields();
 		let pkeys = this.pkey();
-		let query = this.db()( this.table()[0] );
+		let query = this.db()( this._readTable()[0] );
 		let options = {};
 
 		for ( let i = 0, ien = pkeys.length; i < ien; i++ ) {
@@ -1486,6 +1516,12 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	private _readTable(): string[] {
+		return this._readTableNames.length ?
+			this._readTableNames :
+			this._table;
+	}
+
 	private async _remove( http: IDtRequest ): Promise<void> {
 		let ids: string[] = [];
 		let keys = Object.keys( http.data );
@@ -1601,7 +1637,7 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the result set
 		let setCount = this
-			._db( this.table()[0] )
+			._db( this._readTable()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( setCount );
@@ -1613,7 +1649,7 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the full set
 		let fullCount = this
-			._db( this.table()[0] )
+			._db( this._readTable()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( fullCount );

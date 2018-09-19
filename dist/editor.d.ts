@@ -163,6 +163,7 @@ export default class Editor extends NestedData {
     private _join;
     private _pkey;
     private _table;
+    private _readTableNames;
     private _transaction;
     private _where;
     private _leftJoin;
@@ -336,6 +337,20 @@ export default class Editor extends NestedData {
      */
     on(name: string, callback: Function): Editor;
     /**
+     * Get CRUD read table name.
+     * @returns {string[]} Configured read table name
+     */
+    readTable(): string[];
+    /**
+     * Set CRUD read table name. If this method is used, Editor will create from the
+     * table name(s) given rather than those given by `Editor->table()`. This can be
+     * a useful distinction to allow a read from a VIEW (which could make use of a
+     * complex SELECT) while writing to a different table.
+     * @param {(string|string[])} table Database table name to use for reading from
+     * @returns {Editor} Self for chaining
+     */
+    readTable(table: string | string[]): Editor;
+    /**
      * Get the table name.
      *
      * The table name designated which DB table Editor will use as its data
@@ -485,6 +500,7 @@ export default class Editor extends NestedData {
     private _pkeySubmitMerge;
     private _pkeyValidateInsert;
     private _process;
+    private _readTable;
     private _remove;
     private _removeTable;
     private _ssp;

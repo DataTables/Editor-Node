@@ -111,6 +111,7 @@ var Editor = /** @class */ (function (_super) {
         _this._join = [];
         _this._pkey = ['id'];
         _this._table = [];
+        _this._readTableNames = [];
         _this._transaction = false;
         _this._where = [];
         _this._leftJoin = [];
@@ -302,6 +303,18 @@ var Editor = /** @class */ (function (_super) {
             this._events[name] = [];
         }
         this._events[name].push(callback);
+        return this;
+    };
+    Editor.prototype.readTable = function (table) {
+        if (table === undefined || table.length === 0) {
+            return this._readTableNames;
+        }
+        if (typeof table === 'string') {
+            this._readTableNames.push(table);
+        }
+        else {
+            this._readTableNames.push.apply(this._readTableNames, table);
+        }
         return this;
     };
     Editor.prototype.table = function (table) {
@@ -749,7 +762,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         fields = this.fields();
                         pkeys = this.pkey();
-                        query = this.db()(this.table()[0]);
+                        query = this.db()(this._readTable()[0]);
                         options = {};
                         for (i = 0, ien = pkeys.length; i < ien; i++) {
                             query.select(pkeys[i] + ' as ' + pkeys[i]);
@@ -1253,6 +1266,11 @@ var Editor = /** @class */ (function (_super) {
             });
         });
     };
+    Editor.prototype._readTable = function () {
+        return this._readTableNames.length ?
+            this._readTableNames :
+            this._table;
+    };
     Editor.prototype._remove = function (http) {
         return __awaiter(this, void 0, void 0, function () {
             var ids, keys, i, ien, id, res, i, ien, i, ien, join, table, parentLink, childLink, tables, i, ien, i, ien;
@@ -1406,7 +1424,7 @@ var Editor = /** @class */ (function (_super) {
                         this._sspSort(query, http);
                         this._sspFilter(query, http);
                         setCount = this
-                            ._db(this.table()[0])
+                            ._db(this._readTable()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(setCount);
                         this._sspFilter(setCount, http);
@@ -1416,7 +1434,7 @@ var Editor = /** @class */ (function (_super) {
                         res = _a.sent();
                         recordsFiltered = res[0].cnt;
                         fullCount = this
-                            ._db(this.table()[0])
+                            ._db(this._readTable()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(fullCount);
                         if (this._where.length) { // only needed if there is a where condition
