@@ -884,21 +884,28 @@ var Editor = /** @class */ (function (_super) {
                         id = this._pkey.length > 1 ?
                             this.pkeyToValue(values) :
                             this._pkeySubmitMerge(id, values);
-                        // Join
-                        for (i = 0, ien = this._join.length; i < ien; i++) {
-                            this._join[i].create(this, id, values);
-                        }
-                        return [4 /*yield*/, this._trigger('writeCreate', id, values)];
+                        i = 0, ien = this._join.length;
+                        _a.label = 2;
                     case 2:
+                        if (!(i < ien)) return [3 /*break*/, 5];
+                        return [4 /*yield*/, this._join[i].create(this, id, values)];
+                    case 3:
+                        _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        i++;
+                        return [3 /*break*/, 2];
+                    case 5: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
+                    case 6:
                         _a.sent();
                         return [4 /*yield*/, this._get(id)];
-                    case 3:
+                    case 7:
                         row = _a.sent();
                         row = row.data.length > 0 ?
                             row.data[0] :
                             null;
                         return [4 /*yield*/, this._trigger('postCreate', id, values, row)];
-                    case 4:
+                    case 8:
                         _a.sent();
                         return [2 /*return*/, row];
                 }

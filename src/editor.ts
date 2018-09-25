@@ -1137,7 +1137,7 @@ export default class Editor extends NestedData {
 
 		// Join
 		for ( let i = 0, ien = this._join.length; i < ien; i++ ) {
-			this._join[i].create( this, id, values );
+			await this._join[i].create( this, id, values );
 		}
 
 		await this._trigger( 'writeCreate', id, values );
