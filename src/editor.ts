@@ -692,7 +692,7 @@ export default class Editor extends NestedData {
 			// a value, so convert it to be a string. Could also be done with setTypeParser
 			// https://github.com/brianc/node-postgres/issues/1200
 			if ( val instanceof Date ) {
-				val = val.toString();
+				val = val.toISOString();
 			}
 
 			id.push( val );
