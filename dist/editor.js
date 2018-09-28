@@ -374,6 +374,12 @@ var Editor = /** @class */ (function (_super) {
             if (val === null) {
                 throw new Error('Primary key element is not available in the data set');
             }
+            // Postgres gives a `Date` object for timestamps which causes issues as
+            // a value, so convert it to be a string. Could also be done with setTypeParser
+            // https://github.com/brianc/node-postgres/issues/1200
+            if (val instanceof Date) {
+                val = val.toString();
+            }
             id.push(val);
         }
         return id.join(this._pkeySeparator());
