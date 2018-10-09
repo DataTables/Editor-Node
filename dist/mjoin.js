@@ -253,11 +253,11 @@ var Mjoin = /** @class */ (function (_super) {
                         }
                         // Create the joins
                         if (join.table) {
-                            query.rightJoin(join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1]);
-                            query.rightJoin(this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1]);
+                            query.innerJoin(join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1]);
+                            query.innerJoin(this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1]);
                         }
                         else {
-                            query.rightJoin(this._table, join.parent, '=', join.child);
+                            query.innerJoin(this._table, join.parent, '=', join.child);
                         }
                         readField = '';
                         if (this._propExists(dteTable + '.' + joinField, response.data[0])) {
