@@ -1274,9 +1274,9 @@ export default class Editor extends NestedData {
 			return null;
 		}
 
-		let pkey = this._part( this._pkey[0], 'column' );
-
-		if ( action === 'create' ) {
+		if ( action === 'create' && this._pkey.indexOf(table) !== -1 ) {
+			// On the main table we get the pkey that is generated
+			let pkey = this._part( this._pkey[0], 'column' );
 			res = await this
 				._db( table )
 				.insert( set )
@@ -1285,6 +1285,11 @@ export default class Editor extends NestedData {
 			return typeof res[0] === 'object' ?
 				res[0][pkey].toString() :
 				res[0].toString();
+		}
+		else if ( action === 'create' ) {
+			res = await this
+				._db( table )
+				.insert( set );
 		}
 		else {
 			await this
