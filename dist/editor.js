@@ -1019,8 +1019,8 @@ var Editor = /** @class */ (function (_super) {
                         if (Object.keys(set).length === 0) {
                             return [2 /*return*/, null];
                         }
+                        if (!(action === 'create' && this._pkey.indexOf(table) !== -1)) return [3 /*break*/, 2];
                         pkey = this._part(this._pkey[0], 'column');
-                        if (!(action === 'create')) return [3 /*break*/, 2];
                         return [4 /*yield*/, this
                                 ._db(table)
                                 .insert(set)
@@ -1030,14 +1030,22 @@ var Editor = /** @class */ (function (_super) {
                         return [2 /*return*/, typeof res[0] === 'object' ?
                                 res[0][pkey].toString() :
                                 res[0].toString()];
-                    case 2: return [4 /*yield*/, this
+                    case 2:
+                        if (!(action === 'create')) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this
+                                ._db(table)
+                                .insert(set)];
+                    case 3:
+                        res = _a.sent();
+                        return [3 /*break*/, 6];
+                    case 4: return [4 /*yield*/, this
                             ._db(table)
                             .update(set)
                             .where(where)];
-                    case 3:
+                    case 5:
                         _a.sent();
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -1661,7 +1669,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.8.0';
+    Editor.version = '1.8.1';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
