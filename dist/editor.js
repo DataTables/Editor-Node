@@ -1019,7 +1019,7 @@ var Editor = /** @class */ (function (_super) {
                         if (Object.keys(set).length === 0) {
                             return [2 /*return*/, null];
                         }
-                        if (!(action === 'create' && this._pkey.indexOf(table) !== -1)) return [3 /*break*/, 2];
+                        if (!(action === 'create' && this.table().indexOf(table) !== -1)) return [3 /*break*/, 2];
                         pkey = this._part(this._pkey[0], 'column');
                         return [4 /*yield*/, this
                                 ._db(table)

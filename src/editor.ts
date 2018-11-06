@@ -1274,7 +1274,7 @@ export default class Editor extends NestedData {
 			return null;
 		}
 
-		if ( action === 'create' && this._pkey.indexOf(table) !== -1 ) {
+		if ( action === 'create' && this.table().indexOf(table) !== -1 ) {
 			// On the main table we get the pkey that is generated
 			let pkey = this._part( this._pkey[0], 'column' );
 			res = await this
