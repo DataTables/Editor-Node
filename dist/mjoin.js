@@ -223,7 +223,7 @@ var Mjoin = /** @class */ (function (_super) {
                             join.parent;
                         pkeyIsJoin = joinField === editor.pkey()[0] ||
                             dteTable + '.' + joinField === editor.pkey()[0];
-                        query = editor.db()(dteTable)
+                        query = editor.db().table(dteTable)
                             .distinct(dteTable + '.' + joinField + ' as dteditor_pkey');
                         order = this.order();
                         if (order) {

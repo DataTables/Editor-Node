@@ -121,6 +121,7 @@ var Editor = /** @class */ (function (_super) {
         _this._debug = false;
         _this._debugInfo = [];
         _this._leftJoinRemove = false;
+        _this._schema = null;
         if (db) {
             _this.db(db);
         }
@@ -167,9 +168,15 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype.db = function (db) {
         if (db === undefined) {
-            return this._knexTransaction ?
-                this._knexTransaction :
-                this._db;
+            if (this._knexTransaction) {
+                return this._knexTransaction;
+            }
+            else if (this._schema) {
+                return this._db.withSchema(this._schema);
+            }
+            else {
+                return this._db;
+            }
         }
         this._db = db;
         return this;
@@ -303,6 +310,13 @@ var Editor = /** @class */ (function (_super) {
             this._events[name] = [];
         }
         this._events[name].push(callback);
+        return this;
+    };
+    Editor.prototype.schema = function (schema) {
+        if (schema === undefined) {
+            return this._schema;
+        }
+        this._schema = schema;
         return this;
     };
     Editor.prototype.readTable = function (table) {
@@ -768,7 +782,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         fields = this.fields();
                         pkeys = this.pkey();
-                        query = this.db()(this._readTable()[0]);
+                        query = this.db().table(this._readTable()[0]);
                         options = {};
                         for (i = 0, ien = pkeys.length; i < ien; i++) {
                             query.select(pkeys[i] + ' as ' + pkeys[i]);
@@ -819,7 +833,7 @@ var Editor = /** @class */ (function (_super) {
                         _b.label = 4;
                     case 4:
                         if (!(i < ien)) return [3 /*break*/, 7];
-                        return [4 /*yield*/, fields[i].optionsExec(this._db)];
+                        return [4 /*yield*/, fields[i].optionsExec(this.db())];
                     case 5:
                         opts = _b.sent();
                         if (opts) {
@@ -1022,8 +1036,9 @@ var Editor = /** @class */ (function (_super) {
                         if (!(action === 'create' && this.table().indexOf(table) !== -1)) return [3 /*break*/, 2];
                         pkey = this._part(this._pkey[0], 'column');
                         return [4 /*yield*/, this
-                                ._db(table)
+                                .db()
                                 .insert(set)
+                                .table(table)
                                 .returning(pkey)];
                     case 1:
                         res = _a.sent();
@@ -1033,13 +1048,15 @@ var Editor = /** @class */ (function (_super) {
                     case 2:
                         if (!(action === 'create')) return [3 /*break*/, 4];
                         return [4 /*yield*/, this
-                                ._db(table)
-                                .insert(set)];
+                                .db()
+                                .insert(set)
+                                .table(table)];
                     case 3:
                         res = _a.sent();
                         return [3 /*break*/, 6];
                     case 4: return [4 /*yield*/, this
-                            ._db(table)
+                            .db()
+                            .table(table)
                             .update(set)
                             .where(where)];
                     case 5:
@@ -1411,7 +1428,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
-                        q = this._db(table);
+                        q = this.db().from(table);
                         _loop_2 = function (i, ien) {
                             var cond = this_2.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
@@ -1445,7 +1462,8 @@ var Editor = /** @class */ (function (_super) {
                         this._sspSort(query, http);
                         this._sspFilter(query, http);
                         setCount = this
-                            ._db(this._readTable()[0])
+                            .db()
+                            .from(this._readTable()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(setCount);
                         this._sspFilter(setCount, http);
@@ -1455,7 +1473,8 @@ var Editor = /** @class */ (function (_super) {
                         res = _a.sent();
                         recordsFiltered = res[0].cnt;
                         fullCount = this
-                            ._db(this._readTable()[0])
+                            .db()
+                            .from(this._readTable()[0])
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(fullCount);
                         if (this._where.length) { // only needed if there is a where condition

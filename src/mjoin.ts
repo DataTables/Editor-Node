@@ -326,7 +326,7 @@ export default class Mjoin extends NestedData {
 				dteTable + '.' + joinField === editor.pkey()[0];
 
 			// Build the basic query
-			let query = editor.db()( dteTable )
+			let query = editor.db().table( dteTable )
 				.distinct( dteTable + '.' + joinField + ' as dteditor_pkey' );
 
 			let order = this.order();

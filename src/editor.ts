@@ -263,6 +263,7 @@ export default class Editor extends NestedData {
 	private _debug: boolean = false;
 	private _debugInfo: any[] = [];
 	private _leftJoinRemove: boolean = false;
+	private _schema: string = null;
 
 	/**
 	 * Creates an instance of Editor.
@@ -310,9 +311,15 @@ export default class Editor extends NestedData {
 	public db(db: knex): Editor;
 	public db(db?: knex): any {
 		if ( db === undefined ) {
-			return this._knexTransaction ?
-				this._knexTransaction :
-				this._db;
+			if ( this._knexTransaction ) {
+				return this._knexTransaction;
+			}
+			else if ( this._schema ) {
+				return this._db.withSchema(this._schema);
+			}
+			else {
+				return this._db;
+			}
 		}
 
 		this._db = db;
@@ -539,6 +546,30 @@ export default class Editor extends NestedData {
 
 		this._events[ name ].push( callback );
 
+		return this;
+	}
+
+	/**
+	 * Get the database schema.
+	 *
+	 * This is used if you are using multiple schema's in your database. By default Editor
+	 * will not specify a schema, so the default search path will be used. This allows that
+	 * to be overridden.
+	 * @returns {string} Schema
+	 */
+	public schema(): string;
+	/**
+	 * Set the database schema
+	 * @param {string} schema Schema to use.
+	 * @returns {Editor} Self for chaining
+	 */
+	public schema(schema: string): Editor;
+	public schema(schema?: string): any {
+		if ( schema === undefined ) {
+			return this._schema;
+		}
+
+		this._schema = schema;
 		return this;
 	}
 
@@ -1026,7 +1057,7 @@ export default class Editor extends NestedData {
 
 		let fields = this.fields();
 		let pkeys = this.pkey();
-		let query = this.db()( this._readTable()[0] );
+		let query = this.db().table( this._readTable()[0] );
 		let options = {};
 
 		for ( let i = 0, ien = pkeys.length; i < ien; i++ ) {
@@ -1084,7 +1115,7 @@ export default class Editor extends NestedData {
 		// Field options
 		if ( id === null ) {
 			for ( let i = 0, ien = fields.length; i < ien; i++ ) {
-				let opts = await fields[i].optionsExec( this._db );
+				let opts = await fields[i].optionsExec( this.db() );
 
 				if ( opts ) {
 					options[ fields[i].name() ] = opts;
@@ -1278,8 +1309,9 @@ export default class Editor extends NestedData {
 			// On the main table we get the pkey that is generated
 			let pkey = this._part( this._pkey[0], 'column' );
 			res = await this
-				._db( table )
+				.db()
 				.insert( set )
+				.table( table )
 				.returning( pkey );
 
 			return typeof res[0] === 'object' ?
@@ -1288,12 +1320,14 @@ export default class Editor extends NestedData {
 		}
 		else if ( action === 'create' ) {
 			res = await this
-				._db( table )
-				.insert( set );
+				.db()
+				.insert( set )
+				.table( table );
 		}
 		else {
 			await this
-				._db( table )
+				.db()
+				.table( table )
 				.update( set )
 				.where( where );
 		}
@@ -1623,7 +1657,7 @@ export default class Editor extends NestedData {
 		}
 
 		if ( count > 0 ) {
-			let q = this._db( table );
+			let q = this.db().from( table );
 
 			for ( let i = 0, ien = ids.length; i < ien; i++ ) {
 				let cond = this.pkeyToObject( ids[i], true, pkey );
@@ -1649,7 +1683,8 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the result set
 		let setCount = this
-			._db( this._readTable()[0] )
+			.db()
+			.from( this._readTable()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( setCount );
@@ -1661,7 +1696,8 @@ export default class Editor extends NestedData {
 
 		// Get the number of rows in the full set
 		let fullCount = this
-			._db( this._readTable()[0] )
+			.db()
+			.from( this._readTable()[0] )
 			.count( this._pkey[0] + ' as cnt' );
 
 		this._getWhere( fullCount );
