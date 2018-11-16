@@ -191,3 +191,4 @@ export default class Mjoin extends NestedData {
     private _prepare;
     private _validateFields;
 }
+//# sourceMappingURL=mjoin.d.ts.map

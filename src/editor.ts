@@ -359,12 +359,18 @@ export default class Editor extends NestedData {
 	}
 
 	/**
-	 * Get or field by name, or add a field instance.
-	 * @param nameOrField Field instance to add, or field name to get
-	 * @returns {Editor|Field} Editor instance returned if adding a field,
-	 *   Field instance returned if getting a field.
+	 * Add a new field to the Editor instance
+	 * @param field Field instance to add=
+	 * @returns {Editor} Editor instance
 	 */
-	public field( nameOrField: Field|string ) {
+	public field( field: Field ): Editor;
+	/**
+	 * Get a field
+	 * @param name Field name to get
+	 * @returns {Field} Field instance
+	 */
+	public field( name: string ): Field;
+	public field( nameOrField: any ): any {
 		if ( typeof nameOrField === 'string' ) {
 			for ( let i = 0, ien = this._fields.length; i < ien; i++ ) {
 				if ( this._fields[i].name() === nameOrField ) {

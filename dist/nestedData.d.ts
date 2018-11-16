@@ -35,3 +35,4 @@ export default class NestedData {
      */
     protected _writeProp(out: object, name: string, value: any): void;
 }
+//# sourceMappingURL=nestedData.d.ts.map

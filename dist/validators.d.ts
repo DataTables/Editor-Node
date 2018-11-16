@@ -246,3 +246,4 @@ export default class Validator {
     static fileSize(size: number, msg: string): IFileValidator;
     private static _common;
 }
+//# sourceMappingURL=validators.d.ts.map

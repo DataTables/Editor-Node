@@ -221,12 +221,17 @@ export default class Editor extends NestedData {
      */
     debug(message: any): Editor;
     /**
-     * Get or field by name, or add a field instance.
-     * @param nameOrField Field instance to add, or field name to get
-     * @returns {Editor|Field} Editor instance returned if adding a field,
-     *   Field instance returned if getting a field.
+     * Add a new field to the Editor instance
+     * @param field Field instance to add=
+     * @returns {Editor} Editor instance
      */
-    field(nameOrField: Field | string): this | Field;
+    field(field: Field): Editor;
+    /**
+     * Get a field
+     * @param name Field name to get
+     * @returns {Field} Field instance
+     */
+    field(name: string): Field;
     /**
      * Get the fields assigned to this instance.
      * @returns {Field[]} Array of fields
@@ -528,3 +533,4 @@ export default class Editor extends NestedData {
     private _update;
     private _upload;
 }
+//# sourceMappingURL=editor.d.ts.map

@@ -52,3 +52,4 @@ export default class ValidationHost {
      */
     constructor(opts: IHostOpts);
 }
+//# sourceMappingURL=validationHost.d.ts.map

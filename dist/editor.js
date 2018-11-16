@@ -1,8 +1,11 @@
 "use strict";
 var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    }
     return function (d, b) {
         extendStatics(d, b);
         function __() { this.constructor = d; }
@@ -193,12 +196,6 @@ var Editor = /** @class */ (function (_super) {
         this._debugInfo.push(param);
         return this;
     };
-    /**
-     * Get or field by name, or add a field instance.
-     * @param nameOrField Field instance to add, or field name to get
-     * @returns {Editor|Field} Editor instance returned if adding a field,
-     *   Field instance returned if getting a field.
-     */
     Editor.prototype.field = function (nameOrField) {
         if (typeof nameOrField === 'string') {
             for (var i = 0, ien = this._fields.length; i < ien; i++) {
