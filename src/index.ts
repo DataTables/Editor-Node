@@ -1,4 +1,5 @@
 import Editor from './editor';
+import * as editor from './editor';
 export default Editor;
 export { Editor };
 
@@ -9,3 +10,6 @@ export { default as Options } from './options';
 export { default as Upload } from './upload';
 export { default as Validate } from './validators';
 export { default as promisify } from './promisify';
+
+export type IDtRequest = editor.IDtRequest;
+export type IDtResponse = editor.IDtResponse;
