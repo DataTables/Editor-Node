@@ -301,4 +301,3 @@ export default class Field extends NestedData {
     xssSafety(val: any): any;
     private _format;
 }
-//# sourceMappingURL=field.d.ts.map

@@ -8,4 +8,3 @@ export declare type Ixss = (str: string) => string;
  * @returns {string} Sanitized string
  */
 export default function xss(str: string): string;
-//# sourceMappingURL=xss.d.ts.map

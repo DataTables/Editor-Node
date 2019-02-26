@@ -43,4 +43,3 @@ export default class ValidationOptions {
         optional?: boolean;
     });
 }
-//# sourceMappingURL=validationOptions.d.ts.map

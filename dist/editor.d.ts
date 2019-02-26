@@ -533,4 +533,3 @@ export default class Editor extends NestedData {
     private _update;
     private _upload;
 }
-//# sourceMappingURL=editor.d.ts.map

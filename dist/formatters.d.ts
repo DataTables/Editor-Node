@@ -94,4 +94,3 @@ export default class Formatter {
      */
     static toDecimalChar(char?: string): IFormatter;
 }
-//# sourceMappingURL=formatters.d.ts.map

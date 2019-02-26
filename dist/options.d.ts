@@ -135,4 +135,3 @@ export default class Options {
      */
     exec(db: knex): Promise<IOption[]>;
 }
-//# sourceMappingURL=options.d.ts.map

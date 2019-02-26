@@ -9,4 +9,3 @@
  * @returns {Function} Promise wrapper function
  */
 export default function promisify<T>(fn: Function, scope?: any): Function;
-//# sourceMappingURL=promisify.d.ts.map
