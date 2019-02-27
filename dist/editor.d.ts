@@ -169,7 +169,7 @@ export default class Editor extends NestedData {
     private _leftJoin;
     private _out;
     private _events;
-    private _validator;
+    private _validators;
     private _tryCatch;
     private _knexTransaction;
     private _uploadData;
@@ -481,9 +481,9 @@ export default class Editor extends NestedData {
     validate(errors: IDtError[], http: IDtRequest): Promise<boolean>;
     /**
      * Get any global validator that has been set.
-     * @returns {IGlobalValidator} Global validator
+     * @returns {IGlobalValidator[]} Global validator
      */
-    validator(): IGlobalValidator;
+    validator(): IGlobalValidator[];
     /**
      * Set a global validator. This will be triggered for the create, edit
      * and remove actions performed from the client-side.

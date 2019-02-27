@@ -256,7 +256,7 @@ export default class Editor extends NestedData {
 	private _leftJoin: ILeftJoin[] = [];
 	private _out: IDtResponse = {};
 	private _events = [];
-	private _validator: IGlobalValidator;
+	private _validators: IGlobalValidator[] = [];
 	private _tryCatch: boolean = false;
 	private _knexTransaction: knex;
 	private _uploadData: IUpload;
@@ -888,9 +888,9 @@ export default class Editor extends NestedData {
 
 	/**
 	 * Get any global validator that has been set.
-	 * @returns {IGlobalValidator} Global validator
+	 * @returns {IGlobalValidator[]} Global validator
 	 */
-	public validator(): IGlobalValidator;
+	public validator(): IGlobalValidator[];
 	/**
 	 * Set a global validator. This will be triggered for the create, edit
 	 * and remove actions performed from the client-side.
@@ -900,10 +900,10 @@ export default class Editor extends NestedData {
 	public validator(fn: IGlobalValidator): Editor;
 	public validator(fn?: IGlobalValidator): any {
 		if ( fn === undefined ) {
-			return this._validator;
+			return this._validators;
 		}
 
-		this._validator = fn;
+		this._validators.push( fn );
 		return this;
 	}
 
@@ -1483,11 +1483,14 @@ export default class Editor extends NestedData {
 		this._formData = data.data ? data.data : null;
 		this._prepJoin();
 
-		if ( this._validator ) {
-			let ret = await this._validator( this, data.action, data );
+		if ( this._validators ) {
+			for (let validator of this._validators) {
+				let ret = await validator( this, data.action, data );
 
-			if ( ret !== true ) {
-				this._out.error = ret;
+				if ( ret !== true ) {
+					this._out.error = ret;
+					break;
+				}
 			}
 		}
 

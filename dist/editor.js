@@ -120,6 +120,7 @@ var Editor = /** @class */ (function (_super) {
         _this._leftJoin = [];
         _this._out = {};
         _this._events = [];
+        _this._validators = [];
         _this._tryCatch = false;
         _this._debug = false;
         _this._debugInfo = [];
@@ -580,9 +581,9 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype.validator = function (fn) {
         if (fn === undefined) {
-            return this._validator;
+            return this._validators;
         }
-        this._validator = fn;
+        this._validators.push(fn);
         return this;
     };
     Editor.prototype.where = function () {
@@ -1178,9 +1179,9 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var ret, outData, keys, i, ien, cancel, idSrc, values, id, valid, i, ien, d, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var _i, _a, validator, ret, outData, keys, i, ien, cancel, idSrc, values, id, valid, i, ien, d, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         this._out = {
                             data: [],
@@ -1190,66 +1191,75 @@ var Editor = /** @class */ (function (_super) {
                         this._uploadData = upload;
                         this._formData = data.data ? data.data : null;
                         this._prepJoin();
-                        if (!this._validator) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._validator(this, data.action, data)];
+                        if (!this._validators) return [3 /*break*/, 4];
+                        _i = 0, _a = this._validators;
+                        _c.label = 1;
                     case 1:
-                        ret = _b.sent();
+                        if (!(_i < _a.length)) return [3 /*break*/, 4];
+                        validator = _a[_i];
+                        return [4 /*yield*/, validator(this, data.action, data)];
+                    case 2:
+                        ret = _c.sent();
                         if (ret !== true) {
                             this._out.error = ret;
+                            return [3 /*break*/, 4];
                         }
-                        _b.label = 2;
-                    case 2:
+                        _c.label = 3;
+                    case 3:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 4:
                         if (data.action && data.action !== 'upload' && !data.data) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
-                        if (!!this._out.error) return [3 /*break*/, 26];
-                        if (!!data.action) return [3 /*break*/, 4];
+                        if (!!this._out.error) return [3 /*break*/, 28];
+                        if (!!data.action) return [3 /*break*/, 6];
                         return [4 /*yield*/, this._get(null, data)];
-                    case 3:
-                        outData = _b.sent();
+                    case 5:
+                        outData = _c.sent();
                         this._out.data = outData.data;
                         this._out.draw = outData.draw;
                         this._out.files = outData.files;
                         this._out.options = outData.options;
                         this._out.recordsTotal = outData.recordsTotal;
                         this._out.recordsFiltered = outData.recordsFiltered;
-                        return [3 /*break*/, 26];
-                    case 4:
-                        if (!(data.action === 'upload')) return [3 /*break*/, 6];
-                        return [4 /*yield*/, this._upload(data)];
-                    case 5:
-                        _b.sent();
-                        return [3 /*break*/, 26];
+                        return [3 /*break*/, 28];
                     case 6:
-                        if (!(data.action === 'remove')) return [3 /*break*/, 9];
-                        return [4 /*yield*/, this._remove(data)];
+                        if (!(data.action === 'upload')) return [3 /*break*/, 8];
+                        return [4 /*yield*/, this._upload(data)];
                     case 7:
-                        _b.sent();
-                        return [4 /*yield*/, this._fileClean()];
+                        _c.sent();
+                        return [3 /*break*/, 28];
                     case 8:
-                        _b.sent();
-                        return [3 /*break*/, 26];
+                        if (!(data.action === 'remove')) return [3 /*break*/, 11];
+                        return [4 /*yield*/, this._remove(data)];
                     case 9:
+                        _c.sent();
+                        return [4 /*yield*/, this._fileClean()];
+                    case 10:
+                        _c.sent();
+                        return [3 /*break*/, 28];
+                    case 11:
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
-                        _b.label = 10;
-                    case 10:
-                        if (!(i < ien)) return [3 /*break*/, 16];
+                        _c.label = 12;
+                    case 12:
+                        if (!(i < ien)) return [3 /*break*/, 18];
                         cancel = null;
                         idSrc = keys[i];
                         values = data.data[keys[i]];
-                        if (!(data.action === 'create')) return [3 /*break*/, 12];
+                        if (!(data.action === 'create')) return [3 /*break*/, 14];
                         return [4 /*yield*/, this._trigger('preCreate', values)];
-                    case 11:
-                        cancel = _b.sent();
-                        return [3 /*break*/, 14];
-                    case 12:
+                    case 13:
+                        cancel = _c.sent();
+                        return [3 /*break*/, 16];
+                    case 14:
                         id = idSrc.replace(this.idPrefix(), '');
                         return [4 /*yield*/, this._trigger('preEdit', id, values)];
-                    case 13:
-                        cancel = _b.sent();
-                        _b.label = 14;
-                    case 14:
+                    case 15:
+                        cancel = _c.sent();
+                        _c.label = 16;
+                    case 16:
                         // One of the event handlers returned false - don't continue
                         if (cancel === false) {
                             // Remove the data from the data set so it won't be processed
@@ -1257,42 +1267,42 @@ var Editor = /** @class */ (function (_super) {
                             // Tell the client-side we aren't updating this row
                             this._out.cancelled.push(idSrc);
                         }
-                        _b.label = 15;
-                    case 15:
-                        i++;
-                        return [3 /*break*/, 10];
-                    case 16: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
+                        _c.label = 17;
                     case 17:
-                        valid = _b.sent();
-                        if (!valid) return [3 /*break*/, 24];
+                        i++;
+                        return [3 /*break*/, 12];
+                    case 18: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
+                    case 19:
+                        valid = _c.sent();
+                        if (!valid) return [3 /*break*/, 26];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
-                        _b.label = 18;
-                    case 18:
-                        if (!(i < ien)) return [3 /*break*/, 24];
-                        if (!(data.action === 'create')) return [3 /*break*/, 20];
+                        _c.label = 20;
+                    case 20:
+                        if (!(i < ien)) return [3 /*break*/, 26];
+                        if (!(data.action === 'create')) return [3 /*break*/, 22];
                         return [4 /*yield*/, this._insert(data.data[keys[i]])];
-                    case 19:
-                        _a = _b.sent();
-                        return [3 /*break*/, 22];
-                    case 20: return [4 /*yield*/, this._update(keys[i], data.data[keys[i]])];
                     case 21:
-                        _a = _b.sent();
-                        _b.label = 22;
-                    case 22:
-                        d = _a;
+                        _b = _c.sent();
+                        return [3 /*break*/, 24];
+                    case 22: return [4 /*yield*/, this._update(keys[i], data.data[keys[i]])];
+                    case 23:
+                        _b = _c.sent();
+                        _c.label = 24;
+                    case 24:
+                        d = _b;
                         if (d !== null) {
                             this._out.data.push(d);
                         }
-                        _b.label = 23;
-                    case 23:
-                        i++;
-                        return [3 /*break*/, 18];
-                    case 24: return [4 /*yield*/, this._fileClean()];
+                        _c.label = 25;
                     case 25:
-                        _b.sent();
-                        _b.label = 26;
-                    case 26:
+                        i++;
+                        return [3 /*break*/, 20];
+                    case 26: return [4 /*yield*/, this._fileClean()];
+                    case 27:
+                        _c.sent();
+                        _c.label = 28;
+                    case 28:
                         if (this._debug) {
                             this._out.debug = this._debugInfo.slice();
                         }
