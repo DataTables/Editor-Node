@@ -87,6 +87,7 @@ var Mjoin = /** @class */ (function (_super) {
             child: '',
             parent: ''
         };
+        _this._validators = [];
         _this.table(table);
         _this.name(table);
         return _this;
@@ -186,6 +187,20 @@ var Mjoin = /** @class */ (function (_super) {
             return this._table;
         }
         this._table = table;
+        return this;
+    };
+    /**
+     * Set a validator for the array of data (not on a field basis)
+     *
+     * @param fieldName Name of the field that any error should be shown
+     *   against on the client-side
+     * @param fn Callback function for validation
+     */
+    Mjoin.prototype.validator = function (fieldName, fn) {
+        this._validators.push({
+            fieldName: fieldName,
+            fn: fn
+        });
         return this;
     };
     Mjoin.prototype.where = function (cond) {
@@ -447,29 +462,48 @@ var Mjoin = /** @class */ (function (_super) {
     /**
      * @ignore
      */
-    Mjoin.prototype.validate = function (errors, editor, data) {
+    Mjoin.prototype.validate = function (errors, editor, data, action) {
         return __awaiter(this, void 0, void 0, function () {
-            var joinData, i, ien;
+            var joinData, j, jen, validator, res, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this._set || !data[this._name]) {
+                        if (!this._set) {
                             return [2 /*return*/];
                         }
                         this._prepare(editor);
-                        joinData = data[this._name];
-                        i = 0, ien = joinData.length;
+                        joinData = data[this._name] || [];
+                        j = 0, jen = this._validators.length;
                         _a.label = 1;
                     case 1:
-                        if (!(i < ien)) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this._validateFields(errors, editor, joinData[i], this._name + '[].')];
+                        if (!(j < jen)) return [3 /*break*/, 4];
+                        validator = this._validators[j];
+                        return [4 /*yield*/, validator.fn(editor, action, joinData)];
                     case 2:
-                        _a.sent();
+                        res = _a.sent();
+                        if (typeof res === 'string') {
+                            errors.push({
+                                name: validator.fieldName,
+                                status: res
+                            });
+                        }
                         _a.label = 3;
                     case 3:
-                        i++;
+                        j++;
                         return [3 /*break*/, 1];
-                    case 4: return [2 /*return*/];
+                    case 4:
+                        i = 0, ien = joinData.length;
+                        _a.label = 5;
+                    case 5:
+                        if (!(i < ien)) return [3 /*break*/, 8];
+                        return [4 /*yield*/, this._validateFields(errors, editor, joinData[i], this._name + '[].')];
+                    case 6:
+                        _a.sent();
+                        _a.label = 7;
+                    case 7:
+                        i++;
+                        return [3 /*break*/, 5];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

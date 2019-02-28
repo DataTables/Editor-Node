@@ -11,6 +11,13 @@ interface IJoinTable {
 }
 
 /**
+ * Grouped validation
+ */
+export type IMjoinValidator =
+	( editor: Editor, action: string, data: IDtRequest ) => Promise<true|string>;
+
+
+/**
  * The MJoin class provides a one-to-many join link for Editor. This can
  * be useful in cases were an attribute can take multiple values at the
  * same time - for example cumulative security access levels.
@@ -45,6 +52,10 @@ export default class Mjoin extends NestedData {
 		child: '',
 		parent: ''
 	};
+	private _validators: Array<{
+		fieldName: string,
+		fn: IMjoinValidator
+	}> = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Constructor
@@ -264,6 +275,22 @@ export default class Mjoin extends NestedData {
 		}
 
 		this._table = table;
+		return this;
+	}
+
+	/**
+	 * Set a validator for the array of data (not on a field basis)
+	 *
+	 * @param fieldName Name of the field that any error should be shown
+	 *   against on the client-side
+	 * @param fn Callback function for validation
+	 */
+	public validator( fieldName: string, fn: IMjoinValidator ): this {
+		this._validators.push( {
+			fieldName,
+			fn
+		} );
+
 		return this;
 	}
 
@@ -531,13 +558,25 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async validate( errors, editor: Editor, data: object ): Promise<void> {
-		if ( ! this._set || ! data[ this._name ] ) {
+	public async validate( errors, editor: Editor, data: object, action: string ): Promise<void> {
+		if ( ! this._set ) {
 			return;
 		}
 
 		this._prepare( editor );
-		let joinData = data[ this._name ];
+		let joinData = data[ this._name ] || [];
+
+		for ( let j = 0, jen=this._validators.length ; j < jen ; j++ ) {
+			let validator = this._validators[j];
+			let res = await validator.fn( editor, action, joinData );
+
+			if ( typeof res === 'string' ) {
+				errors.push( {
+					name: validator.fieldName,
+					status: res
+				} );
+			}
+		}
 
 		for ( let i = 0, ien = joinData.length ; i < ien ; i++ ) {
 			await this._validateFields( errors, editor, joinData[i], this._name + '[].' );

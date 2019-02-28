@@ -877,7 +877,7 @@ export default class Editor extends NestedData {
 
 			// MJoin validation
 			for ( let j = 0, jen = this._join.length; j < jen; j++ ) {
-				await this._join[j].validate( errors, this, values );
+				await this._join[j].validate( errors, this, values, http.action );
 			}
 		}
 
@@ -1483,14 +1483,12 @@ export default class Editor extends NestedData {
 		this._formData = data.data ? data.data : null;
 		this._prepJoin();
 
-		if ( this._validators ) {
-			for (let validator of this._validators) {
-				let ret = await validator( this, data.action, data );
+		for (let validator of this._validators) {
+			let ret = await validator( this, data.action, data );
 
-				if ( ret !== true ) {
-					this._out.error = ret;
-					break;
-				}
+			if ( typeof ret === 'string' ) {
+				this._out.error = ret;
+				break;
 			}
 		}
 

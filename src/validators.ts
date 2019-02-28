@@ -4,6 +4,7 @@ import * as validUrl from 'valid-url';
 
 import Editor from './editor';
 import Field from './field';
+import {IMjoinValidator} from './mjoin';
 import {default as JoinOptions} from './options';
 import {IFile} from './upload';
 import ValidationHost from './validationHost';
@@ -710,6 +711,50 @@ export default class Validator {
 			return file.size > size ?
 				msg :
 				true;
+		};
+	}
+
+	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	* Mjoin validators
+	*/
+
+	/**
+	 * Require a minimum value of the number of options / values submitted in
+	 * an array
+	 *
+	 * @static
+	 * @param size Min array size required to be valid
+	 * @param msg Error message
+	 * @returns {IValidator} Configured validation function
+	 */
+	public static mjoinMinCount( size: number, msg: string ): IMjoinValidator {
+		return async function( editor: Editor, action: string, data: any[] ) {
+			if ( action === 'create'  || action === 'edit' ) {
+				return data.length < size ?
+					msg :
+					true;
+			}
+			return true;
+		};
+	}
+
+	/**
+	 * Require a maximum value of the number of options / values submitted in
+	 * an array
+	 *
+	 * @static
+	 * @param size Max array size required to be valid
+	 * @param msg Error message
+	 * @returns {IValidator} Configured validation function
+	 */
+	public static mjoinMaxCount( size: number, msg: string ): IMjoinValidator {
+		return async function( editor: Editor, action: string, data: any[] ) {
+			if ( action === 'create'  || action === 'edit' ) {
+				return data.length > size ?
+					msg :
+					true;
+			}
+			return true;
 		};
 	}
 

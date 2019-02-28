@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import { IMjoinValidator } from './mjoin';
 import { IFile } from './upload';
 import ValidationHost from './validationHost';
 import ValidationOptions from './validationOptions';
@@ -244,5 +245,25 @@ export default class Validator {
      * @returns {IValidator} Configured validation function
      */
     static fileSize(size: number, msg: string): IFileValidator;
+    /**
+     * Require a minimum value of the number of options / values submitted in
+     * an array
+     *
+     * @static
+     * @param size Min array size required to be valid
+     * @param msg Error message
+     * @returns {IValidator} Configured validation function
+     */
+    static mjoinMinCount(size: number, msg: string): IMjoinValidator;
+    /**
+     * Require a maximum value of the number of options / values submitted in
+     * an array
+     *
+     * @static
+     * @param size Max array size required to be valid
+     * @param msg Error message
+     * @returns {IValidator} Configured validation function
+     */
+    static mjoinMaxCount(size: number, msg: string): IMjoinValidator;
     private static _common;
 }

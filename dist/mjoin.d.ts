@@ -1,6 +1,10 @@
-import Editor, { IDtResponse } from './editor';
+import Editor, { IDtRequest, IDtResponse } from './editor';
 import Field from './field';
 import NestedData from './nestedData';
+/**
+ * Grouped validation
+ */
+export declare type IMjoinValidator = (editor: Editor, action: string, data: IDtRequest) => Promise<true | string>;
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
  * be useful in cases were an attribute can take multiple values at the
@@ -29,6 +33,7 @@ export default class Mjoin extends NestedData {
     private _links;
     private _order;
     private _join;
+    private _validators;
     /**
      * Creates an instance of Mjoin.
      *
@@ -153,6 +158,14 @@ export default class Mjoin extends NestedData {
      */
     table(table: string): Mjoin;
     /**
+     * Set a validator for the array of data (not on a field basis)
+     *
+     * @param fieldName Name of the field that any error should be shown
+     *   against on the client-side
+     * @param fn Callback function for validation
+     */
+    validator(fieldName: string, fn: IMjoinValidator): this;
+    /**
      * Get the array of conditions applied to the method.
      *
      * @returns {any[]} Knex where conditions.
@@ -185,7 +198,7 @@ export default class Mjoin extends NestedData {
     /**
      * @ignore
      */
-    validate(errors: any, editor: Editor, data: object): Promise<void>;
+    validate(errors: any, editor: Editor, data: object, action: string): Promise<void>;
     private _applyWhere;
     private _insert;
     private _prepare;

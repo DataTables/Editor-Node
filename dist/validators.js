@@ -795,6 +795,55 @@ var Validator = /** @class */ (function () {
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    * Mjoin validators
+    */
+    /**
+     * Require a minimum value of the number of options / values submitted in
+     * an array
+     *
+     * @static
+     * @param size Min array size required to be valid
+     * @param msg Error message
+     * @returns {IValidator} Configured validation function
+     */
+    Validator.mjoinMinCount = function (size, msg) {
+        return function (editor, action, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    if (action === 'create' || action === 'edit') {
+                        return [2 /*return*/, data.length < size ?
+                                msg :
+                                true];
+                    }
+                    return [2 /*return*/, true];
+                });
+            });
+        };
+    };
+    /**
+     * Require a maximum value of the number of options / values submitted in
+     * an array
+     *
+     * @static
+     * @param size Max array size required to be valid
+     * @param msg Error message
+     * @returns {IValidator} Configured validation function
+     */
+    Validator.mjoinMaxCount = function (size, msg) {
+        return function (editor, action, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    if (action === 'create' || action === 'edit') {
+                        return [2 /*return*/, data.length > size ?
+                                msg :
+                                true];
+                    }
+                    return [2 /*return*/, true];
+                });
+            });
+        };
+    };
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     * Internal methods
     */
     Validator._common = function (val, opts) {

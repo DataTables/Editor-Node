@@ -562,7 +562,7 @@ var Editor = /** @class */ (function (_super) {
                         _a.label = 6;
                     case 6:
                         if (!(j < jen)) return [3 /*break*/, 9];
-                        return [4 /*yield*/, this._join[j].validate(errors, this, values)];
+                        return [4 /*yield*/, this._join[j].validate(errors, this, values, http.action)];
                     case 7:
                         _a.sent();
                         _a.label = 8;
@@ -1191,16 +1191,16 @@ var Editor = /** @class */ (function (_super) {
                         this._uploadData = upload;
                         this._formData = data.data ? data.data : null;
                         this._prepJoin();
-                        if (!this._validators) return [3 /*break*/, 4];
                         _i = 0, _a = this._validators;
                         _c.label = 1;
                     case 1:
                         if (!(_i < _a.length)) return [3 /*break*/, 4];
                         validator = _a[_i];
+                        console.log('validator', validator);
                         return [4 /*yield*/, validator(this, data.action, data)];
                     case 2:
                         ret = _c.sent();
-                        if (ret !== true) {
+                        if (typeof ret === 'string') {
                             this._out.error = ret;
                             return [3 /*break*/, 4];
                         }
