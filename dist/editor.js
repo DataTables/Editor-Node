@@ -1196,7 +1196,6 @@ var Editor = /** @class */ (function (_super) {
                     case 1:
                         if (!(_i < _a.length)) return [3 /*break*/, 4];
                         validator = _a[_i];
-                        console.log('validator', validator);
                         return [4 /*yield*/, validator(this, data.action, data)];
                     case 2:
                         ret = _c.sent();
@@ -1695,7 +1694,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.8.2-dev';
+    Editor.version = '1.9.0';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
