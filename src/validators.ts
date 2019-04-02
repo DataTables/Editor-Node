@@ -428,7 +428,7 @@ export default class Validator {
 					true;
 			}
 
-			return ! validUrl.isHttpUri( val ) ?
+			return ! validUrl.isHttpUri( val, true ) ?
 				opts.message :
 				true;
 		};
