@@ -1521,7 +1521,13 @@ var Editor = /** @class */ (function (_super) {
                     if (http.columns[i].searchable.toString() === 'true') {
                         var field = _this._sspField(http, i);
                         if (field) {
-                            q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
+                            // Nasty hack for Postgres
+                            if (_this._db.client.config.client === 'psql') {
+                                q.orWhere(field + '::text', 'ILIKE', '%' + http.search.value + '%');
+                            }
+                            else {
+                                q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
+                            }
                         }
                     }
                 }
@@ -1532,6 +1538,13 @@ var Editor = /** @class */ (function (_super) {
             var column = http.columns[i];
             var search = column.search.value;
             if (search !== '' && column.searchable.toString() === 'true') {
+                // Nasty hack for Postgres
+                if (this._db.client.config.client === 'psql') {
+                    query.where(this._sspField(http, i) + '::text', 'ILIKE', '%' + search + '%');
+                }
+                else {
+                    query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
+                }
                 query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
             }
         }

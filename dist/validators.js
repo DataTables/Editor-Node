@@ -495,7 +495,7 @@ var Validator = /** @class */ (function () {
                                 opts.message :
                                 true];
                     }
-                    return [2 /*return*/, !validUrl.isHttpUri(val) ?
+                    return [2 /*return*/, !validUrl.isHttpUri(val, true) ?
                             opts.message :
                             true];
                 });
