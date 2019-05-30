@@ -222,8 +222,9 @@ export default class Upload {
 		}
 
 		// Select the details requested, for the columns requested
-		let query = db( this._dbTable )
-			.select( this._dbPkey );
+		let query = db
+			.select( this._dbPkey )
+			.from( this._dbTable );
 
 		let keys = Object.keys( this._dbFields );
 		for ( let i = 0, ien = keys.length ; i < ien ; i++ ) {
@@ -395,8 +396,9 @@ export default class Upload {
 		// Select the details requested, for the columns requested
 		let fields = this._dbFields;
 		let columns = Object.keys( fields );
-		let query = db( this._dbTable )
-			.select( this._dbPkey );
+		let query = db
+			.select( this._dbPkey )
+			.from( this._dbTable );
 
 		for ( let i = 0, ien = columns.length ; i < ien ; i++ ) {
 			let column = columns[i];
@@ -423,7 +425,8 @@ export default class Upload {
 		// returned value (i.e. acknowledge that the files have be removed from
 		// the file system)
 		if ( result === true ) {
-			let queryDel = db( this._dbTable )
+			let queryDel = db
+				.from( this._dbTable )
 				.where( function() {
 					for ( let i = 0, ien = rows.length ; i < ien ; i++ ) {
 						this.orWhere( { [that._dbPkey]: rows[i][that._dbPkey] } );
@@ -495,8 +498,9 @@ export default class Upload {
 			}
 		}
 
-		let res = await db( this._dbTable )
+		let res = await db
 			.insert( set )
+			.from( this._dbTable )
 			.returning( this._dbPkey );
 
 		let id = res[0];
@@ -518,8 +522,9 @@ export default class Upload {
 				toSet[ key ] = this._substitute( pathFields[key], upload.file, id );
 			}
 
-			await db( this._dbTable )
+			await db
 				.update( toSet )
+				.from( this._dbTable )
 				.where( { [this._dbPkey]: id } );
 		}
 

@@ -153,9 +153,10 @@ var Options = /** @class */ (function () {
                                 return a.join(' ');
                             };
                         }
-                        q = db(this._table)
-                            .distinct(fields)
-                            .select();
+                        q = db
+                            .select()
+                            .from(this._table)
+                            .distinct(fields);
                         if (this._where) {
                             q.where(this._where);
                         }

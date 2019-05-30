@@ -252,9 +252,10 @@ export default class Options {
 		}
 
 		// Get the data
-		let q = db( this._table )
-			.distinct( fields )
-			.select();
+		let q = db
+			.select()
+			.from( this._table )
+			.distinct( fields );
 
 		if ( this._where ) {
 			q.where( this._where );

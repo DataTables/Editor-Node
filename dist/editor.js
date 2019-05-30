@@ -1545,7 +1545,6 @@ var Editor = /** @class */ (function (_super) {
                 else {
                     query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
                 }
-                query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
             }
         }
     };

@@ -215,8 +215,9 @@ var Upload = /** @class */ (function () {
                         if (!this._dbTable) {
                             return [2 /*return*/, null];
                         }
-                        query = db(this._dbTable)
-                            .select(this._dbPkey);
+                        query = db
+                            .select(this._dbPkey)
+                            .from(this._dbTable);
                         keys = Object.keys(this._dbFields);
                         for (i = 0, ien = keys.length; i < ien; i++) {
                             key = keys[i];
@@ -398,8 +399,9 @@ var Upload = /** @class */ (function () {
                         }
                         fields = this._dbFields;
                         columns = Object.keys(fields);
-                        query = db(this._dbTable)
-                            .select(this._dbPkey);
+                        query = db
+                            .select(this._dbPkey)
+                            .from(this._dbTable);
                         for (i = 0, ien = columns.length; i < ien; i++) {
                             column = columns[i];
                             prop = fields[column];
@@ -420,7 +422,8 @@ var Upload = /** @class */ (function () {
                     case 2:
                         result = _a.sent();
                         if (!(result === true)) return [3 /*break*/, 4];
-                        queryDel = db(this._dbTable)
+                        queryDel = db
+                            .from(this._dbTable)
                             .where(function () {
                             var _a;
                             for (var i = 0, ien = rows.length; i < ien; i++) {
@@ -508,8 +511,9 @@ var Upload = /** @class */ (function () {
                     case 12:
                         i++;
                         return [3 /*break*/, 1];
-                    case 13: return [4 /*yield*/, db(this._dbTable)
+                    case 13: return [4 /*yield*/, db
                             .insert(set)
+                            .from(this._dbTable)
                             .returning(this._dbPkey)];
                     case 14:
                         res = _e.sent();
@@ -521,8 +525,9 @@ var Upload = /** @class */ (function () {
                             key = pathKeys[i];
                             toSet[key] = this._substitute(pathFields[key], upload.file, id);
                         }
-                        return [4 /*yield*/, db(this._dbTable)
+                        return [4 /*yield*/, db
                                 .update(toSet)
+                                .from(this._dbTable)
                                 .where((_a = {}, _a[this._dbPkey] = id, _a))];
                     case 15:
                         _e.sent();
