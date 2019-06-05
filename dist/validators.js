@@ -645,7 +645,8 @@ var Validator = /** @class */ (function () {
         var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a, common, q, cond, res;
+                var common, q, cond, res;
+                var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -710,7 +711,8 @@ var Validator = /** @class */ (function () {
         var opts = validationOptions_1.default.select(cfg);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a, common, options, res;
+                var common, options, res;
+                var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:

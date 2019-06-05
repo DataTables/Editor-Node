@@ -422,7 +422,8 @@ var Mjoin = /** @class */ (function (_super) {
      */
     Mjoin.prototype.remove = function (editor, ids) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, db, join, query, i, ien, query_1;
+            var db, join, query, i, ien, query_1;
+            var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -519,7 +520,8 @@ var Mjoin = /** @class */ (function (_super) {
     };
     Mjoin.prototype._insert = function (db, parentId, data) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, _b, join, fields, set, i, ien, field;
+            var join, fields, set, i, ien, field;
+            var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:

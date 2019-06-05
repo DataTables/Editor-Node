@@ -441,7 +441,8 @@ var Upload = /** @class */ (function () {
     };
     Upload.prototype._dbExec = function (db, files) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, pathFields, fields, columns, set, upload, i, ien, column, prop, _b, _c, _d, val, res, id, pathKeys, toSet, i, ien, key;
+            var pathFields, fields, columns, set, upload, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, toSet, i, ien, key;
+            var _d;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -456,8 +457,8 @@ var Upload = /** @class */ (function () {
                         if (!(i < ien)) return [3 /*break*/, 13];
                         column = columns[i];
                         prop = fields[column];
-                        _b = prop;
-                        switch (_b) {
+                        _a = prop;
+                        switch (_a) {
                             case DbOpts.ReadOnly: return [3 /*break*/, 2];
                             case DbOpts.Content: return [3 /*break*/, 3];
                             case DbOpts.ContentType: return [3 /*break*/, 5];
@@ -471,11 +472,11 @@ var Upload = /** @class */ (function () {
                         return [3 /*break*/, 11];
                     case 2: return [3 /*break*/, 12];
                     case 3:
-                        _c = set;
-                        _d = column;
+                        _b = set;
+                        _c = column;
                         return [4 /*yield*/, readFile(upload.file)];
                     case 4:
-                        _c[_d] = _e.sent();
+                        _b[_c] = _e.sent();
                         return [3 /*break*/, 12];
                     case 5:
                         set[column] = upload.mimetype;
@@ -528,7 +529,7 @@ var Upload = /** @class */ (function () {
                         return [4 /*yield*/, db
                                 .update(toSet)
                                 .from(this._dbTable)
-                                .where((_a = {}, _a[this._dbPkey] = id, _a))];
+                                .where((_d = {}, _d[this._dbPkey] = id, _d))];
                     case 15:
                         _e.sent();
                         _e.label = 16;

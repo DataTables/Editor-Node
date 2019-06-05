@@ -1264,7 +1264,7 @@ export default class Editor extends NestedData {
 
 			let whereName = this._part( childLink, 'column' );
 
-			this._insertOrUpdateTable(
+			await this._insertOrUpdateTable(
 				join.table,
 				values,
 				{ [whereName]: whereVal }
@@ -1325,12 +1325,36 @@ export default class Editor extends NestedData {
 				res[0].toString();
 		}
 		else if ( action === 'create' ) {
+			// Create on a linked table
 			res = await this
 				.db()
 				.insert( set )
 				.table( table );
 		}
+		else if ( this.table().indexOf(table) === -1 ) {
+			// Update on a linked table - the record might not yet exist, so need to check.
+			let check = await this
+				.db()
+				.table( table )
+				.select('*')
+				.where( where );
+
+			if ( check && check.length ) {
+				await this
+					.db()
+					.table( table )
+					.update( set )
+					.where( where );
+			}
+			else {
+				await this
+					.db()
+					.table( table )
+					.insert( Object.assign( {}, set, where ) );
+			}
+		}
 		else {
+			// Update on the host table
 			await this
 				.db()
 				.table( table )

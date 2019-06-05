@@ -932,7 +932,8 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._insertOrUpdate = function (id, values) {
         return __awaiter(this, void 0, void 0, function () {
-            var _a, tables, i, ien, res, i, ien, join, joinTable, tablePart, parentLink, childLink, whereVal, field, whereName;
+            var tables, i, ien, res, i, ien, join, joinTable, tablePart, parentLink, childLink, whereVal, field, whereName;
+            var _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -956,44 +957,51 @@ var Editor = /** @class */ (function (_super) {
                         i++;
                         return [3 /*break*/, 1];
                     case 4:
-                        // And for the left join tables
-                        for (i = 0, ien = this._leftJoin.length; i < ien; i++) {
-                            join = this._leftJoin[i];
-                            joinTable = this._alias(join.table, 'alias');
-                            tablePart = this._part(join.field1);
-                            parentLink = void 0;
-                            childLink = void 0;
-                            whereVal = void 0;
-                            if (this._part(join.field1, 'db')) {
-                                tablePart = this._part(join.field1, 'db') + '.' + tablePart;
-                            }
-                            if (tablePart === joinTable) {
-                                parentLink = join.field2;
-                                childLink = join.field1;
-                            }
-                            else {
-                                parentLink = join.field1;
-                                childLink = join.field2;
-                            }
-                            if (parentLink === this._pkey[0] && this._pkey.length === 1) {
-                                whereVal = id;
-                            }
-                            else {
-                                field = this._findField(parentLink, 'db');
-                                if (!field || !field.apply('edit', values)) {
-                                    // If not, then check if the child id was submitted
-                                    field = this._findField(childLink, 'db');
-                                    if (!field || !field.apply('edit', values)) {
-                                        // No data available, so we can't do anything
-                                        continue;
-                                    }
-                                }
-                                whereVal = field.val('set', values);
-                            }
-                            whereName = this._part(childLink, 'column');
-                            this._insertOrUpdateTable(join.table, values, (_a = {}, _a[whereName] = whereVal, _a));
+                        i = 0, ien = this._leftJoin.length;
+                        _b.label = 5;
+                    case 5:
+                        if (!(i < ien)) return [3 /*break*/, 8];
+                        join = this._leftJoin[i];
+                        joinTable = this._alias(join.table, 'alias');
+                        tablePart = this._part(join.field1);
+                        parentLink = void 0;
+                        childLink = void 0;
+                        whereVal = void 0;
+                        if (this._part(join.field1, 'db')) {
+                            tablePart = this._part(join.field1, 'db') + '.' + tablePart;
                         }
-                        return [2 /*return*/, id];
+                        if (tablePart === joinTable) {
+                            parentLink = join.field2;
+                            childLink = join.field1;
+                        }
+                        else {
+                            parentLink = join.field1;
+                            childLink = join.field2;
+                        }
+                        if (parentLink === this._pkey[0] && this._pkey.length === 1) {
+                            whereVal = id;
+                        }
+                        else {
+                            field = this._findField(parentLink, 'db');
+                            if (!field || !field.apply('edit', values)) {
+                                // If not, then check if the child id was submitted
+                                field = this._findField(childLink, 'db');
+                                if (!field || !field.apply('edit', values)) {
+                                    // No data available, so we can't do anything
+                                    return [3 /*break*/, 7];
+                                }
+                            }
+                            whereVal = field.val('set', values);
+                        }
+                        whereName = this._part(childLink, 'column');
+                        return [4 /*yield*/, this._insertOrUpdateTable(join.table, values, (_a = {}, _a[whereName] = whereVal, _a))];
+                    case 6:
+                        _b.sent();
+                        _b.label = 7;
+                    case 7:
+                        i++;
+                        return [3 /*break*/, 5];
+                    case 8: return [2 /*return*/, id];
                 }
             });
         });
@@ -1001,7 +1009,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._insertOrUpdateTable = function (table, values, where) {
         if (where === void 0) { where = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var set, res, action, tableAlias, fields, i, ien, field, tablePart, fieldPart, pkey;
+            var set, res, action, tableAlias, fields, i, ien, field, tablePart, fieldPart, pkey, check;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1050,17 +1058,47 @@ var Editor = /** @class */ (function (_super) {
                                 .insert(set)
                                 .table(table)];
                     case 3:
+                        // Create on a linked table
                         res = _a.sent();
-                        return [3 /*break*/, 6];
-                    case 4: return [4 /*yield*/, this
+                        return [3 /*break*/, 12];
+                    case 4:
+                        if (!(this.table().indexOf(table) === -1)) return [3 /*break*/, 10];
+                        return [4 /*yield*/, this
+                                .db()
+                                .table(table)
+                                .select('*')
+                                .where(where)];
+                    case 5:
+                        check = _a.sent();
+                        if (!(check && check.length)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this
+                                .db()
+                                .table(table)
+                                .update(set)
+                                .where(where)];
+                    case 6:
+                        _a.sent();
+                        return [3 /*break*/, 9];
+                    case 7: return [4 /*yield*/, this
+                            .db()
+                            .table(table)
+                            .insert(Object.assign({}, set, where))];
+                    case 8:
+                        _a.sent();
+                        _a.label = 9;
+                    case 9: return [3 /*break*/, 12];
+                    case 10: 
+                    // Update on the host table
+                    return [4 /*yield*/, this
                             .db()
                             .table(table)
                             .update(set)
                             .where(where)];
-                    case 5:
+                    case 11:
+                        // Update on the host table
                         _a.sent();
-                        _a.label = 6;
-                    case 6: return [2 /*return*/];
+                        _a.label = 12;
+                    case 12: return [2 /*return*/];
                 }
             });
         });
