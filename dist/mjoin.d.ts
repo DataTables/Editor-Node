@@ -46,7 +46,8 @@ export default class Mjoin extends NestedData {
      * @param {(Field|string)} nameOrField Field instance to add, or field name to get
      * @returns Mjoin instance if adding a field, Field instance if getting a field.
      */
-    field(nameOrField: Field | string): Field | this;
+    field(nameOrField: string): any;
+    field(nameOrField: Field): any;
     /**
      * Get the fields assigned to this instance.
      * @returns {Field[]} Array of fields

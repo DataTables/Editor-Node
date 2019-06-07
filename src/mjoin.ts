@@ -83,6 +83,8 @@ export default class Mjoin extends NestedData {
 	 * @param {(Field|string)} nameOrField Field instance to add, or field name to get
 	 * @returns Mjoin instance if adding a field, Field instance if getting a field.
 	 */
+	public field( nameOrField: string );
+	public field( nameOrField: Field );
 	public field( nameOrField: Field|string ) {
 		if ( typeof nameOrField === 'string' ) {
 			for ( let i = 0, ien = this._fields.length ; i < ien ; i++ ) {
@@ -348,13 +350,22 @@ export default class Mjoin extends NestedData {
 			let joinField = join.table ?
 				join.parent[0] :
 				join.parent;
+			let dteTableAlias = dteTable.indexOf(' ') !== -1
+				? dteTable.split(/ (as )?/i)[2]
+				: dteTable;
+			let mJoinTable = this._table.indexOf(' ') !== -1
+				? this._table.split(/ (as )?/i)[0]
+				: this._table;
+			let mJoinTableAlias = this._table.indexOf(' ') !== -1
+				? this._table.split(/ (as )?/i)[2]
+				: this._table;
 
 			let pkeyIsJoin = joinField === editor.pkey()[0] ||
-				dteTable + '.' + joinField === editor.pkey()[0];
+			dteTableAlias + '.' + joinField === editor.pkey()[0];
 
 			// Build the basic query
 			let query = editor.db().table( dteTable )
-				.distinct( dteTable + '.' + joinField + ' as dteditor_pkey' );
+				.distinct( dteTableAlias + '.' + joinField + ' as dteditor_pkey' );
 
 			let order = this.order();
 			if ( order ) {
@@ -380,7 +391,7 @@ export default class Mjoin extends NestedData {
 						query.select( editor.db().raw( dbField + ' as "' + dbField + '"' ) );
 					}
 					else if ( dbField.indexOf('.') === -1 ) {
-						query.select( this._table + '.' + dbField + ' as ' + dbField );
+						query.select( mJoinTableAlias + '.' + dbField + ' as ' + dbField );
 					}
 					else {
 						query.select( dbField );
@@ -390,23 +401,23 @@ export default class Mjoin extends NestedData {
 
 			// Create the joins
 			if ( join.table ) {
-				query.innerJoin( join.table, dteTable + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
-				query.innerJoin( this._table, this._table + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
+				query.innerJoin( join.table, dteTableAlias + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
+				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
 			}
 			else {
-				query.innerJoin( this._table, join.parent, '=', join.child );
+				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, join.parent, '=', join.child );
 			}
 
 			let readField = '';
-			if ( this._propExists( dteTable + '.' + joinField, response.data[0] ) ) {
-				readField = dteTable + '.' + joinField;
+			if ( this._propExists( dteTableAlias + '.' + joinField, response.data[0] ) ) {
+				readField = dteTableAlias + '.' + joinField;
 			}
 			else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
 				readField = joinField.toString();
 			}
 			else if ( !pkeyIsJoin ) {
 				throw new Error(
-					'Join was performed on the field "' + joinField + '" which was not ' +
+					'Join was performed on the field "' + readField + '" which was not ' +
 					'included in the Editor field list. The join field must be ' +
 					'included as a regular field in the Editor instance.'
 				);
@@ -415,7 +426,7 @@ export default class Mjoin extends NestedData {
 			// Get list of pkey values and apply as a WHERE IN condition
 			// This is primarily useful in server-side processing mode and when filtering
 			// the table as it means only a sub-set will be selected
-			// This is only applied for "sensible" data sets. It will just complicate
+			// This is only applied for "sensible" data sets.172 It will just complicate
 			// matters for really large data sets:
 			// https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
 			if ( response.data.length < 1000 ) {
@@ -430,7 +441,7 @@ export default class Mjoin extends NestedData {
 					whereIn.push( linkValue );
 				}
 
-				query.whereIn( dteTable + '.' + joinField, whereIn );
+				query.whereIn( dteTableAlias + '.' + joinField, whereIn );
 			}
 
 			let res = await query;
@@ -532,16 +543,20 @@ export default class Mjoin extends NestedData {
 		let join = this._join;
 
 		if ( join.table ) {
-			let query = db( join.table );
+			let query = db
+				.del()
+				.from( join.table );
 
 			for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
 				query.orWhere( { [join.parent[1]]: ids[i] } );
 			}
 
-			await query.del();
+			await query;
 		}
 		else {
-			let query = db( this._table );
+			let query = db
+				.del()
+				.from( this._table );
 
 			query.where( function() {
 				for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
@@ -551,7 +566,7 @@ export default class Mjoin extends NestedData {
 
 			this._applyWhere( query );
 
-			await query.del();
+			await query;
 		}
 	}
 
@@ -600,11 +615,12 @@ export default class Mjoin extends NestedData {
 
 		if ( join.table ) {
 			// Insert keys into the join table
-			await db( join.table )
+			await db
 				.insert( {
 					[join.parent[1]]: parentId,
 					[join.child[1]]: data[ join.child[0] ]
-				} );
+				} )
+				.from( join.table );
 		}
 		else {
 			// Insert values into the target table
@@ -620,8 +636,9 @@ export default class Mjoin extends NestedData {
 				}
 			}
 
-			await db( this._table )
-				.insert( set );
+			await db
+				.insert( set )
+				.from( this._table );
 		}
 	}
 
@@ -631,15 +648,16 @@ export default class Mjoin extends NestedData {
 		let links = this._links;
 		let editorTable = editor.table()[0];
 		let joinTable = this.table();
-
-		// FUTURE aliasParentTable
+		let dteTableAlias = editorTable.indexOf(' ') !== -1
+			? editorTable.split(/ (as )?/i)[2]
+			: editorTable;
 
 		if ( links.length === 2 ) {
 			// No link table
 			let f1 = links[0].split('.');
 			let f2 = links[1].split('.');
 
-			if ( f1[0] === editorTable ) {
+			if ( f1[0] === dteTableAlias ) {
 				this._join.parent = f1[1];
 				this._join.child = f2[1];
 			}
@@ -656,13 +674,13 @@ export default class Mjoin extends NestedData {
 			let f4 = links[3].split('.');
 
 			// Discover the name of the link table
-			if ( f1[0] !== editorTable && f1[0] !== joinTable ) {
+			if ( f1[0] !== dteTableAlias && f1[0] !== joinTable ) {
 				this._join.table = f1[0];
 			}
-			else if ( f2[0] !== editorTable && f2[0] !== joinTable ) {
+			else if ( f2[0] !== dteTableAlias && f2[0] !== joinTable ) {
 				this._join.table = f2[0];
 			}
-			else if ( f3[0] !== editorTable && f3[0] !== joinTable ) {
+			else if ( f3[0] !== dteTableAlias && f3[0] !== joinTable ) {
 				this._join.table = f3[0];
 			}
 			else {
