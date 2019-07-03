@@ -1676,19 +1676,20 @@ export default class Editor extends NestedData {
 		// Check that there is actually a field which has a set option for this table
 		let count = 0;
 		let fields = this.fields();
+		let tableAlias = this._alias(table, 'alias');
 
 		for ( let i = 0, ien = fields.length; i < ien; i++ ) {
 			let dbField = fields[i].dbField();
 
 			if ( dbField.indexOf('.') === -1 ||
-				(this._part( dbField, 'table') === table && fields[i].set() !== SetType.None)
+				(this._part( dbField, 'table') === tableAlias && fields[i].set() !== SetType.None)
 			) {
 				count++;
 			}
 		}
 
 		if ( count > 0 ) {
-			let q = this.db().from( table );
+			let q = this.db().from( this._alias(table, 'orig') );
 
 			for ( let i = 0, ien = ids.length; i < ien; i++ ) {
 				let cond = this.pkeyToObject( ids[i], true, pkey );

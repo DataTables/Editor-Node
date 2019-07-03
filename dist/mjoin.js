@@ -269,7 +269,6 @@ var Mjoin = /** @class */ (function (_super) {
                                 }
                             }
                         }
-                        console.log('JJOIN', join, mJoinTable, mJoinTableAlias);
                         // Create the joins
                         if (join.table) {
                             query.innerJoin(join.table, dteTableAlias + '.' + join.parent[0], '=', join.table + '.' + join.parent[1]);
@@ -293,7 +292,7 @@ var Mjoin = /** @class */ (function (_super) {
                         // Get list of pkey values and apply as a WHERE IN condition
                         // This is primarily useful in server-side processing mode and when filtering
                         // the table as it means only a sub-set will be selected
-                        // This is only applied for "sensible" data sets. It will just complicate
+                        // This is only applied for "sensible" data sets.172 It will just complicate
                         // matters for really large data sets:
                         // https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
                         if (response.data.length < 1000) {
@@ -607,7 +606,6 @@ var Mjoin = /** @class */ (function (_super) {
             }
             this._join.parent = [f1[1], f2[1]];
             this._join.child = [f3[1], f4[1]];
-            console.log('JOIN PARENT', this._join);
         }
     };
     Mjoin.prototype._validateFields = function (errors, editor, data, prefix) {
