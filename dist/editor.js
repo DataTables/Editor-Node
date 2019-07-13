@@ -1436,11 +1436,11 @@ var Editor = /** @class */ (function (_super) {
                         i++;
                         return [3 /*break*/, 13];
                     case 16:
-                        i = 0, ien = keys.length;
+                        i = 0, ien = ids.length;
                         _a.label = 17;
                     case 17:
                         if (!(i < ien)) return [3 /*break*/, 20];
-                        return [4 /*yield*/, this._trigger('postRemove', keys[i], http.data[keys[i]])];
+                        return [4 /*yield*/, this._trigger('postRemove', ids[i], http.data[this.idPrefix() + ids[i]])];
                     case 18:
                         _a.sent();
                         _a.label = 19;

@@ -1663,8 +1663,8 @@ export default class Editor extends NestedData {
 			await this._removeTable( tables[i], ids );
 		}
 
-		for ( let i = 0, ien = keys.length; i < ien; i++ ) {
-			await this._trigger( 'postRemove', keys[i], http.data[ keys[i] ] );
+		for ( let i = 0, ien = ids.length; i < ien; i++ ) {
+			await this._trigger( 'postRemove', ids[i], http.data[ this.idPrefix() + ids[i] ] );
 		}
 	}
 
