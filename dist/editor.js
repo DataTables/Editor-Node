@@ -877,7 +877,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._getWhere = function (query) {
         var where = this.where();
         for (var i = 0, ien = where.length; i < ien; i++) {
-            query.where.apply(query, where[i]);
+            query.where(where[i]);
         }
     };
     Editor.prototype._insert = function (values) {

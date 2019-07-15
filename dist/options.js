@@ -176,7 +176,7 @@ var Options = /** @class */ (function () {
                             q.orderBy(this._order);
                         }
                         if (this._limit) {
-                            q.limit(this.limit);
+                            q.limit(this.limit());
                         }
                         return [4 /*yield*/, q];
                     case 1:

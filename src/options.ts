@@ -280,7 +280,7 @@ export default class Options {
 		}
 
 		if ( this._limit ) {
-			q.limit( this.limit );
+			q.limit( this.limit() );
 		}
 
 		let res = await q;
