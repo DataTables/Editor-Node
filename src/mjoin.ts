@@ -405,7 +405,7 @@ export default class Mjoin extends NestedData {
 				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
 			}
 			else {
-				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.parent, '=', dteTableAlias + '.' + join.child );
+				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child, '=', dteTableAlias + '.' + join.parent );
 			}
 
 			let readField = '';
