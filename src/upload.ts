@@ -76,7 +76,8 @@ export interface IUpload {
  * @class Upload
  */
 export default class Upload {
-	public static Db = DbOpts;
+	public static Db = DbOpts; // legacy
+	public static DbOpts = DbOpts;
 
 	private _action: string|Function;
 	private _dbCleanCallback; // async function
