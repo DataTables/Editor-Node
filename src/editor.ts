@@ -925,7 +925,7 @@ export default class Editor extends NestedData {
 			return this._where;
 		}
 
-		this._where.push( cond );
+		this._where.push( ...cond );
 
 		return this;
 	}
