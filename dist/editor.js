@@ -587,6 +587,7 @@ var Editor = /** @class */ (function (_super) {
         return this;
     };
     Editor.prototype.where = function () {
+        var _a;
         var cond = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             cond[_i] = arguments[_i];
@@ -594,7 +595,7 @@ var Editor = /** @class */ (function (_super) {
         if (cond.length === 0) {
             return this._where;
         }
-        this._where.push(cond);
+        (_a = this._where).push.apply(_a, cond);
         return this;
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -804,9 +805,12 @@ var Editor = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._ssp(query, http)];
                     case 2:
                         ssp = _b.sent();
+                        console.log('GET', id);
                         if (id !== null) {
+                            console.log('GETTING', this.pkeyToObject(id, true));
                             query.where(this.pkeyToObject(id, true));
                         }
+                        console.log('GOT', id);
                         return [4 /*yield*/, query];
                     case 3:
                         result = _b.sent();
@@ -814,6 +818,7 @@ var Editor = /** @class */ (function (_super) {
                             throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
                                 '`debug: true` in your Knex db configuration');
                         }
+                        console.log('GOTPAST');
                         out = [];
                         for (i = 0, ien = result.length; i < ien; i++) {
                             inner = {
@@ -876,6 +881,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._getWhere = function (query) {
         var where = this.where();
+        console.log('GETWHERE', where);
         for (var i = 0, ien = where.length; i < ien; i++) {
             query.where(where[i]);
         }

@@ -550,7 +550,8 @@ var Upload = /** @class */ (function () {
         to = to.replace('{extn}', extn);
         return to;
     };
-    Upload.Db = DbOpts;
+    Upload.Db = DbOpts; // legacy
+    Upload.DbOpts = DbOpts;
     return Upload;
 }());
 exports.default = Upload;

@@ -59,6 +59,7 @@ export interface IUpload {
  */
 export default class Upload {
     static Db: typeof DbOpts;
+    static DbOpts: typeof DbOpts;
     private _action;
     private _dbCleanCallback;
     private _dbCleanTableField;
