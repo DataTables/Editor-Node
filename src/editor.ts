@@ -925,7 +925,7 @@ export default class Editor extends NestedData {
 			return this._where;
 		}
 
-		this._where.push( cond );
+		this._where.push( ...cond );
 
 		return this;
 	}
@@ -1151,11 +1151,11 @@ export default class Editor extends NestedData {
 		return response;
 	}
 
-	private _getWhere( query: knex ): void {
+	private _getWhere( query: knex.QueryBuilder ): void {
 		let where = this.where();
 
 		for ( let i = 0, ien = where.length; i < ien; i++ ) {
-			query.where( ...where[i] );
+			query.where( where[i] );
 		}
 	}
 
@@ -1442,7 +1442,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _performLeftJoin( query: knex ): void {
+	private _performLeftJoin( query: knex.QueryBuilder ): void {
 		for ( let i = 0, ien = this._leftJoin.length; i < ien; i++ ) {
 			let join = this._leftJoin[i];
 
@@ -1704,7 +1704,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _ssp( query: knex.query, http: IDtRequest ): Promise<ISSP> {
+	private async _ssp( query: knex.QueryBuilder, http: IDtRequest ): Promise<ISSP> {
 		if ( ! http || ! http.draw ) {
 			return {};
 		}
@@ -1763,7 +1763,7 @@ export default class Editor extends NestedData {
 		return field.dbField();
 	}
 
-	private _sspFilter( query: knex.query, http: IDtRequest ): void {
+	private _sspFilter( query: knex.QueryBuilder, http: IDtRequest ): void {
 		let fields = this.fields();
 
 		// Global filter
@@ -1812,7 +1812,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _sspLimit( query: knex.query, http: IDtRequest ): void {
+	private _sspLimit( query: knex.QueryBuilder, http: IDtRequest ): void {
 		if ( http.length !== -1 ) { // -1 is 'show all' in DataTables
 			query
 				.limit( http.length * 1 )
@@ -1820,7 +1820,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _sspSort( query: knex.query, http: IDtRequest ): void {
+	private _sspSort( query: knex.QueryBuilder, http: IDtRequest ): void {
 		for ( let i = 0, ien = http.order.length; i < ien; i++ ) {
 			let order = http.order[i];
 

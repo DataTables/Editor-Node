@@ -587,6 +587,7 @@ var Editor = /** @class */ (function (_super) {
         return this;
     };
     Editor.prototype.where = function () {
+        var _a;
         var cond = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             cond[_i] = arguments[_i];
@@ -594,7 +595,7 @@ var Editor = /** @class */ (function (_super) {
         if (cond.length === 0) {
             return this._where;
         }
-        this._where.push(cond);
+        (_a = this._where).push.apply(_a, cond);
         return this;
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -877,7 +878,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._getWhere = function (query) {
         var where = this.where();
         for (var i = 0, ien = where.length; i < ien; i++) {
-            query.where.apply(query, where[i]);
+            query.where(where[i]);
         }
     };
     Editor.prototype._insert = function (values) {

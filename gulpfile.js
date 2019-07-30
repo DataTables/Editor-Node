@@ -17,4 +17,4 @@ gulp.task( 'typescript', function () {
 } );
 
 
-gulp.task( 'default', ['typescript'] );
+gulp.task( 'default', gulp.series('typescript') );

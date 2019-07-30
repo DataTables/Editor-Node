@@ -601,7 +601,7 @@ export default class Mjoin extends NestedData {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
-	private _applyWhere( query: knex ): void {
+	private _applyWhere( query: knex.QueryBuilder<any, any> ): void {
 		let where = this._where;
 
 		for ( let i = 0, ien = where.length ; i < ien ; i++ ) {
