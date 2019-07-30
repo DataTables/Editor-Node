@@ -1222,6 +1222,7 @@ var Editor = /** @class */ (function (_super) {
                 switch (_c.label) {
                     case 0:
                         this._out = {
+                            cancelled: [],
                             data: [],
                             fieldErrors: []
                         };

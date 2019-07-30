@@ -1498,6 +1498,7 @@ export default class Editor extends NestedData {
 
 	private async _process( data: IDtRequest, upload: IUpload ): Promise<void> {
 		this._out = {
+			cancelled: [],
 			data: [],
 			fieldErrors: []
 		};
