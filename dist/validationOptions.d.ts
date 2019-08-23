@@ -8,7 +8,7 @@ export default class ValidationOptions {
     /**
      * @ignore
      */
-    static select(user: ValidationOptions): ValidationOptions;
+    static select(user: ValidationOptions | null): ValidationOptions;
     /**
      * Error message should the validation fail
      *
