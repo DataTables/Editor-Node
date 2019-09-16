@@ -1313,7 +1313,7 @@ var Editor = /** @class */ (function (_super) {
                     case 18: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
                     case 19:
                         valid = _c.sent();
-                        if (!valid) return [3 /*break*/, 26];
+                        if (!valid) return [3 /*break*/, 28];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _c.label = 20;

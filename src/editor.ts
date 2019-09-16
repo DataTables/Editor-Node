@@ -1583,9 +1583,9 @@ export default class Editor extends NestedData {
 							this._out.data.push( d );
 						}
 					}
-				}
 
-				await this._fileClean();
+					await this._fileClean();
+				}
 			}
 		}
 
