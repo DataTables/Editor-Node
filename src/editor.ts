@@ -1025,7 +1025,7 @@ export default class Editor extends NestedData {
 					}
 					else if ( ids.length > 1000 ) {
 						// Don't use WHERE IN for really large arrays
-						ids = [];
+						ids = null;
 					}
 				}
 
