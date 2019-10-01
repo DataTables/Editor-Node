@@ -208,7 +208,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '1.9.0';
+	public static version: string = '1.9.1';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1727,7 +1727,7 @@ export default class Editor extends NestedData {
 		this._performLeftJoin( setCount );
 
 		let res = await setCount;
-		let recordsFiltered = res[0].cnt;
+		let recordsFiltered = (res[0] as any).cnt;
 
 		// Get the number of rows in the full set
 		let fullCount = this
@@ -1740,7 +1740,7 @@ export default class Editor extends NestedData {
 			this._performLeftJoin( fullCount );
 		}
 		res = await fullCount;
-		let recordsTotal = res[0].cnt;
+		let recordsTotal = (res[0] as any).cnt;
 
 		return {
 			draw: http.draw * 1,

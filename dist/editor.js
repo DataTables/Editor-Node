@@ -736,7 +736,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                             else if (ids.length > 1000) {
                                 // Don't use WHERE IN for really large arrays
-                                ids = [];
+                                ids = null;
                             }
                         }
                         return [4 /*yield*/, upload.data(this.db(), ids)];
@@ -1749,7 +1749,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.9.0';
+    Editor.version = '1.9.1';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
