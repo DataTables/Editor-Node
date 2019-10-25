@@ -26,6 +26,10 @@ export default class Formatter {
 	 */
 	public static sqlDateToFormat( format: string ): IFormatter {
 		return function(val: any, data: object ) {
+			if ( val === null ) {
+				return null;
+			}
+
 			return moment( val, 'YYYY-MM-DD' ).format( format );
 		};
 	}
@@ -42,6 +46,10 @@ export default class Formatter {
 	 */
 	public static formatToSqlDate( format: string ): IFormatter {
 		return function(val: any, data: object ) {
+			if ( val === null ) {
+				return null;
+			}
+
 			return moment( val, format ).format( 'YYYY-MM-DD' );
 		};
 	}
@@ -58,6 +66,10 @@ export default class Formatter {
 	 */
 	public static dateTime( from: string, to: string ): IFormatter {
 		return function(val: any, data: object ) {
+			if ( val === null ) {
+				return null;
+			}
+
 			return moment( val, from ).format( to );
 		};
 	}

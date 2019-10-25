@@ -208,7 +208,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '1.9.0';
+	public static version: string = '1.9.2';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1025,7 +1025,7 @@ export default class Editor extends NestedData {
 					}
 					else if ( ids.length > 1000 ) {
 						// Don't use WHERE IN for really large arrays
-						ids = [];
+						ids = null;
 					}
 				}
 
@@ -1498,6 +1498,7 @@ export default class Editor extends NestedData {
 
 	private async _process( data: IDtRequest, upload: IUpload ): Promise<void> {
 		this._out = {
+			cancelled: [],
 			data: [],
 			fieldErrors: []
 		};
@@ -1520,8 +1521,10 @@ export default class Editor extends NestedData {
 			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 
+		let action = Editor.action(data);
+
 		if ( ! this._out.error ) {
-			if ( ! data.action ) {
+			if ( action === Action.Read ) {
 				let outData = await this._get( null, data );
 
 				this._out.data = outData.data;
@@ -1531,14 +1534,14 @@ export default class Editor extends NestedData {
 				this._out.recordsTotal = outData.recordsTotal;
 				this._out.recordsFiltered = outData.recordsFiltered;
 			}
-			else if ( data.action === 'upload' ) {
+			else if ( action === Action.Upload ) {
 				await this._upload( data );
 			}
-			else if ( data.action === 'remove' ) {
+			else if ( action === Action.Delete ) {
 				await this._remove( data );
 				await this._fileClean();
 			}
-			else {
+			else if ( action === Action.Create || action === Action.Edit ) {
 				// create or edit
 				let keys = Object.keys( data.data );
 
@@ -1549,7 +1552,7 @@ export default class Editor extends NestedData {
 					let idSrc = keys[i];
 					let values = data.data[keys[i]];
 
-					if ( data.action === 'create' ) {
+					if ( action === Action.Create ) {
 						cancel = await this._trigger( 'preCreate', values );
 					}
 					else {
@@ -1574,7 +1577,7 @@ export default class Editor extends NestedData {
 					keys = Object.keys( data.data );
 
 					for ( let i = 0, ien = keys.length; i < ien; i++ ) {
-						let d = data.action === 'create' ?
+						let d = action === Action.Create ?
 							await this._insert( data.data[keys[i]] ) :
 							await this._update( keys[i], data.data[keys[i]] );
 
@@ -1582,9 +1585,9 @@ export default class Editor extends NestedData {
 							this._out.data.push( d );
 						}
 					}
-				}
 
-				await this._fileClean();
+					await this._fileClean();
+				}
 			}
 		}
 
@@ -1734,7 +1737,7 @@ export default class Editor extends NestedData {
 		this._performLeftJoin( setCount );
 
 		let res = await setCount;
-		let recordsFiltered = res[0].cnt;
+		let recordsFiltered = (res[0] as any).cnt;
 
 		// Get the number of rows in the full set
 		let fullCount = this
@@ -1747,7 +1750,7 @@ export default class Editor extends NestedData {
 			this._performLeftJoin( fullCount );
 		}
 		res = await fullCount;
-		let recordsTotal = res[0].cnt;
+		let recordsTotal = (res[0] as any).cnt;
 
 		return {
 			draw: http.draw * 1,

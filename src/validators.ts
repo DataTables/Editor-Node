@@ -44,7 +44,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static none( cfg: ValidationOptions = null ): IValidator {
+	public static none( cfg: ValidationOptions | null = null ): IValidator {
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
 			return true;
 		};
@@ -60,7 +60,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static basic( cfg: ValidationOptions = null ): IValidator {
+	public static basic( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -79,7 +79,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static required( cfg: ValidationOptions = null ): IValidator {
+	public static required( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 		opts.empty = false;
 		opts.optional = false;
@@ -100,7 +100,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static notEmpty( cfg: ValidationOptions = null ): IValidator {
+	public static notEmpty( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 		opts.empty = false;
 
@@ -120,7 +120,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static boolean( cfg: ValidationOptions = null ): IValidator {
+	public static boolean( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -155,7 +155,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static numeric( decimal: string = '.', cfg: ValidationOptions = null ): IValidator {
+	public static numeric( decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -185,7 +185,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minNum( min: number, decimal: string = '.', cfg: ValidationOptions = null ): IValidator {
+	public static minNum( min: number, decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -213,7 +213,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static maxNum( max: number, decimal: string = '.', cfg: ValidationOptions = null ): IValidator {
+	public static maxNum( max: number, decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -246,7 +246,7 @@ export default class Validator {
 		min: number,
 		max: number,
 		decimal: string = '.',
-		cfg: ValidationOptions = null
+		cfg: ValidationOptions | null = null
 	): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
@@ -277,7 +277,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static email( cfg: ValidationOptions = null ): IValidator {
+	public static email( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -304,7 +304,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minLen( min: number, cfg: ValidationOptions = null ): IValidator {
+	public static minLen( min: number, cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -329,7 +329,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static maxLen( max: number, cfg: ValidationOptions = null ): IValidator {
+	public static maxLen( max: number, cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -355,7 +355,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minMaxLen( min: number, max: number, cfg: ValidationOptions = null ): IValidator {
+	public static minMaxLen( min: number, max: number, cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -379,7 +379,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static ip( cfg: ValidationOptions = null ): IValidator {
+	public static ip( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -417,7 +417,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static url( cfg: ValidationOptions = null ): IValidator {
+	public static url( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -441,7 +441,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static xss( cfg: ValidationOptions = null ): IValidator {
+	public static xss( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -468,7 +468,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static values( values: any[], cfg: ValidationOptions = null ): IValidator {
+	public static values( values: any[], cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -492,7 +492,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static noTags( cfg: ValidationOptions = null ): IValidator {
+	public static noTags( cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -522,7 +522,7 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static dateFormat( format: string, locale: string = null, cfg: ValidationOptions = null ): IValidator {
+	public static dateFormat( format: string, locale: string | null = null, cfg: ValidationOptions | null = null ): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
@@ -561,10 +561,10 @@ export default class Validator {
 	 * @returns {IValidator} Configured validation function
 	 */
 	public static dbUnique(
-		cfg: ValidationOptions = null,
-		column: string = null,
-		table: string = null,
-		db: knex = null
+		cfg: ValidationOptions | null = null,
+		column: string | null = null,
+		table: string | null = null,
+		db: knex | null = null
 	): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
@@ -625,10 +625,10 @@ export default class Validator {
 	 * @returns {IValidator} Configured validation function
 	 */
 	public static dbValues(
-		cfg: ValidationOptions = null,
-		column: string = null,
-		table: string = null,
-		db: knex = null,
+		cfg: ValidationOptions | null = null,
+		column: string | null = null,
+		table: string | null = null,
+		db: knex | null = null,
 		values: any[] = []
 	): IValidator {
 		let opts = ValidationOptions.select( cfg );

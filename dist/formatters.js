@@ -27,6 +27,9 @@ var Formatter = /** @class */ (function () {
      */
     Formatter.sqlDateToFormat = function (format) {
         return function (val, data) {
+            if (val === null) {
+                return null;
+            }
             return moment(val, 'YYYY-MM-DD').format(format);
         };
     };
@@ -42,6 +45,9 @@ var Formatter = /** @class */ (function () {
      */
     Formatter.formatToSqlDate = function (format) {
         return function (val, data) {
+            if (val === null) {
+                return null;
+            }
             return moment(val, format).format('YYYY-MM-DD');
         };
     };
@@ -57,6 +63,9 @@ var Formatter = /** @class */ (function () {
      */
     Formatter.dateTime = function (from, to) {
         return function (val, data) {
+            if (val === null) {
+                return null;
+            }
             return moment(val, from).format(to);
         };
     };

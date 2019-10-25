@@ -9,7 +9,7 @@ export default class ValidationOptions {
 	/**
 	 * @ignore
 	 */
-	public static select( user: ValidationOptions ): ValidationOptions {
+	public static select( user: ValidationOptions | null ): ValidationOptions {
 		if ( user ) {
 			return user;
 		}

@@ -33,7 +33,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static none(cfg?: ValidationOptions): IValidator;
+    static none(cfg?: ValidationOptions | null): IValidator;
     /**
      * Basic validation - this is used to perform the validation provided by the
      * validation options only. If the validation options pass (e.g. `required`,
@@ -44,7 +44,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static basic(cfg?: ValidationOptions): IValidator;
+    static basic(cfg?: ValidationOptions | null): IValidator;
     /**
      * Required field - there must be a value and it must be a non-empty value
      *
@@ -52,7 +52,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static required(cfg?: ValidationOptions): IValidator;
+    static required(cfg?: ValidationOptions | null): IValidator;
     /**
      * Optional field, but if given there must be a non-empty value
      *
@@ -60,7 +60,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static notEmpty(cfg?: ValidationOptions): IValidator;
+    static notEmpty(cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate an input as a boolean value.
      *
@@ -68,7 +68,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static boolean(cfg?: ValidationOptions): IValidator;
+    static boolean(cfg?: ValidationOptions | null): IValidator;
     /**
      * Check that any input is numeric.
      *
@@ -77,7 +77,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static numeric(decimal?: string, cfg?: ValidationOptions): IValidator;
+    static numeric(decimal?: string, cfg?: ValidationOptions | null): IValidator;
     /**
      * Check for a numeric input and that it is greater than a given value.
      *
@@ -87,7 +87,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static minNum(min: number, decimal?: string, cfg?: ValidationOptions): IValidator;
+    static minNum(min: number, decimal?: string, cfg?: ValidationOptions | null): IValidator;
     /**
      * Check for a numeric input and that it is less than a given value.
      *
@@ -97,7 +97,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static maxNum(max: number, decimal?: string, cfg?: ValidationOptions): IValidator;
+    static maxNum(max: number, decimal?: string, cfg?: ValidationOptions | null): IValidator;
     /**
      * Check for a numeric input and that it is in between two given values.
      *
@@ -108,7 +108,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static minMaxNum(min: number, max: number, decimal?: string, cfg?: ValidationOptions): IValidator;
+    static minMaxNum(min: number, max: number, decimal?: string, cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate an input as an e-mail address.
      *
@@ -116,7 +116,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static email(cfg?: ValidationOptions): IValidator;
+    static email(cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate a string has a minimum length.
      *
@@ -125,7 +125,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static minLen(min: number, cfg?: ValidationOptions): IValidator;
+    static minLen(min: number, cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate a string is less or equal to a maximum length.
      *
@@ -134,7 +134,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static maxLen(max: number, cfg?: ValidationOptions): IValidator;
+    static maxLen(max: number, cfg?: ValidationOptions | null): IValidator;
     /**
      * Require a string with a certain minimum or maximum number of characters.
      *
@@ -144,7 +144,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static minMaxLen(min: number, max: number, cfg?: ValidationOptions): IValidator;
+    static minMaxLen(min: number, max: number, cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate as an IP address.
      *
@@ -152,7 +152,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static ip(cfg?: ValidationOptions): IValidator;
+    static ip(cfg?: ValidationOptions | null): IValidator;
     /**
      * Validate as a URL.
      *
@@ -160,7 +160,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static url(cfg?: ValidationOptions): IValidator;
+    static url(cfg?: ValidationOptions | null): IValidator;
     /**
      * Check if string could contain an XSS attack string
      *
@@ -168,7 +168,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static xss(cfg?: ValidationOptions): IValidator;
+    static xss(cfg?: ValidationOptions | null): IValidator;
     /**
      * Confirm that the value submitted is in a list of allowable values
      *
@@ -177,7 +177,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static values(values: any[], cfg?: ValidationOptions): IValidator;
+    static values(values: any[], cfg?: ValidationOptions | null): IValidator;
     /**
      * Ensure that the submitted string does not contain HTML tags
      *
@@ -185,7 +185,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static noTags(cfg?: ValidationOptions): IValidator;
+    static noTags(cfg?: ValidationOptions | null): IValidator;
     /**
      * Check that a valid date input is given. Uses MomentJS
      *
@@ -195,7 +195,7 @@ export default class Validator {
      * @param {ValidationOptions} [cfg=null] Validation options
      * @returns {IValidator} Configured validation function
      */
-    static dateFormat(format: string, locale?: string, cfg?: ValidationOptions): IValidator;
+    static dateFormat(format: string, locale?: string | null, cfg?: ValidationOptions | null): IValidator;
     /**
      * Check that the given value is unique in the database
      *
@@ -209,7 +209,7 @@ export default class Validator {
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    static dbUnique(cfg?: ValidationOptions, column?: string, table?: string, db?: knex): IValidator;
+    static dbUnique(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: knex | null): IValidator;
     /**
      * Check that the given value is a value that is available in a database -
      * i.e. a join primary key. This will attempt to automatically use the table
@@ -227,7 +227,7 @@ export default class Validator {
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    static dbValues(cfg?: ValidationOptions, column?: string, table?: string, db?: knex, values?: any[]): IValidator;
+    static dbValues(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: knex | null, values?: any[]): IValidator;
     /**
      * Check that the uploaded file has a given extension
      *

@@ -736,7 +736,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                             else if (ids.length > 1000) {
                                 // Don't use WHERE IN for really large arrays
-                                ids = [];
+                                ids = null;
                             }
                         }
                         return [4 /*yield*/, upload.data(this.db(), ids)];
@@ -1218,11 +1218,12 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, outData, keys, i, ien, cancel, idSrc, values, id, valid, i, ien, d, _b;
+            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, i, ien, d, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
                         this._out = {
+                            cancelled: [],
                             data: [],
                             fieldErrors: []
                         };
@@ -1250,8 +1251,9 @@ var Editor = /** @class */ (function (_super) {
                         if (data.action && data.action !== 'upload' && !data.data) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
+                        action = Editor.action(data);
                         if (!!this._out.error) return [3 /*break*/, 28];
-                        if (!!data.action) return [3 /*break*/, 6];
+                        if (!(action === Action.Read)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this._get(null, data)];
                     case 5:
                         outData = _c.sent();
@@ -1263,13 +1265,13 @@ var Editor = /** @class */ (function (_super) {
                         this._out.recordsFiltered = outData.recordsFiltered;
                         return [3 /*break*/, 28];
                     case 6:
-                        if (!(data.action === 'upload')) return [3 /*break*/, 8];
+                        if (!(action === Action.Upload)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this._upload(data)];
                     case 7:
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 8:
-                        if (!(data.action === 'remove')) return [3 /*break*/, 11];
+                        if (!(action === Action.Delete)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._remove(data)];
                     case 9:
                         _c.sent();
@@ -1278,6 +1280,7 @@ var Editor = /** @class */ (function (_super) {
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 11:
+                        if (!(action === Action.Create || action === Action.Edit)) return [3 /*break*/, 28];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _c.label = 12;
@@ -1286,7 +1289,7 @@ var Editor = /** @class */ (function (_super) {
                         cancel = null;
                         idSrc = keys[i];
                         values = data.data[keys[i]];
-                        if (!(data.action === 'create')) return [3 /*break*/, 14];
+                        if (!(action === Action.Create)) return [3 /*break*/, 14];
                         return [4 /*yield*/, this._trigger('preCreate', values)];
                     case 13:
                         cancel = _c.sent();
@@ -1312,13 +1315,13 @@ var Editor = /** @class */ (function (_super) {
                     case 18: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
                     case 19:
                         valid = _c.sent();
-                        if (!valid) return [3 /*break*/, 26];
+                        if (!valid) return [3 /*break*/, 28];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _c.label = 20;
                     case 20:
                         if (!(i < ien)) return [3 /*break*/, 26];
-                        if (!(data.action === 'create')) return [3 /*break*/, 22];
+                        if (!(action === Action.Create)) return [3 /*break*/, 22];
                         return [4 /*yield*/, this._insert(data.data[keys[i]])];
                     case 21:
                         _b = _c.sent();
@@ -1755,7 +1758,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.9.0';
+    Editor.version = '1.9.2';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;

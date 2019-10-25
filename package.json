@@ -1,6 +1,6 @@
 {
   "name": "datatables.net-editor-server",
-  "version": "1.9.0",
+  "version": "1.9.2",
   "description": "NodeJS server-side support for the DataTables Editor library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -30,7 +30,7 @@
     "gulp-sourcemaps": "^2.6.0",
     "gulp-typescript": "^5.0.0-alpha.3",
     "tslint": "^5.5.0",
-    "typedoc": "^0.14.2",
+    "typedoc": "^0.15.0",
     "typescript": "^3.1.6"
   },
   "importSort": {
