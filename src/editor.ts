@@ -1677,6 +1677,16 @@ export default class Editor extends NestedData {
 		let count = 0;
 		let fields = this.fields();
 		let tableAlias = this._alias(table, 'alias');
+		let tableOrig = this._alias(table, 'orig');
+
+		// This is a bit 'iffy', but required since knex delete does not support delete with an alias
+		// and our pkey might have an alias. If that's the case, need to replace. The `pkeySeparator`
+		// method uses `this.pkey()` which is how we get away with this.
+		for (let i = 0, ien = pkey.length; i < ien; i++ ) {
+			if (pkey[i].indexOf(tableAlias + '.') === 0) {
+				pkey[i] = pkey[i].replace(tableAlias + '.', tableOrig + '.');
+			}
+		}
 
 		for ( let i = 0, ien = fields.length; i < ien; i++ ) {
 			let dbField = fields[i].dbField();
@@ -1689,7 +1699,7 @@ export default class Editor extends NestedData {
 		}
 
 		if ( count > 0 ) {
-			let q = this.db().from( this._alias(table, 'orig') );
+			let q = this.db().from( tableOrig );
 
 			for ( let i = 0, ien = ids.length; i < ien; i++ ) {
 				let cond = this.pkeyToObject( ids[i], true, pkey );

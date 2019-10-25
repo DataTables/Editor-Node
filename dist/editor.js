@@ -805,12 +805,9 @@ var Editor = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._ssp(query, http)];
                     case 2:
                         ssp = _b.sent();
-                        console.log('GET', id);
                         if (id !== null) {
-                            console.log('GETTING', this.pkeyToObject(id, true));
                             query.where(this.pkeyToObject(id, true));
                         }
-                        console.log('GOT', id);
                         return [4 /*yield*/, query];
                     case 3:
                         result = _b.sent();
@@ -818,7 +815,6 @@ var Editor = /** @class */ (function (_super) {
                             throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
                                 '`debug: true` in your Knex db configuration');
                         }
-                        console.log('GOTPAST');
                         out = [];
                         for (i = 0, ien = result.length; i < ien; i++) {
                             inner = {
@@ -881,7 +877,6 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._getWhere = function (query) {
         var where = this.where();
-        console.log('GETWHERE', where);
         for (var i = 0, ien = where.length; i < ien; i++) {
             query.where(where[i]);
         }
@@ -1461,7 +1456,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, i, ien, dbField, q, _loop_2, this_2, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_2, this_2, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1471,6 +1466,15 @@ var Editor = /** @class */ (function (_super) {
                         count = 0;
                         fields = this.fields();
                         tableAlias = this._alias(table, 'alias');
+                        tableOrig = this._alias(table, 'orig');
+                        // This is a bit 'iffy', but required since knex delete does not support delete with an alias
+                        // and our pkey might have an alias. If that's the case, need to replace. The `pkeySeparator`
+                        // method uses `this.pkey()` which is how we get away with this.
+                        for (i = 0, ien = pkey.length; i < ien; i++) {
+                            if (pkey[i].indexOf(tableAlias + '.') === 0) {
+                                pkey[i] = pkey[i].replace(tableAlias + '.', tableOrig + '.');
+                            }
+                        }
                         for (i = 0, ien = fields.length; i < ien; i++) {
                             dbField = fields[i].dbField();
                             if (dbField.indexOf('.') === -1 ||
@@ -1479,7 +1483,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
-                        q = this.db().from(this._alias(table, 'orig'));
+                        q = this.db().from(tableOrig);
                         _loop_2 = function (i, ien) {
                             var cond = this_2.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
