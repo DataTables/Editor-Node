@@ -399,7 +399,7 @@ var Mjoin = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this._set || !data[this._name + '-many-count']) {
+                        if (!this._set || data[this._name + '-many-count'] === undefined) {
                             return [2 /*return*/];
                         }
                         // WARNING - this will remove rows and then readd them. Any

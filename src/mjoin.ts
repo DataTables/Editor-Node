@@ -520,7 +520,7 @@ export default class Mjoin extends NestedData {
 	 * @ignore
 	 */
 	public async update( editor: Editor, parentId: string, data: object ): Promise<void> {
-		if ( ! this._set || ! data[ this._name + '-many-count'] ) {
+		if ( ! this._set || data[ this._name + '-many-count'] === undefined ) {
 			return;
 		}
 
