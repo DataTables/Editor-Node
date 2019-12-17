@@ -312,7 +312,9 @@ export default class Editor extends NestedData {
 	public db(db?: knex): any {
 		if ( db === undefined ) {
 			if ( this._knexTransaction ) {
-				return this._knexTransaction;
+				return this._schema
+					? this._knexTransaction.withSchema(this._schema)
+					: this._knexTransaction;
 			}
 			else if ( this._schema ) {
 				return this._db.withSchema(this._schema);
@@ -799,10 +801,17 @@ export default class Editor extends NestedData {
 		};
 
 		if ( this._transaction ) {
-			await this._db.transaction( async function(trx) {
-				that._knexTransaction = trx;
-				await run();
-				that._knexTransaction = null;
+			await this._db.transaction( async (trx) => {
+				try {
+					this._knexTransaction = trx;
+					await run();
+					this._knexTransaction = null;
+
+					await trx.commit();
+				}
+				catch (e) {
+					await trx.rollback();
+				}
 			} );
 		}
 		else {
@@ -1097,6 +1106,7 @@ export default class Editor extends NestedData {
 		}
 
 		let result = await query;
+
 		if ( ! result ) {
 			throw new Error( 'Error executing SQL for data get. Enable SQL debug using ' +
 				'`debug: true` in your Knex db configuration'

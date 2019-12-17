@@ -173,7 +173,9 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype.db = function (db) {
         if (db === undefined) {
             if (this._knexTransaction) {
-                return this._knexTransaction;
+                return this._schema
+                    ? this._knexTransaction.withSchema(this._schema)
+                    : this._knexTransaction;
             }
             else if (this._schema) {
                 return this._db.withSchema(this._schema);
@@ -440,6 +442,7 @@ var Editor = /** @class */ (function (_super) {
         if (files === void 0) { files = null; }
         return __awaiter(this, void 0, void 0, function () {
             var that, run;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -473,21 +476,31 @@ var Editor = /** @class */ (function (_super) {
                             });
                         };
                         if (!this._transaction) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._db.transaction(function (trx) {
-                                return __awaiter(this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0:
-                                                that._knexTransaction = trx;
-                                                return [4 /*yield*/, run()];
-                                            case 1:
-                                                _a.sent();
-                                                that._knexTransaction = null;
-                                                return [2 /*return*/];
-                                        }
-                                    });
+                        return [4 /*yield*/, this._db.transaction(function (trx) { return __awaiter(_this, void 0, void 0, function () {
+                                var e_2;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            _a.trys.push([0, 3, , 5]);
+                                            this._knexTransaction = trx;
+                                            return [4 /*yield*/, run()];
+                                        case 1:
+                                            _a.sent();
+                                            this._knexTransaction = null;
+                                            return [4 /*yield*/, trx.commit()];
+                                        case 2:
+                                            _a.sent();
+                                            return [3 /*break*/, 5];
+                                        case 3:
+                                            e_2 = _a.sent();
+                                            return [4 /*yield*/, trx.rollback()];
+                                        case 4:
+                                            _a.sent();
+                                            return [3 /*break*/, 5];
+                                        case 5: return [2 /*return*/];
+                                    }
                                 });
-                            })];
+                            }); })];
                     case 1:
                         _a.sent();
                         return [3 /*break*/, 4];
