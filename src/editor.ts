@@ -785,37 +785,38 @@ export default class Editor extends NestedData {
 	 *   has completed its processing - result is the Editor instance.
 	 */
 	public async process( data: IDtRequest, files: IUpload = null ): Promise<Editor> {
-		let that = this;
-		let run = async function() {
-			if ( that._tryCatch ) {
+		if ( this._transaction ) {
+			let processError;
+
+			try {
+				await this._db.transaction( async (trx) => {
+					try {
+						this._knexTransaction = trx;
+						await this._process( data, files );
+						this._knexTransaction = null;
+
+						await trx.commit();
+					}
+					catch(e) {
+						processError = e;
+						await trx.rollback();
+					}
+				} );
+			} catch (e) {
+				this._out.error = processError.message;
+			}
+		}
+		else {
+			if ( this._tryCatch ) {
 				try {
-					await that._process( data, files );
+					await this._process( data, files );
 				} catch ( e ) {
-					that._out.error = e.message;
-					// knex does the rollback if an exception occurs
+					this._out.error = e.message;
 				}
 			}
 			else {
-				await that._process( data, files );
+				await this._process( data, files );
 			}
-		};
-
-		if ( this._transaction ) {
-			await this._db.transaction( async (trx) => {
-				try {
-					this._knexTransaction = trx;
-					await run();
-					this._knexTransaction = null;
-
-					await trx.commit();
-				}
-				catch (e) {
-					await trx.rollback();
-				}
-			} );
-		}
-		else {
-			await run();
 		}
 
 		return this;

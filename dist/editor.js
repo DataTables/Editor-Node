@@ -441,49 +441,23 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype.process = function (data, files) {
         if (files === void 0) { files = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var that, run;
+            var processError_1, e_1, e_2;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        that = this;
-                        run = function () {
-                            return __awaiter(this, void 0, void 0, function () {
-                                var e_1;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
-                                        case 0:
-                                            if (!that._tryCatch) return [3 /*break*/, 5];
-                                            _a.label = 1;
-                                        case 1:
-                                            _a.trys.push([1, 3, , 4]);
-                                            return [4 /*yield*/, that._process(data, files)];
-                                        case 2:
-                                            _a.sent();
-                                            return [3 /*break*/, 4];
-                                        case 3:
-                                            e_1 = _a.sent();
-                                            that._out.error = e_1.message;
-                                            return [3 /*break*/, 4];
-                                        case 4: return [3 /*break*/, 7];
-                                        case 5: return [4 /*yield*/, that._process(data, files)];
-                                        case 6:
-                                            _a.sent();
-                                            _a.label = 7;
-                                        case 7: return [2 /*return*/];
-                                    }
-                                });
-                            });
-                        };
-                        if (!this._transaction) return [3 /*break*/, 2];
+                        if (!this._transaction) return [3 /*break*/, 5];
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, this._db.transaction(function (trx) { return __awaiter(_this, void 0, void 0, function () {
-                                var e_2;
+                                var e_3;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             _a.trys.push([0, 3, , 5]);
                                             this._knexTransaction = trx;
-                                            return [4 /*yield*/, run()];
+                                            return [4 /*yield*/, this._process(data, files)];
                                         case 1:
                                             _a.sent();
                                             this._knexTransaction = null;
@@ -492,7 +466,10 @@ var Editor = /** @class */ (function (_super) {
                                             _a.sent();
                                             return [3 /*break*/, 5];
                                         case 3:
-                                            e_2 = _a.sent();
+                                            e_3 = _a.sent();
+                                            console.log('CATCH 1');
+                                            console.log(1, e_3.message);
+                                            processError_1 = e_3;
                                             return [4 /*yield*/, trx.rollback()];
                                         case 4:
                                             _a.sent();
@@ -501,14 +478,35 @@ var Editor = /** @class */ (function (_super) {
                                     }
                                 });
                             }); })];
-                    case 1:
+                    case 2:
                         _a.sent();
                         return [3 /*break*/, 4];
-                    case 2: return [4 /*yield*/, run()];
                     case 3:
+                        e_1 = _a.sent();
+                        console.log('CATCH 2');
+                        console.log(2, e_1.message, processError_1.message);
+                        this._out.error = processError_1.message;
+                        return [3 /*break*/, 4];
+                    case 4: return [3 /*break*/, 12];
+                    case 5:
+                        if (!this._tryCatch) return [3 /*break*/, 10];
+                        _a.label = 6;
+                    case 6:
+                        _a.trys.push([6, 8, , 9]);
+                        return [4 /*yield*/, this._process(data, files)];
+                    case 7:
                         _a.sent();
-                        _a.label = 4;
-                    case 4: return [2 /*return*/, this];
+                        return [3 /*break*/, 9];
+                    case 8:
+                        e_2 = _a.sent();
+                        this._out.error = e_2.message;
+                        return [3 /*break*/, 9];
+                    case 9: return [3 /*break*/, 12];
+                    case 10: return [4 /*yield*/, this._process(data, files)];
+                    case 11:
+                        _a.sent();
+                        _a.label = 12;
+                    case 12: return [2 /*return*/, this];
                 }
             });
         });
