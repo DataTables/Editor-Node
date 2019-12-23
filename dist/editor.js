@@ -467,8 +467,6 @@ var Editor = /** @class */ (function (_super) {
                                             return [3 /*break*/, 5];
                                         case 3:
                                             e_3 = _a.sent();
-                                            console.log('CATCH 1');
-                                            console.log(1, e_3.message);
                                             processError_1 = e_3;
                                             return [4 /*yield*/, trx.rollback()];
                                         case 4:
@@ -483,9 +481,12 @@ var Editor = /** @class */ (function (_super) {
                         return [3 /*break*/, 4];
                     case 3:
                         e_1 = _a.sent();
-                        console.log('CATCH 2');
-                        console.log(2, e_1.message, processError_1.message);
-                        this._out.error = processError_1.message;
+                        if (this._tryCatch) {
+                            this._out.error = processError_1.message;
+                        }
+                        else {
+                            throw processError_1;
+                        }
                         return [3 /*break*/, 4];
                     case 4: return [3 /*break*/, 12];
                     case 5:

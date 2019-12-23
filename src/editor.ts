@@ -803,7 +803,12 @@ export default class Editor extends NestedData {
 					}
 				} );
 			} catch (e) {
-				this._out.error = processError.message;
+				if ( this._tryCatch ) {
+					this._out.error = processError.message;
+				}
+				else {
+					throw processError;
+				}
 			}
 		}
 		else {
