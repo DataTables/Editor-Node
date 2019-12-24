@@ -208,7 +208,11 @@ var Validator = /** @class */ (function () {
                     if (decimal !== '.') {
                         val = val.toString().replace(decimal, '.');
                     }
-                    return [2 /*return*/, isNaN(parseFloat(val)) ?
+                    val = val.trim();
+                    if (val === '') {
+                        return [2 /*return*/, opts.message];
+                    }
+                    return [2 /*return*/, isNaN(Number(val)) ?
                             opts.message :
                             true];
                 });

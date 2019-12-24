@@ -170,7 +170,12 @@ export default class Validator {
 				val = val.toString().replace(decimal, '.');
 			}
 
-			return isNaN( parseFloat( val ) ) ?
+			val = val.trim();
+			if (val === '') {
+				return opts.message;
+			}
+
+			return isNaN(Number(val)) ?
 				opts.message :
 				true;
 		};
