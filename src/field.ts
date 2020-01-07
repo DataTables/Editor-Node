@@ -49,6 +49,7 @@ export default class Field extends NestedData {
 	private _get: boolean = true;
 	private _getFormatter: IFormatter;
 	private _getValue: any;
+	private _http: boolean = true;
 	private _opts: Options & CustomOptions;
 	private _name: string;
 	private _set: SetType = SetType.Both;
@@ -185,6 +186,23 @@ export default class Field extends NestedData {
 		}
 
 		this._getValue = val;
+		return this;
+	}
+
+	/**
+	 * Indicator to say if this field can be read over http (i.e. externally)
+	 */
+	public http(): boolean;
+	/**
+	 * Set indicator to say if the field can be read via http
+	 */
+	public http(set: boolean): Field;
+	public http(set?: boolean): any {
+		if ( set === undefined ) {
+			return this._http;
+		}
+
+		this._http = set;
 		return this;
 	}
 

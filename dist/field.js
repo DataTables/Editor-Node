@@ -101,6 +101,7 @@ var Field = /** @class */ (function (_super) {
         if (name === void 0) { name = null; }
         var _this = _super.call(this) || this;
         _this._get = true;
+        _this._http = true;
         _this._set = SetType.Both;
         _this._validator = [];
         _this._xssFormat = true;
@@ -143,6 +144,13 @@ var Field = /** @class */ (function (_super) {
             return this._getValue;
         }
         this._getValue = val;
+        return this;
+    };
+    Field.prototype.http = function (set) {
+        if (set === undefined) {
+            return this._http;
+        }
+        this._http = set;
         return this;
     };
     Field.prototype.name = function (name) {

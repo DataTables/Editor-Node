@@ -42,6 +42,7 @@ export default class Field extends NestedData {
     private _get;
     private _getFormatter;
     private _getValue;
+    private _http;
     private _opts;
     private _name;
     private _set;
@@ -121,6 +122,14 @@ export default class Field extends NestedData {
      * @returns {Field} Self for chaining
      */
     getValue(val: any): Field;
+    /**
+     * Indicator to say if this field can be read over http (i.e. externally)
+     */
+    http(): boolean;
+    /**
+     * Set indicator to say if the field can be read via http
+     */
+    http(set: boolean): Field;
     /**
      * Get the field's configured name.
      *

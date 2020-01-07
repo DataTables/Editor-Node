@@ -1126,7 +1126,7 @@ export default class Editor extends NestedData {
 			};
 
 			for ( let j = 0, jen = fields.length; j < jen; j++ ) {
-				if ( fields[j].apply('get') ) {
+				if ( fields[j].apply('get') && fields[j].http() ) {
 					fields[j].write( inner, result[i] );
 				}
 			}
