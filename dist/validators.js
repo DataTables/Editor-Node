@@ -243,6 +243,11 @@ var Validator = /** @class */ (function () {
                             if (numeric !== true) {
                                 return [2 /*return*/, opts.message];
                             }
+                            // val.toString() for '' is 0, which would mean it would always fail, even if empty values
+                            // are allowed.
+                            if (val === '' && opts.empty) {
+                                return [2 /*return*/, true];
+                            }
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
                             }
