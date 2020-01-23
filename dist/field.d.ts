@@ -258,7 +258,7 @@ export default class Field extends NestedData {
      * @param {IValidator} validator Validator to add to the field
      * @returns {Field} Self for chaining
      */
-    validator(validator: IValidator): Field;
+    validator(validator: IValidator, setFormatted?: boolean): Field;
     /**
      * Get the current XSS formatter.
      *

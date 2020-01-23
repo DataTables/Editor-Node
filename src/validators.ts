@@ -599,7 +599,8 @@ export default class Validator {
 				column = host.field.dbField();
 			}
 
-			let q = db( table )
+			let q = db
+				.table( table )
 				.select( column )
 				.where( { [column]: val } );
 
@@ -609,6 +610,8 @@ export default class Validator {
 				let cond = host.editor.pkeyToObject( host.id, true );
 				q.whereNot( cond );
 			}
+
+			console.log('UNIQUE query', q.toSQL());
 
 			let res = await q;
 

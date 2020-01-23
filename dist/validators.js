@@ -674,7 +674,8 @@ var Validator = /** @class */ (function () {
                             if (column === null) {
                                 column = host.field.dbField();
                             }
-                            q = db(table)
+                            q = db
+                                .table(table)
                                 .select(column)
                                 .where((_a = {}, _a[column] = val, _a));
                             // If doing an edit then we need to also discount the current row,
@@ -683,6 +684,7 @@ var Validator = /** @class */ (function () {
                                 cond = host.editor.pkeyToObject(host.id, true);
                                 q.whereNot(cond);
                             }
+                            console.log('UNIQUE query', q.toSQL());
                             return [4 /*yield*/, q];
                         case 1:
                             res = _b.sent();

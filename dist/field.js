@@ -203,11 +203,15 @@ var Field = /** @class */ (function (_super) {
         this._upload = upload;
         return this;
     };
-    Field.prototype.validator = function (validator) {
+    Field.prototype.validator = function (validator, setFormatted) {
+        if (setFormatted === void 0) { setFormatted = false; }
         if (validator === undefined) {
-            return this._validator;
+            return this._validator.map(function (v) { return v.validator; });
         }
-        this._validator.push(validator);
+        this._validator.push({
+            setFormatted: setFormatted,
+            validator: validator
+        });
         return this;
     };
     Field.prototype.xss = function (flag) {
@@ -305,7 +309,7 @@ var Field = /** @class */ (function (_super) {
     Field.prototype.validate = function (data, editor, id) {
         if (id === void 0) { id = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var val, host, i, ien, validator, res;
+            var val, host, i, ien, validator, testVal, res;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -324,8 +328,11 @@ var Field = /** @class */ (function (_super) {
                         _a.label = 1;
                     case 1:
                         if (!(i < ien)) return [3 /*break*/, 4];
-                        validator = this._validator[i];
-                        return [4 /*yield*/, validator(val, data, host)];
+                        validator = this._validator[i].validator;
+                        testVal = this._validator[i].setFormatted
+                            ? this.val('set', data)
+                            : val;
+                        return [4 /*yield*/, validator(testVal, data, host)];
                     case 2:
                         res = _a.sent();
                         if (res !== true) {
