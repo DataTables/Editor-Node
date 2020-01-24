@@ -49,13 +49,13 @@ export default class ValidationOptions {
 	 * @param options Options
 	 */
 	constructor( options: {message?: string, empty?: boolean, optional?: boolean} = {} ) {
-		if ( options.message ) {
+		if ( options.message !== undefined ) {
 			this.message = options.message;
 		}
-		if ( options.empty ) {
+		if ( options.empty !== undefined ) {
 			this.empty = options.empty;
 		}
-		if ( options.optional ) {
+		if ( options.optional !== undefined ) {
 			this.optional = options.optional;
 		}
 	}

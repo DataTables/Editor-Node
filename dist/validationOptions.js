@@ -37,13 +37,13 @@ var ValidationOptions = /** @class */ (function () {
          * @type {boolean}
          */
         this.optional = true;
-        if (options.message) {
+        if (options.message !== undefined) {
             this.message = options.message;
         }
-        if (options.empty) {
+        if (options.empty !== undefined) {
             this.empty = options.empty;
         }
-        if (options.optional) {
+        if (options.optional !== undefined) {
             this.optional = options.optional;
         }
     }
