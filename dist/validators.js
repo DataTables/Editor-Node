@@ -504,7 +504,7 @@ var Validator = /** @class */ (function () {
                                 opts.message :
                                 true];
                     }
-                    return [2 /*return*/, !validUrl.isHttpUri(val, true) ?
+                    return [2 /*return*/, !validUrl.isWebUri(val) ?
                             opts.message :
                             true];
                 });
@@ -684,7 +684,6 @@ var Validator = /** @class */ (function () {
                                 cond = host.editor.pkeyToObject(host.id, true);
                                 q.whereNot(cond);
                             }
-                            console.log('UNIQUE query', q.toSQL());
                             return [4 /*yield*/, q];
                         case 1:
                             res = _b.sent();

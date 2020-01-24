@@ -439,7 +439,7 @@ export default class Validator {
 					true;
 			}
 
-			return ! validUrl.isHttpUri( val, true ) ?
+			return ! validUrl.isWebUri( val ) ?
 				opts.message :
 				true;
 		};
@@ -610,8 +610,6 @@ export default class Validator {
 				let cond = host.editor.pkeyToObject( host.id, true );
 				q.whereNot( cond );
 			}
-
-			console.log('UNIQUE query', q.toSQL());
 
 			let res = await q;
 
