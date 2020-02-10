@@ -57,7 +57,7 @@ export default class Field extends NestedData {
 	private _set: SetType = SetType.Both;
 	private _setFormatter: IFormatter;
 	private _setValue: any;
-	private _validator: IValidator[] = [];
+	private _validator: Array<{setFormatted: boolean; validator: IValidator}> = [];
 	private _upload: Upload;
 	private _xss: Ixss;
 	private _xssFormat: boolean = true;
@@ -418,13 +418,17 @@ export default class Field extends NestedData {
 	 * @param {IValidator} validator Validator to add to the field
 	 * @returns {Field} Self for chaining
 	 */
-	public validator(validator: IValidator): Field;
-	public validator(validator?: IValidator): any {
-		if (validator === undefined) {
-			return this._validator;
+	public validator(validator: IValidator, setFormatted?: boolean): Field;
+	public validator(validator?: IValidator, setFormatted = false): any {
+		if ( validator === undefined ) {
+			return this._validator.map((v) => v.validator);
 		}
 
-		this._validator.push(validator);
+		this._validator.push( {
+			setFormatted,
+			validator
+		} );
+
 		return this;
 	}
 
@@ -578,9 +582,13 @@ export default class Field extends NestedData {
 			id
 		});
 
-		for (let i = 0, ien = this._validator.length ; i < ien ; i++) {
-			let validator = this._validator[i];
-			let res = await validator(val, data, host);
+		for ( let i = 0, ien = this._validator.length ; i < ien ; i++ ) {
+			let validator = this._validator[i].validator;
+			let testVal = this._validator[i].setFormatted
+				? this.val('set', data)
+				: val;
+
+			let res = await validator( testVal, data, host );
 
 			if (res !== true) {
 				return res;

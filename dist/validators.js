@@ -243,6 +243,11 @@ var Validator = /** @class */ (function () {
                             if (numeric !== true) {
                                 return [2 /*return*/, opts.message];
                             }
+                            // val.toString() for '' is 0, which would mean it would always fail, even if empty values
+                            // are allowed.
+                            if (val === '' && opts.empty) {
+                                return [2 /*return*/, true];
+                            }
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
                             }
@@ -499,7 +504,7 @@ var Validator = /** @class */ (function () {
                                 opts.message :
                                 true];
                     }
-                    return [2 /*return*/, !validUrl.isHttpUri(val, true) ?
+                    return [2 /*return*/, !validUrl.isWebUri(val) ?
                             opts.message :
                             true];
                 });
@@ -669,7 +674,8 @@ var Validator = /** @class */ (function () {
                             if (column === null) {
                                 column = host.field.dbField();
                             }
-                            q = db(table)
+                            q = db
+                                .table(table)
                                 .select(column)
                                 .where((_a = {}, _a[column] = val, _a));
                             // If doing an edit then we need to also discount the current row,

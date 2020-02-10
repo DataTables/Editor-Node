@@ -199,6 +199,12 @@ export default class Validator {
 				return opts.message;
 			}
 
+			// val.toString() for '' is 0, which would mean it would always fail, even if empty values
+			// are allowed.
+			if (val === '' && opts.empty) {
+				return true;
+			}
+
 			if ( decimal !== '.' ) {
 				val = val.toString().replace(decimal, '.');
 			}
@@ -433,7 +439,7 @@ export default class Validator {
 					true;
 			}
 
-			return ! validUrl.isHttpUri( val, true ) ?
+			return ! validUrl.isWebUri( val ) ?
 				opts.message :
 				true;
 		};
@@ -593,7 +599,8 @@ export default class Validator {
 				column = host.field.dbField();
 			}
 
-			let q = db( table )
+			let q = db
+				.table( table )
 				.select( column )
 				.where( { [column]: val } );
 
