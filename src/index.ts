@@ -10,6 +10,7 @@ export { default as Options } from './options';
 export { default as Upload } from './upload';
 export { default as Validate } from './validators';
 export { default as promisify } from './promisify';
+export { default as SearchPaneOptions} from './searchPaneOptions';
 
 export type IDtRequest = editor.IDtRequest;
 export type IDtResponse = editor.IDtResponse;

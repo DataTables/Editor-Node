@@ -50,6 +50,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var nestedData_1 = require("./nestedData");
 var options_1 = require("./options");
+var searchPaneOptions_1 = require("./searchPaneOptions");
 var validators_1 = require("./validators");
 var xss_1 = require("./xss");
 /**
@@ -167,6 +168,13 @@ var Field = /** @class */ (function (_super) {
         this._opts = opts;
         return this;
     };
+    Field.prototype.searchPaneOptions = function (spopts) {
+        if (spopts === undefined) {
+            return this._spopts;
+        }
+        this._spopts = spopts;
+        return this;
+    };
     Field.prototype.set = function (flag) {
         if (flag === undefined) {
             return this._set;
@@ -255,16 +263,28 @@ var Field = /** @class */ (function (_super) {
     Field.prototype.optionsExec = function (db) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                if (this._opts instanceof options_1.default) {
+                    return [2 /*return*/, this._opts.exec(db)];
+                }
+                else if (this._opts) {
+                    return [2 /*return*/, this._opts(db)];
+                }
+                return [2 /*return*/, false];
+            });
+        });
+    };
+    Field.prototype.searchPaneOptionsExec = function (field, editor, http, fields, leftJoin) {
+        return __awaiter(this, void 0, void 0, function () {
+            var retVal;
+            return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!(this._opts instanceof options_1.default)) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._opts.exec(db)];
-                    case 1: return [2 /*return*/, _a.sent()];
-                    case 2:
-                        if (!this._opts) return [3 /*break*/, 4];
-                        return [4 /*yield*/, this._opts(db)];
-                    case 3: return [2 /*return*/, _a.sent()];
-                    case 4: return [2 /*return*/, false];
+                        if (!(this._spopts instanceof searchPaneOptions_1.default)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._spopts.exec(field, editor, http, fields, leftJoin)];
+                    case 1:
+                        retVal = _a.sent();
+                        return [2 /*return*/, retVal];
+                    case 2: return [2 /*return*/, false];
                 }
             });
         });

@@ -3,6 +3,7 @@ import Editor from './editor';
 import { IFormatter } from './formatters';
 import NestedData from './nestedData';
 import Options, { CustomOptions, IOption } from './options';
+import SearchPaneOptions from './searchPaneOptions';
 import Upload from './upload';
 import { IValidator } from './validators';
 import { Ixss } from './xss';
@@ -45,6 +46,7 @@ export default class Field extends NestedData {
     private _http;
     private _opts;
     private _name;
+    private _spopts;
     private _set;
     private _setFormatter;
     private _setValue;
@@ -168,6 +170,8 @@ export default class Field extends NestedData {
      * @returns {Field} Self for chaining
      */
     options(opts: Options & CustomOptions): Field;
+    searchPaneOptions(): SearchPaneOptions;
+    searchPaneOptions(spopts: SearchPaneOptions): Field;
     /**
      * Get the current `set` property for the field.
      *
@@ -292,6 +296,7 @@ export default class Field extends NestedData {
      * @hidden
      */
     optionsExec(db: knex): Promise<false | IOption[]>;
+    searchPaneOptionsExec(field: any, editor: any, http: any, fields: any, leftJoin: any): Promise<false | IOption[]>;
     /**
      * @hidden
      */
