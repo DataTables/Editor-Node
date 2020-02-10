@@ -264,6 +264,14 @@ export default class Field extends NestedData {
 		return this;
 	}
 
+	/**
+	 * Set how a list iof options (values and labels) will be retrieved for the fields searchpane.
+	 *
+	 * Gets a list of values that can be used for the options list in searchpanes.
+	 *
+	 * @param spopts: SearchPaneOptions
+	 * @return this
+	 */
 	public searchPaneOptions(): SearchPaneOptions;
 	public searchPaneOptions(spopts: SearchPaneOptions): Field;
 	public searchPaneOptions(spopts?: SearchPaneOptions): any {
@@ -505,7 +513,12 @@ export default class Field extends NestedData {
 		return false;
 	}
 
-	public async searchPaneOptionsExec(field, editor, http, fields, leftJoin): Promise<false | IOption[]> {
+	/**
+	 * @hidden
+	 */
+	public async searchPaneOptionsExec(
+		field: Field, editor: Editor, http, fields: Field[], leftJoin
+	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {
 			let retVal = await this._spopts.exec(field, editor, http, fields, leftJoin);
 			return retVal;

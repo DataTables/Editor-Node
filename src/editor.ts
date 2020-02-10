@@ -1117,6 +1117,8 @@ export default class Editor extends NestedData {
 		if (id !== null) {
 			query.where(this.pkeyToObject(id, true));
 		}
+
+		// If searchPanes is in use then add the options selected there to the where condition
 		if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
 			let keys = Object.keys(http.searchPanes);
 			for (let key of keys) {
@@ -1153,7 +1155,7 @@ export default class Editor extends NestedData {
 		}
 
 		let spOptions = {};
-		// Field options
+		// Field options and SearchPane Options
 		if (id === null) {
 			for (let i = 0, ien = fields.length; i < ien; i++) {
 				let opts = await fields[i].optionsExec(this.db());

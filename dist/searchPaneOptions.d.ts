@@ -1,4 +1,6 @@
 import * as knex from 'knex';
+import Field from './field';
+import Editor from './editor';
 export interface IOption {
     label: string;
     value: string | number;
@@ -27,12 +29,6 @@ export default class SearchPaneOptions {
     private _where;
     private _order;
     private _manualOpts;
-    /**
-     * Add extra options to the list, in addition to any obtained from the database
-     *
-     * @param label Label
-     * @param value Value
-     */
     /**
      * Get the column(s) to be used for the label
      *
@@ -130,11 +126,23 @@ export default class SearchPaneOptions {
      * @returns {Options} Self for chaining
      */
     where(where: any): SearchPaneOptions;
-    leftJoin(table: any, field1: any, operator: any, field2: any): this;
     /**
-     * @ignore
+     * Set the method to use for a leftJoin condition if one is to be applied
+     * to the query to retrieve data from two tables
+     *
+     * @param table the table for the join
+     * @param field1 the first field
+     * @param operator operator for the join
+     * @param field2 the second field
      */
-    exec(field: any, editor: any, http: any, fieldsIn: any, leftJoinIn: any): Promise<IOption[]>;
-    private getWhere;
-    private performLeftJoin;
+    leftJoin(table: string, field1: string, operator: string, field2: string): this;
+    /**
+     * Execution function for getting the SearchPane options
+     * @param field The field to retrieve data from
+     * @param editor The editor instance
+     * @param http The http sent to the server
+     * @param fieldsIn All of the fields
+     * @param leftJoinIn Info for a leftJoin if required
+     */
+    exec(field: Field, editor: Editor, http: any, fieldsIn: any, leftJoinIn: any): Promise<IOption[]>;
 }

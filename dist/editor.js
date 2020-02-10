@@ -831,6 +831,7 @@ var Editor = /** @class */ (function (_super) {
                         if (id !== null) {
                             query.where(this.pkeyToObject(id, true));
                         }
+                        // If searchPanes is in use then add the options selected there to the where condition
                         if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
                             keys = Object.keys(http.searchPanes);
                             _loop_1 = function (key) {

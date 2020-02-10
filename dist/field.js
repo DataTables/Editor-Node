@@ -273,6 +273,9 @@ var Field = /** @class */ (function (_super) {
             });
         });
     };
+    /**
+     * @hidden
+     */
     Field.prototype.searchPaneOptionsExec = function (field, editor, http, fields, leftJoin) {
         return __awaiter(this, void 0, void 0, function () {
             var retVal;

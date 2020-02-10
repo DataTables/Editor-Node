@@ -54,6 +54,24 @@ var SearchPaneOptions = /** @class */ (function () {
     function SearchPaneOptions() {
         this._leftJoin = [];
         this._manualOpts = [];
+        // private getWhere(query) {
+        // 	for (let i = 0; i < this._where.length; i++) {
+        // 		if (typeof(this.where[i]) === 'function') {
+        // 			this.where[i](query);
+        // 		}
+        // 		else {
+        // 			this.where(query);
+        // 		}
+        // 	}
+        // 	return this;
+        // }
+        // private performLeftJoin(query) {
+        // 	if (this._leftJoin.length > 0) {
+        // 		for (let point of this._leftJoin) {
+        // 			let join = point;
+        // 		}
+        // 	}
+        // }
     }
     SearchPaneOptions.prototype.label = function (label) {
         if (label === undefined) {
@@ -106,6 +124,15 @@ var SearchPaneOptions = /** @class */ (function () {
         this._where = where;
         return this;
     };
+    /**
+     * Set the method to use for a leftJoin condition if one is to be applied
+     * to the query to retrieve data from two tables
+     *
+     * @param table the table for the join
+     * @param field1 the first field
+     * @param operator operator for the join
+     * @param field2 the second field
+     */
     SearchPaneOptions.prototype.leftJoin = function (table, field1, operator, field2) {
         this._leftJoin.push({
             field1: field1,
@@ -119,37 +146,49 @@ var SearchPaneOptions = /** @class */ (function () {
      * Internal methods
      */
     /**
-     * @ignore
+     * Execution function for getting the SearchPane options
+     * @param field The field to retrieve data from
+     * @param editor The editor instance
+     * @param http The http sent to the server
+     * @param fieldsIn All of the fields
+     * @param leftJoinIn Info for a leftJoin if required
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, db, query, _loop_1, _i, fields_1, fie, q, _a, join_1, joiner, res, cts, out, _b, res_1, recordCou, set, _c, cts_1, recordTot;
+            var label, value, table, formatter, join, fields, spopts, db, query, _loop_1, _i, fields_1, fie, q, _a, join_1, joiner, res, cts, out, _b, res_1, recordCou, set, _c, cts_1, recordTot;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         formatter = this._renderer;
                         join = this._leftJoin;
                         fields = fieldsIn;
+                        // First get a value for `value`. This can be retrieved from either the
+                        //  SearchPaneOptions or the fieldName if it has not been declared
                         if (this._value === undefined) {
-                            value = field._spopts._label !== undefined ?
-                                field._spopts._label[0] :
-                                value = field._name.split('.')[1];
+                            spopts = field.searchPaneOptions();
+                            value = spopts.label() !== undefined ?
+                                spopts.label()[0] :
+                                value = field.name().split('.')[1];
                         }
+                        // Otherwise we can just get it from the value that has been defined
                         else {
                             value = this._value.indexOf('.') === -1 ?
                                 this._value :
                                 this._value.split('.')[1];
                         }
+                        // If label is undefined then just assume the same value as `value`
                         if (this._label === undefined) {
                             label = value;
                         }
+                        // Otherwise work it out from what has been defined
                         else {
                             label = this._label[0].indexOf('.') === -1 ?
                                 this._label :
                                 this._label[0].split('.')[1];
                         }
+                        // If the table has not been defined then get it from the editor instance
                         table = this._table === undefined ?
-                            editor._table[0] :
+                            editor.table()[0] :
                             this._table;
                         if (leftJoinIn !== undefined && leftJoinIn !== null) {
                             join = leftJoinIn;
@@ -173,13 +212,17 @@ var SearchPaneOptions = /** @class */ (function () {
                             .from(table)
                             .distinct()
                             .groupBy('value');
+                        // This block applies all of the where conditions across the fields
+                        // Each field gets it's own where condition which must be satisfied
+                        // Each where condition can have multiple orWhere()s so that the or
+                        //  searching within the fields works.
                         if (http.searchPanes !== undefined) {
                             _loop_1 = function (fie) {
-                                if (http.searchPanes[fie._name] !== undefined) {
+                                if (http.searchPanes[fie.name()] !== undefined) {
                                     query.where(function () {
-                                        for (var _i = 0, _a = http.searchPanes[fie._name]; _i < _a.length; _i++) {
+                                        for (var _i = 0, _a = http.searchPanes[fie.name()]; _i < _a.length; _i++) {
                                             var opt = _a[_i];
-                                            this.orWhere(fie._name, opt);
+                                            this.orWhere(fie.name(), opt);
                                         }
                                     });
                                 }
@@ -198,6 +241,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         if (this._where) {
                             q.where(this._where);
                         }
+                        // If a left join needs to be done for the above queries we can just do it in the same place
                         if (join !== null && join !== undefined) {
                             for (_a = 0, join_1 = join; _a < join_1.length; _a++) {
                                 joiner = join_1[_a];
@@ -230,7 +274,7 @@ var SearchPaneOptions = /** @class */ (function () {
                     case 2:
                         cts = _d.sent();
                         out = [];
-                        // Create the output array
+                        // Create the output array and add the values of count, label, total and value for each unique entry
                         for (_b = 0, res_1 = res; _b < res_1.length; _b++) {
                             recordCou = res_1[_b];
                             set = false;
@@ -244,8 +288,10 @@ var SearchPaneOptions = /** @class */ (function () {
                                         value: recordCou.value
                                     });
                                     set = true;
+                                    break;
                                 }
                             }
+                            // If the values are not found then the count is 0 according to `query` so add it anyway but with that value
                             if (!set) {
                                 out.push({
                                     count: 0,
@@ -275,25 +321,6 @@ var SearchPaneOptions = /** @class */ (function () {
                 }
             });
         });
-    };
-    SearchPaneOptions.prototype.getWhere = function (query) {
-        for (var i = 0; i < this._where.length; i++) {
-            if (typeof (this.where[i]) === 'function') {
-                this.where[i](query);
-            }
-            else {
-                this.where(query);
-            }
-        }
-        return this;
-    };
-    SearchPaneOptions.prototype.performLeftJoin = function (query) {
-        if (this._leftJoin.length > 0) {
-            for (var _i = 0, _a = this._leftJoin; _i < _a.length; _i++) {
-                var point = _a[_i];
-                var join = point;
-            }
-        }
     };
     return SearchPaneOptions;
 }());

@@ -170,6 +170,14 @@ export default class Field extends NestedData {
      * @returns {Field} Self for chaining
      */
     options(opts: Options & CustomOptions): Field;
+    /**
+     * Set how a list iof options (values and labels) will be retrieved for the fields searchpane.
+     *
+     * Gets a list of values that can be used for the options list in searchpanes.
+     *
+     * @param spopts: SearchPaneOptions
+     * @return this
+     */
     searchPaneOptions(): SearchPaneOptions;
     searchPaneOptions(spopts: SearchPaneOptions): Field;
     /**
@@ -296,7 +304,10 @@ export default class Field extends NestedData {
      * @hidden
      */
     optionsExec(db: knex): Promise<false | IOption[]>;
-    searchPaneOptionsExec(field: any, editor: any, http: any, fields: any, leftJoin: any): Promise<false | IOption[]>;
+    /**
+     * @hidden
+     */
+    searchPaneOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any): Promise<false | IOption[]>;
     /**
      * @hidden
      */
