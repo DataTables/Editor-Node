@@ -23,6 +23,7 @@ export declare type IMjoinValidator = (editor: Editor, action: string, data: IDt
  * @extends {NestedData}
  */
 export default class Mjoin extends NestedData {
+    static SetType: typeof SetType;
     private _table;
     private _editor;
     private _name;

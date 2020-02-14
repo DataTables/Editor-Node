@@ -654,6 +654,7 @@ var Mjoin = /** @class */ (function (_super) {
             });
         });
     };
+    Mjoin.SetType = field_1.SetType;
     return Mjoin;
 }(nestedData_1.default));
 exports.default = Mjoin;

@@ -35,6 +35,8 @@ export type IMjoinValidator =
  * @extends {NestedData}
  */
 export default class Mjoin extends NestedData {
+	public static SetType = SetType;
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	* Private parameters
 	*/
