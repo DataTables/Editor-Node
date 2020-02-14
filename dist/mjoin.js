@@ -48,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var field_1 = require("./field");
 var nestedData_1 = require("./nestedData");
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
@@ -79,7 +80,7 @@ var Mjoin = /** @class */ (function (_super) {
     function Mjoin(table) {
         var _this = _super.call(this) || this;
         _this._get = true;
-        _this._set = true;
+        _this._set = field_1.SetType.Both;
         _this._where = [];
         _this._fields = [];
         _this._links = [];
@@ -170,7 +171,15 @@ var Mjoin = /** @class */ (function (_super) {
         if (flag === undefined) {
             return this._set;
         }
-        this._set = flag;
+        if (flag === true) {
+            this._set = field_1.SetType.Both;
+        }
+        else if (flag === false) {
+            this._set = field_1.SetType.None;
+        }
+        else {
+            this._set = flag;
+        }
         return this;
     };
     Mjoin.prototype.table = function (table) {
@@ -366,10 +375,12 @@ var Mjoin = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        // If not settable, or the many count for the join was not submitted
-                        // then we do nothing
-                        if (!this._set ||
-                            !data[this._name] ||
+                        // Not settable
+                        if (this._set !== field_1.SetType.Create && this._set !== field_1.SetType.Both) {
+                            return [2 /*return*/];
+                        }
+                        // The many count for the join was not submitted then we do nothing
+                        if (!data[this._name] ||
                             !data[this._name + '-many-count']) {
                             return [2 /*return*/];
                         }
@@ -399,7 +410,12 @@ var Mjoin = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (!this._set || data[this._name + '-many-count'] === undefined) {
+                        // Not settable
+                        if (this._set !== field_1.SetType.Edit && this._set !== field_1.SetType.Both) {
+                            return [2 /*return*/];
+                        }
+                        // The many count for the join was not submitted then we do nothing
+                        if (data[this._name + '-many-count'] === undefined) {
                             return [2 /*return*/];
                         }
                         // WARNING - this will remove rows and then readd them. Any

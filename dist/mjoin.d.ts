@@ -1,5 +1,5 @@
 import Editor, { IDtRequest, IDtResponse } from './editor';
-import Field from './field';
+import Field, { SetType } from './field';
 import NestedData from './nestedData';
 /**
  * Grouped validation
@@ -124,22 +124,23 @@ export default class Mjoin extends NestedData {
      */
     order(order: string): Mjoin;
     /**
-     * Get the current `set` property for the instance.
+     * Get the current `set` property for the field.
      *
-     * When set to false no write operations will occur on the join tables.
-     * This can be useful when you want to display information which is joined,
-     * but want to only perform write operations on the parent table.
-     *
-     * @returns {boolean} Set configuration
+     * @returns {SetType} Set configuration
      */
-    set(): boolean;
+    set(): SetType;
     /**
-     * Set the instance's set property
+     * Set the field's `set` configuration.
      *
-     * @param {(boolean)} flag Set flag.
-     * @returns {Mjoin} Self for chaining.
+     * A field can be marked as read only using this option, to be set only
+     * during an create or edit action or to be set during both actions. This
+     * provides the ability to have fields that are only set when a new row is
+     * created (for example a "created" time stamp).
+     *
+     * @param {(boolean|SetType)} flag Set flag.
+     * @returns {Field} Self for chaining.
      */
-    set(flag: boolean): Mjoin;
+    set(flag: boolean | SetType): Field;
     /**
      * Get join table name.
      *

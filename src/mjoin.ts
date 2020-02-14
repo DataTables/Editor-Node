@@ -1,7 +1,7 @@
 import * as knex from 'knex';
 
 import Editor, {IDtRequest, IDtResponse} from './editor';
-import Field from './field';
+import Field, {SetType} from './field';
 import NestedData from './nestedData';
 
 interface IJoinTable {
@@ -43,7 +43,7 @@ export default class Mjoin extends NestedData {
 	private _editor: Editor;
 	private _name: string;
 	private _get: boolean = true;
-	private _set: boolean = true;
+	private _set: SetType = SetType.Both;
 	private _where: any[] = [];
 	private _fields: Field[] = [];
 	private _links: string[] = [];
@@ -228,28 +228,38 @@ export default class Mjoin extends NestedData {
 	}
 
 	/**
-	 * Get the current `set` property for the instance.
+	 * Get the current `set` property for the field.
 	 *
-	 * When set to false no write operations will occur on the join tables.
-	 * This can be useful when you want to display information which is joined,
-	 * but want to only perform write operations on the parent table.
-	 *
-	 * @returns {boolean} Set configuration
+	 * @returns {SetType} Set configuration
 	 */
-	public set(): boolean;
+	public set(): SetType;
 	/**
-	 * Set the instance's set property
+	 * Set the field's `set` configuration.
 	 *
-	 * @param {(boolean)} flag Set flag.
-	 * @returns {Mjoin} Self for chaining.
+	 * A field can be marked as read only using this option, to be set only
+	 * during an create or edit action or to be set during both actions. This
+	 * provides the ability to have fields that are only set when a new row is
+	 * created (for example a "created" time stamp).
+	 *
+	 * @param {(boolean|SetType)} flag Set flag.
+	 * @returns {Field} Self for chaining.
 	 */
-	public set(flag: boolean): Mjoin;
+	public set(flag: boolean|SetType): Field;
 	public set(flag?: boolean): any {
 		if ( flag === undefined ) {
 			return this._set;
 		}
 
-		this._set = flag;
+		if ( flag === true ) {
+			this._set = SetType.Both;
+		}
+		else if ( flag === false ) {
+			this._set = SetType.None;
+		}
+		else {
+			this._set = flag;
+		}
+
 		return this;
 	}
 
@@ -498,10 +508,13 @@ export default class Mjoin extends NestedData {
 	 * @ignore
 	 */
 	public async create( editor: Editor, parentId: string, data: object ): Promise<void> {
-		// If not settable, or the many count for the join was not submitted
-		// then we do nothing
+		// Not settable
+		if (this._set !== SetType.Create && this._set !== SetType.Both) {
+			return;
+		}
+
+		// The many count for the join was not submitted then we do nothing
 		if (
-			! this._set ||
 			! data[ this._name ] ||
 			! data[ this._name + '-many-count']
 		) {
@@ -520,7 +533,13 @@ export default class Mjoin extends NestedData {
 	 * @ignore
 	 */
 	public async update( editor: Editor, parentId: string, data: object ): Promise<void> {
-		if ( ! this._set || data[ this._name + '-many-count'] === undefined ) {
+		// Not settable
+		if (this._set !== SetType.Edit && this._set !== SetType.Both) {
+			return;
+		}
+
+		// The many count for the join was not submitted then we do nothing
+		if (data[ this._name + '-many-count'] === undefined) {
 			return;
 		}
 
