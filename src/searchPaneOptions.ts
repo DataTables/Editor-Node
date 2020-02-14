@@ -1,4 +1,6 @@
 import * as knex from 'knex';
+import Field from './field';
+import Editor from './editor';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -24,10 +26,11 @@ export type CustomOptions = (db: knex) => Promise<IOption[]>;
  * @export
  * @class Options
  */
-export default class Options {
+export default class SearchPaneOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
+	private _leftJoin: Array<{[keys: string]: string}> = [];
 	private _limit: number;
 	private _renderer: IRenderer;
 	private _where: any;
@@ -37,25 +40,6 @@ export default class Options {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
 	 */
-
-	/**
-	 * Add extra options to the list, in addition to any obtained from the database
-	 *
-	 * @param label Label
-	 * @param value Value
-	 */
-	public add(label: string, value?: string) {
-		if (value === undefined) {
-			value = label;
-		}
-
-		this._manualOpts.push({
-			label,
-			value
-		});
-
-		return this;
-	}
 
 	/**
 	 * Get the column(s) to be used for the label
@@ -69,18 +53,15 @@ export default class Options {
 	 * @param {string[]} label Database column names
 	 * @returns {Options} Self for chaining
 	 */
-	public label(label: string[]): Options;
+	public label(label: string[]): SearchPaneOptions;
 	public label(label?: string[]): any {
 		if (label === undefined) {
 			return this._label;
 		}
 
-		if (Array.isArray(label)) {
-			this._label = label;
-		}
-		else {
-			this._label = [ label ];
-		}
+		this._label = Array.isArray(label) ?
+			label :
+			[label];
 
 		return this;
 	}
@@ -97,7 +78,7 @@ export default class Options {
 	 * @param {number} limit Limit
 	 * @returns {Options} Self for chaining
 	 */
-	public limit(limit: number): Options;
+	public limit(limit: number): SearchPaneOptions;
 	public limit(limit?: number): any {
 		if (limit === undefined) {
 			return this._limit;
@@ -121,7 +102,7 @@ export default class Options {
 	 * @param {string} order ORDER BY statement
 	 * @returns {Options} Self for chaining
 	 */
-	public order(order: string): Options;
+	public order(order: string): SearchPaneOptions;
 	public order(order?: string): any {
 		if (order === undefined) {
 			return this._order;
@@ -145,7 +126,7 @@ export default class Options {
 	 * @param {IRenderer} fn Renderering function
 	 * @returns {Options} Self for chaining
 	 */
-	public render(fn: IRenderer): Options;
+	public render(fn: IRenderer): SearchPaneOptions;
 	public render(fn?: IRenderer): any {
 		if (fn === undefined) {
 			return this._renderer;
@@ -167,7 +148,7 @@ export default class Options {
 	 * @param {string} table Table name
 	 * @returns {Options} Self for chaining
 	 */
-	public table(table: string): Options;
+	public table(table: string): SearchPaneOptions;
 	public table(table?: string): any {
 		if (table === undefined) {
 			return this._table;
@@ -190,7 +171,7 @@ export default class Options {
 	 * @param {string} value Column name
 	 * @returns {Options} Self for chaining
 	 */
-	public value(value: string): Options;
+	public value(value: string): SearchPaneOptions;
 	public value(value?: string): any {
 		if (value === undefined) {
 			return this._value;
@@ -213,7 +194,7 @@ export default class Options {
 	 * @param {*} where Knex WHERE condition
 	 * @returns {Options} Self for chaining
 	 */
-	public where(where: any): Options;
+	public where(where: any): SearchPaneOptions;
 	public where(where?: any): any {
 		if (where === undefined) {
 			return this._where;
@@ -223,20 +204,86 @@ export default class Options {
 		return this;
 	}
 
+	/**
+	 * Set the method to use for a leftJoin condition if one is to be applied
+	 * to the query to retrieve data from two tables
+	 *
+	 * @param table the table for the join
+	 * @param field1 the first field
+	 * @param operator operator for the join
+	 * @param field2 the second field
+	 */
+	public leftJoin(table: string, field1: string, operator: string, field2: string): this {
+		this._leftJoin.push({
+			field1,
+			field2,
+			operator,
+			table
+		});
+		return this;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Internal methods
 	 */
 
 	/**
-	 * @ignore
+	 * Execution function for getting the SearchPane options
+	 * @param field The field to retrieve data from
+	 * @param editor The editor instance
+	 * @param http The http sent to the server
+	 * @param fieldsIn All of the fields
+	 * @param leftJoinIn Info for a leftJoin if required
 	 */
-	public async exec(db: knex): Promise<IOption[]> {
-		let label = this._label;
-		let value = this._value;
+	public async exec(
+		field: Field, editor: Editor, http: any, fieldsIn: any, leftJoinIn: any
+	): Promise<IOption[]> {
+		let label;
+		let value;
+		let table;
 		let formatter = this._renderer;
+		let join = this._leftJoin;
+		let fields = fieldsIn;
+
+		// First get a value for `value`. This can be retrieved from either the
+		//  SearchPaneOptions or the fieldName if it has not been declared
+		if (this._value === undefined) {
+			let spopts = field.searchPaneOptions();
+			value = spopts.label() !== undefined ?
+				spopts.label()[0] :
+				value = field.name().split('.')[1];
+		}
+		// Otherwise we can just get it from the value that has been defined
+		else {
+			value = this._value.indexOf('.') === -1 ?
+				this._value :
+				this._value.split('.')[1];
+		}
+
+		// If label is undefined then just assume the same value as `value`
+		if (this._label === undefined) {
+			label = value;
+		}
+		// Otherwise work it out from what has been defined
+		else {
+			label = this._label[0].indexOf('.') === -1 ?
+				this._label :
+				this._label[0].split('.')[1];
+		}
+
+		// If the table has not been defined then get it from the editor instance
+		table = this._table === undefined ?
+			editor.table()[0] :
+			this._table;
+
+		if (leftJoinIn !== undefined && leftJoinIn !== null) {
+			join = leftJoinIn;
+		}
+
+		let db = editor.db();
 
 		// Create a list of the fields that we need to get from the db
-		let fields = [ value ].concat(label);
+		// let fields = [ value ].concat(label);
 
 		// We need a default formatter if one isn't provided
 		if (! formatter) {
@@ -251,14 +298,49 @@ export default class Options {
 			};
 		}
 
-		// Get the data
+		// This query will get the count's according to any selections made in the SearchPanes
+		let query = db
+			.select(label + ' as label', value + ' as value')
+			.count({count: '*'})
+			.from(table)
+			.distinct()
+			.groupBy('value');
+
+		// This block applies all of the where conditions across the fields
+		// Each field gets it's own where condition which must be satisfied
+		// Each where condition can have multiple orWhere()s so that the or
+		//  searching within the fields works.
+		if (http.searchPanes !== undefined) {
+			for (let fie of fields) {
+				if (http.searchPanes[fie.name()] !== undefined) {
+					query.where(function() {
+						for (let opt of http.searchPanes[fie.name()]) {
+							this.orWhere(fie.name(), opt);
+						}
+					});
+				}
+			}
+		}
+
+		// This query will get the total count for the field, assuming no filtering.
+		// This is necessary for viewTotal and cascadePanes functionality
 		let q = db
-			.select()
-			.from(this._table)
-			.distinct(fields);
+			.select(label + ' as label', value + ' as value')
+			.count({total: '*'})
+			.from(table)
+			.distinct()
+			.groupBy('value');
 
 		if (this._where) {
 			q.where(this._where);
+		}
+
+		// If a left join needs to be done for the above queries we can just do it in the same place
+		if (join !== null && join !== undefined) {
+			for (let joiner of join) {
+				q.leftJoin(joiner.table, joiner.field1, joiner.field2);
+				query.leftJoin(joiner.table, joiner.field1, joiner.field2);
+			}
 		}
 
 		if (this._order) {
@@ -266,13 +348,13 @@ export default class Options {
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
 			this._order.split(',').forEach((val) => {
-				let field = val.toLocaleLowerCase()
+				let fie = val.toLocaleLowerCase()
 					.replace(' asc', '')
 					.replace('desc', '')
 					.trim();
 
-				if (! fields.includes(field)) {
-					q.select(field);
+				if (! fields.includes(fie)) {
+					q.select(fie);
 				}
 			});
 
@@ -284,14 +366,35 @@ export default class Options {
 		}
 
 		let res = await q;
+		let cts = await query;
 		let out = [];
 
-		// Create the output array
-		for (let i = 0, ien = res.length ; i < ien ; i++) {
-			out.push({
-				label: formatter(res[i]),
-				value: res[i][ value ]
-			});
+		// Create the output array and add the values of count, label, total and value for each unique entry
+		for (let recordCou of res) {
+			let set = false;
+
+			for (let recordTot of cts) {
+				if (recordTot.value === recordCou.value) {
+					out.push({
+						count: recordTot.count,
+						label: recordCou.label,
+						total: recordCou.total,
+						value: recordCou.value
+					});
+					set = true;
+					break;
+				}
+			}
+
+			// If the values are not found then the count is 0 according to `query` so add it anyway but with that value
+			if (!set) {
+				out.push({
+					count: 0,
+					label: recordCou.label,
+					total: recordCou.total,
+					value: recordCou.value
+				});
+			}
 		}
 
 		// Stick on any extra manually added options
@@ -311,7 +414,26 @@ export default class Options {
 						0;
 			});
 		}
-
 		return out;
 	}
+
+	// private getWhere(query) {
+	// 	for (let i = 0; i < this._where.length; i++) {
+	// 		if (typeof(this.where[i]) === 'function') {
+	// 			this.where[i](query);
+	// 		}
+	// 		else {
+	// 			this.where(query);
+	// 		}
+	// 	}
+	// 	return this;
+	// }
+
+	// private performLeftJoin(query) {
+	// 	if (this._leftJoin.length > 0) {
+	// 		for (let point of this._leftJoin) {
+	// 			let join = point;
+	// 		}
+	// 	}
+	// }
 }

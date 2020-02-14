@@ -105,6 +105,8 @@ export interface IDtResponse {
     recordsTotal?: number;
     /** DataTables SSP - number of records after filtering. */
     recordsFiltered?: number;
+    /** DataTables SSP - SearchPanes Options */
+    searchPanes?: any;
     /** Editor - Upload complete file id. */
     upload?: {
         id: string;

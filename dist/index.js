@@ -17,5 +17,7 @@ var validators_1 = require("./validators");
 exports.Validate = validators_1.default;
 var promisify_1 = require("./promisify");
 exports.promisify = promisify_1.default;
+var searchPaneOptions_1 = require("./searchPaneOptions");
+exports.SearchPaneOptions = searchPaneOptions_1.default;
 
 //# sourceMappingURL=index.js.map

@@ -12,6 +12,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -770,6 +781,9 @@ var Editor = /** @class */ (function (_super) {
         var fields = this._fields;
         for (var i = 0, ien = fields.length; i < ien; i++) {
             var field = fields[i];
+            if (field === undefined) {
+                continue;
+            }
             if (type === 'name' && field.name() === name) {
                 return field;
             }
@@ -782,7 +796,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, ssp, result, out, i, ien, inner, j, jen, i, ien, opts, response, i, ien, _a;
+            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_1, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this._trigger('preGet', id)];
@@ -814,12 +828,28 @@ var Editor = /** @class */ (function (_super) {
                         }
                         this._getWhere(query);
                         this._performLeftJoin(query);
-                        return [4 /*yield*/, this._ssp(query, http)];
-                    case 2:
-                        ssp = _b.sent();
                         if (id !== null) {
                             query.where(this.pkeyToObject(id, true));
                         }
+                        // If searchPanes is in use then add the options selected there to the where condition
+                        if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
+                            keys = Object.keys(http.searchPanes);
+                            _loop_1 = function (key) {
+                                query.where(function () {
+                                    for (var _i = 0, _a = http.searchPanes[key]; _i < _a.length; _i++) {
+                                        var val = _a[_i];
+                                        this.orWhere(key, val);
+                                    }
+                                });
+                            };
+                            for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+                                key = keys_1[_i];
+                                _loop_1(key);
+                            }
+                        }
+                        return [4 /*yield*/, this._ssp(query, http)];
+                    case 2:
+                        ssp = _b.sent();
                         return [4 /*yield*/, query];
                     case 3:
                         result = _b.sent();
@@ -839,48 +869,57 @@ var Editor = /** @class */ (function (_super) {
                             }
                             out.push(inner);
                         }
-                        if (!(id === null)) return [3 /*break*/, 7];
+                        spOptions = {};
+                        if (!(id === null)) return [3 /*break*/, 8];
                         i = 0, ien = fields.length;
                         _b.label = 4;
                     case 4:
-                        if (!(i < ien)) return [3 /*break*/, 7];
+                        if (!(i < ien)) return [3 /*break*/, 8];
                         return [4 /*yield*/, fields[i].optionsExec(this.db())];
                     case 5:
                         opts = _b.sent();
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
-                        _b.label = 6;
+                        return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin)];
                     case 6:
+                        spopts = _b.sent();
+                        if (spopts) {
+                            spOptions[fields[i].name()] = spopts;
+                        }
+                        _b.label = 7;
+                    case 7:
                         i++;
                         return [3 /*break*/, 4];
-                    case 7:
+                    case 8:
+                        searchPanes = { options: spOptions };
                         response = {
                             data: out,
                             draw: ssp.draw,
                             files: {},
                             options: options,
                             recordsFiltered: ssp.recordsFiltered,
-                            recordsTotal: ssp.recordsTotal
+                            recordsTotal: ssp.recordsTotal,
+                            searchPanes: searchPanes
                         };
                         i = 0, ien = this._join.length;
-                        _b.label = 8;
-                    case 8:
-                        if (!(i < ien)) return [3 /*break*/, 11];
-                        return [4 /*yield*/, this._join[i].data(this, response)];
+                        _b.label = 9;
                     case 9:
-                        _b.sent();
-                        _b.label = 10;
+                        if (!(i < ien)) return [3 /*break*/, 12];
+                        return [4 /*yield*/, this._join[i].data(this, response)];
                     case 10:
-                        i++;
-                        return [3 /*break*/, 8];
+                        _b.sent();
+                        _b.label = 11;
                     case 11:
+                        i++;
+                        return [3 /*break*/, 9];
+                    case 12:
                         _a = response;
                         return [4 /*yield*/, this._fileData(null, null, response.data)];
-                    case 12:
+                    case 13:
                         _a.files = _b.sent();
                         return [4 /*yield*/, this._trigger('postGet', id, out)];
-                    case 13:
+                    case 14:
                         _b.sent();
                         return [2 /*return*/, response];
                 }
@@ -1095,7 +1134,7 @@ var Editor = /** @class */ (function (_super) {
                     case 7: return [4 /*yield*/, this
                             .db()
                             .table(table)
-                            .insert(Object.assign({}, set, where))];
+                            .insert(__assign({}, set, where))];
                     case 8:
                         _a.sent();
                         _a.label = 9;
@@ -1185,7 +1224,7 @@ var Editor = /** @class */ (function (_super) {
         }
     };
     Editor.prototype._performLeftJoin = function (query) {
-        var _loop_1 = function (i, ien) {
+        var _loop_2 = function (i, ien) {
             var join = this_1._leftJoin[i];
             query.leftJoin(join.table, function () {
                 this.on(join.field1, join.operator, join.field2);
@@ -1193,7 +1232,7 @@ var Editor = /** @class */ (function (_super) {
         };
         var this_1 = this;
         for (var i = 0, ien = this._leftJoin.length; i < ien; i++) {
-            _loop_1(i, ien);
+            _loop_2(i, ien);
         }
     };
     Editor.prototype._pkeySeparator = function () {
@@ -1275,6 +1314,7 @@ var Editor = /** @class */ (function (_super) {
                         this._out.options = outData.options;
                         this._out.recordsTotal = outData.recordsTotal;
                         this._out.recordsFiltered = outData.recordsFiltered;
+                        this._out.searchPanes = outData.searchPanes;
                         return [3 /*break*/, 28];
                     case 6:
                         if (!(action === Action.Upload)) return [3 /*break*/, 8];
@@ -1471,7 +1511,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_2, this_2, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_3, this_2, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1499,7 +1539,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
-                        _loop_2 = function (i, ien) {
+                        _loop_3 = function (i, ien) {
                             var cond = this_2.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
@@ -1507,7 +1547,7 @@ var Editor = /** @class */ (function (_super) {
                         };
                         this_2 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
-                            _loop_2(i, ien);
+                            _loop_3(i, ien);
                         }
                         return [4 /*yield*/, q.del()];
                     case 1:
@@ -1596,6 +1636,22 @@ var Editor = /** @class */ (function (_super) {
                     }
                 }
             });
+        }
+        if (http.searchPanes !== null && http.searchPanes !== undefined) {
+            var _loop_4 = function (field) {
+                if (http.searchPanes[field.name()] !== undefined) {
+                    query.where(function () {
+                        for (var _i = 0, _a = http.searchPanes[field.name()]; _i < _a.length; _i++) {
+                            var opt = _a[_i];
+                            this.orWhere(field.name(), opt);
+                        }
+                    });
+                }
+            };
+            for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
+                var field = fields_1[_i];
+                _loop_4(field);
+            }
         }
         // Column filter
         for (var i = 0, ien = http.columns.length; i < ien; i++) {
