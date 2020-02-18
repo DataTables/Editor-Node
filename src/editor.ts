@@ -949,6 +949,16 @@ export default class Editor extends NestedData {
 		return this;
 	}
 
+	/**
+	 * Clear out the `where` conditions already applied to this instance
+	 * @returns {Editor} Self for chaining.
+	 */
+	public whereClear(): this {
+		this._where = [];
+
+		return this;
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */

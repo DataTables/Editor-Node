@@ -621,6 +621,14 @@ var Editor = /** @class */ (function (_super) {
         (_a = this._where).push.apply(_a, cond);
         return this;
     };
+    /**
+     * Clear out the `where` conditions already applied to this instance
+     * @returns {Editor} Self for chaining.
+     */
+    Editor.prototype.whereClear = function () {
+        this._where = [];
+        return this;
+    };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Private methods
      */
