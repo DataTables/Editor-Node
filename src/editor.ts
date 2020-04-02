@@ -266,6 +266,7 @@ export default class Editor extends NestedData {
 	private _debugInfo: any[] = [];
 	private _leftJoinRemove: boolean = false;
 	private _schema: string = null;
+	private _write: boolean = true;
 
 	/**
 	 * Creates an instance of Editor.
@@ -949,6 +950,23 @@ export default class Editor extends NestedData {
 		return this;
 	}
 
+	/**
+	 * Getter/Setter for this._write which is used to decide which actions to allow
+	 * @param writeVal Value for this._write
+	 */
+	public write(writeVal){
+		if(writeVal == undefined){
+			return this._write;
+		}
+		else if(typeof(writeVal) === "boolean") {
+			this._write = writeVal;
+			return this;
+		}
+		else {
+			return this;
+		}
+	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
@@ -1580,14 +1598,14 @@ export default class Editor extends NestedData {
 				this._out.recordsFiltered = outData.recordsFiltered;
 				this._out.searchPanes = outData.searchPanes;
 			}
-			else if (action === Action.Upload) {
+			else if (action === Action.Upload && this._write) {
 				await this._upload(data);
 			}
-			else if (action === Action.Delete) {
+			else if (action === Action.Delete && this._write) {
 				await this._remove(data);
 				await this._fileClean();
 			}
-			else if (action === Action.Create || action === Action.Edit) {
+			else if ((action === Action.Create || action === Action.Edit) && this._write) {
 				// create or edit
 				let keys = Object.keys(data.data);
 
