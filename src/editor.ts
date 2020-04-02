@@ -964,7 +964,7 @@ export default class Editor extends NestedData {
 	* Getter/Setter for this._write which is used to decide which actions to allow
 	* @param writeVal Value for this._write
 	*/
-   public write(writeVal){
+    public write(writeVal){
 	   if(writeVal == undefined){
 		   return this._write;
 	   }
@@ -975,7 +975,7 @@ export default class Editor extends NestedData {
 	   else {
 		   return this;
 	   }
-
+	}
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
