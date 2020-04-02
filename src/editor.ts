@@ -951,21 +951,30 @@ export default class Editor extends NestedData {
 	}
 
 	/**
-	 * Getter/Setter for this._write which is used to decide which actions to allow
-	 * @param writeVal Value for this._write
+	 * Clear out the `where` conditions already applied to this instance
+	 * @returns {Editor} Self for chaining.
 	 */
-	public write(writeVal){
-		if(writeVal == undefined){
-			return this._write;
-		}
-		else if(typeof(writeVal) === "boolean") {
-			this._write = writeVal;
-			return this;
-		}
-		else {
-			return this;
-		}
+	public whereClear(): this {
+		this._where = [];
+
+		return this;
 	}
+
+	/**
+	* Getter/Setter for this._write which is used to decide which actions to allow
+	* @param writeVal Value for this._write
+	*/
+   public write(writeVal){
+	   if(writeVal == undefined){
+		   return this._write;
+	   }
+	   else if(typeof(writeVal) === "boolean") {
+		   this._write = writeVal;
+		   return this;
+	   }
+	   else {
+		   return this;
+	   }
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods

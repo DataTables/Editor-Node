@@ -506,6 +506,11 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining.
      */
     where(...cond: any[]): Editor;
+    /**
+     * Clear out the `where` conditions already applied to this instance
+     * @returns {Editor} Self for chaining.
+     */
+    whereClear(): this;
     private _fileClean;
     private _fileData;
     private _fileDataFields;
