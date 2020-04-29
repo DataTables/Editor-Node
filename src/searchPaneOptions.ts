@@ -31,11 +31,9 @@ export default class SearchPaneOptions {
 	private _value: string;
 	private _label: string[];
 	private _leftJoin: Array<{[keys: string]: string}> = [];
-	private _limit: number;
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
-	private _manualOpts: IOption[] = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
@@ -63,28 +61,6 @@ export default class SearchPaneOptions {
 			label :
 			[label];
 
-		return this;
-	}
-
-	/**
-	 * Get the currently applied LIMIT
-	 *
-	 * @returns {number} Limit
-	 */
-	public limit(): number;
-	/**
-	 * Set the LIMIT clause to limit the number of records returned
-	 *
-	 * @param {number} limit Limit
-	 * @returns {Options} Self for chaining
-	 */
-	public limit(limit: number): SearchPaneOptions;
-	public limit(limit?: number): any {
-		if (limit === undefined) {
-			return this._limit;
-		}
-
-		this._limit = limit;
 		return this;
 	}
 
@@ -361,10 +337,6 @@ export default class SearchPaneOptions {
 			q.orderBy(this._order);
 		}
 
-		if (this._limit) {
-			q.limit(this.limit());
-		}
-
 		let res = await q;
 		let cts = await query;
 		let out = [];
@@ -397,11 +369,6 @@ export default class SearchPaneOptions {
 			}
 		}
 
-		// Stick on any extra manually added options
-		if (this._manualOpts.length) {
-			out = out.concat(this._manualOpts);
-		}
-
 		// Only sort if there was no SQL order field
 		if (! this._order) {
 			out.sort(function(a, b) {
@@ -416,24 +383,4 @@ export default class SearchPaneOptions {
 		}
 		return out;
 	}
-
-	// private getWhere(query) {
-	// 	for (let i = 0; i < this._where.length; i++) {
-	// 		if (typeof(this.where[i]) === 'function') {
-	// 			this.where[i](query);
-	// 		}
-	// 		else {
-	// 			this.where(query);
-	// 		}
-	// 	}
-	// 	return this;
-	// }
-
-	// private performLeftJoin(query) {
-	// 	if (this._leftJoin.length > 0) {
-	// 		for (let point of this._leftJoin) {
-	// 			let join = point;
-	// 		}
-	// 	}
-	// }
 }
