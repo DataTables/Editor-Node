@@ -521,11 +521,14 @@ export default class Field extends NestedData {
 	 * @hidden
 	 */
 	public async searchPaneOptionsExec(
-		field: Field, editor: Editor, http, fields: Field[], leftJoin
+		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: knex
 	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {
 			let retVal = await this._spopts.exec(field, editor, http, fields, leftJoin);
 			return retVal;
+		}
+		else if (this._spopts) {
+			return (this._spopts as any)(db, editor);
 		}
 		return false;
 	}
