@@ -1191,7 +1191,7 @@ export default class Editor extends NestedData {
 					options[ fields[i].name() ] = opts;
 				}
 
-				let spopts = await fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin);
+				let spopts = await fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
 
 				if (spopts) {
 					spOptions[fields[i].name()] = spopts;
