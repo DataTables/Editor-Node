@@ -137,6 +137,7 @@ var Editor = /** @class */ (function (_super) {
         _this._debugInfo = [];
         _this._leftJoinRemove = false;
         _this._schema = null;
+        _this._write = true;
         if (db) {
             _this.db(db);
         }
@@ -629,6 +630,22 @@ var Editor = /** @class */ (function (_super) {
         this._where = [];
         return this;
     };
+    /**
+    * Getter/Setter for this._write which is used to decide which actions to allow
+    * @param writeVal Value for this._write
+    */
+    Editor.prototype.write = function (writeVal) {
+        if (writeVal == undefined) {
+            return this._write;
+        }
+        else if (typeof (writeVal) === "boolean") {
+            this._write = writeVal;
+            return this;
+        }
+        else {
+            return this;
+        }
+    };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Private methods
      */
@@ -889,7 +906,7 @@ var Editor = /** @class */ (function (_super) {
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
-                        return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin)];
+                        return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
                     case 6:
                         spopts = _b.sent();
                         if (spopts) {
@@ -951,8 +968,11 @@ var Editor = /** @class */ (function (_super) {
                         // to return the newly inserted row, so we can't know any newly
                         // generated values.
                         this._pkeyValidateInsert(values);
-                        return [4 /*yield*/, this._insertOrUpdate(null, values)];
+                        return [4 /*yield*/, this._trigger('validatedCreate', values)];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this._insertOrUpdate(null, values)];
+                    case 2:
                         id = _a.sent();
                         if (id === null) {
                             return [2 /*return*/, null];
@@ -963,27 +983,27 @@ var Editor = /** @class */ (function (_super) {
                             this.pkeyToValue(values) :
                             this._pkeySubmitMerge(id, values);
                         i = 0, ien = this._join.length;
-                        _a.label = 2;
-                    case 2:
-                        if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._join[i].create(this, id, values)];
+                        _a.label = 3;
                     case 3:
-                        _a.sent();
-                        _a.label = 4;
+                        if (!(i < ien)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._join[i].create(this, id, values)];
                     case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
                         i++;
-                        return [3 /*break*/, 2];
-                    case 5: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
-                    case 6:
+                        return [3 /*break*/, 3];
+                    case 6: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
+                    case 7:
                         _a.sent();
                         return [4 /*yield*/, this._get(id)];
-                    case 7:
+                    case 8:
                         row = _a.sent();
                         row = row.data.length > 0 ?
                             row.data[0] :
                             null;
                         return [4 /*yield*/, this._trigger('postCreate', id, values, row)];
-                    case 8:
+                    case 9:
                         _a.sent();
                         return [2 /*return*/, row];
                 }
@@ -1325,13 +1345,13 @@ var Editor = /** @class */ (function (_super) {
                         this._out.searchPanes = outData.searchPanes;
                         return [3 /*break*/, 28];
                     case 6:
-                        if (!(action === Action.Upload)) return [3 /*break*/, 8];
+                        if (!(action === Action.Upload && this._write)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this._upload(data)];
                     case 7:
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 8:
-                        if (!(action === Action.Delete)) return [3 /*break*/, 11];
+                        if (!(action === Action.Delete && this._write)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._remove(data)];
                     case 9:
                         _c.sent();
@@ -1340,7 +1360,7 @@ var Editor = /** @class */ (function (_super) {
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 11:
-                        if (!(action === Action.Create || action === Action.Edit)) return [3 /*break*/, 28];
+                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 28];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _c.label = 12;
@@ -1731,37 +1751,40 @@ var Editor = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         id = id.replace(this.idPrefix(), '');
+                        return [4 /*yield*/, this._trigger('validatedEdit', id, values)];
+                    case 1:
+                        _a.sent();
                         // Update or insert the rows for the parent table and the left joined
                         // tables
                         return [4 /*yield*/, this._insertOrUpdate(id, values)];
-                    case 1:
+                    case 2:
                         // Update or insert the rows for the parent table and the left joined
                         // tables
                         _a.sent();
                         i = 0, ien = this._join.length;
-                        _a.label = 2;
-                    case 2:
-                        if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._join[i].update(this, id, values)];
+                        _a.label = 3;
                     case 3:
-                        _a.sent();
-                        _a.label = 4;
+                        if (!(i < ien)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._join[i].update(this, id, values)];
                     case 4:
-                        i++;
-                        return [3 /*break*/, 2];
+                        _a.sent();
+                        _a.label = 5;
                     case 5:
+                        i++;
+                        return [3 /*break*/, 3];
+                    case 6:
                         getId = this._pkeySubmitMerge(id, values);
                         return [4 /*yield*/, this._trigger('writeEdit', id, values)];
-                    case 6:
+                    case 7:
                         _a.sent();
                         return [4 /*yield*/, this._get(getId)];
-                    case 7:
+                    case 8:
                         row = _a.sent();
                         row = row.data.length > 0 ?
                             row.data[0] :
                             null;
                         return [4 /*yield*/, this._trigger('postEdit', id, values, row)];
-                    case 8:
+                    case 9:
                         _a.sent();
                         return [2 /*return*/, row];
                 }

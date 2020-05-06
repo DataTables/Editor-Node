@@ -24,11 +24,9 @@ export default class SearchPaneOptions {
     private _value;
     private _label;
     private _leftJoin;
-    private _limit;
     private _renderer;
     private _where;
     private _order;
-    private _manualOpts;
     /**
      * Get the column(s) to be used for the label
      *
@@ -42,19 +40,6 @@ export default class SearchPaneOptions {
      * @returns {Options} Self for chaining
      */
     label(label: string[]): SearchPaneOptions;
-    /**
-     * Get the currently applied LIMIT
-     *
-     * @returns {number} Limit
-     */
-    limit(): number;
-    /**
-     * Set the LIMIT clause to limit the number of records returned
-     *
-     * @param {number} limit Limit
-     * @returns {Options} Self for chaining
-     */
-    limit(limit: number): SearchPaneOptions;
     /**
      * Get the ORDER BY clause for the SQL.
      *

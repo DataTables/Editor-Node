@@ -53,25 +53,6 @@ function isNumeric(n) {
 var SearchPaneOptions = /** @class */ (function () {
     function SearchPaneOptions() {
         this._leftJoin = [];
-        this._manualOpts = [];
-        // private getWhere(query) {
-        // 	for (let i = 0; i < this._where.length; i++) {
-        // 		if (typeof(this.where[i]) === 'function') {
-        // 			this.where[i](query);
-        // 		}
-        // 		else {
-        // 			this.where(query);
-        // 		}
-        // 	}
-        // 	return this;
-        // }
-        // private performLeftJoin(query) {
-        // 	if (this._leftJoin.length > 0) {
-        // 		for (let point of this._leftJoin) {
-        // 			let join = point;
-        // 		}
-        // 	}
-        // }
     }
     SearchPaneOptions.prototype.label = function (label) {
         if (label === undefined) {
@@ -80,13 +61,6 @@ var SearchPaneOptions = /** @class */ (function () {
         this._label = Array.isArray(label) ?
             label :
             [label];
-        return this;
-    };
-    SearchPaneOptions.prototype.limit = function (limit) {
-        if (limit === undefined) {
-            return this._limit;
-        }
-        this._limit = limit;
         return this;
     };
     SearchPaneOptions.prototype.order = function (order) {
@@ -264,9 +238,6 @@ var SearchPaneOptions = /** @class */ (function () {
                             });
                             q.orderBy(this._order);
                         }
-                        if (this._limit) {
-                            q.limit(this.limit());
-                        }
                         return [4 /*yield*/, q];
                     case 1:
                         res = _d.sent();
@@ -300,10 +271,6 @@ var SearchPaneOptions = /** @class */ (function () {
                                     value: recordCou.value
                                 });
                             }
-                        }
-                        // Stick on any extra manually added options
-                        if (this._manualOpts.length) {
-                            out = out.concat(this._manualOpts);
                         }
                         // Only sort if there was no SQL order field
                         if (!this._order) {

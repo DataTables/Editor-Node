@@ -1238,6 +1238,8 @@ export default class Editor extends NestedData {
 		// generated values.
 		this._pkeyValidateInsert(values);
 
+		await this._trigger('validatedCreate', values);
+
 		// Insert the new row
 		let id = await this._insertOrUpdate(null, values);
 
@@ -1950,6 +1952,8 @@ export default class Editor extends NestedData {
 
 	private async _update(id: string, values: object): Promise<object> {
 		id = id.replace(this.idPrefix(), '');
+
+		await this._trigger('validatedEdit', id, values);
 
 		// Update or insert the rows for the parent table and the left joined
 		// tables
