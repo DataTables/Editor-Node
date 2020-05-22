@@ -280,7 +280,7 @@ var Field = /** @class */ (function (_super) {
     /**
      * @hidden
      */
-    Field.prototype.searchPaneOptionsExec = function (field, editor, http, fields, leftJoin) {
+    Field.prototype.searchPaneOptionsExec = function (field, editor, http, fields, leftJoin, db) {
         return __awaiter(this, void 0, void 0, function () {
             var retVal;
             return __generator(this, function (_a) {
@@ -291,7 +291,12 @@ var Field = /** @class */ (function (_super) {
                     case 1:
                         retVal = _a.sent();
                         return [2 /*return*/, retVal];
-                    case 2: return [2 /*return*/, false];
+                    case 2:
+                        if (this._spopts) {
+                            return [2 /*return*/, this._spopts(db, editor)];
+                        }
+                        _a.label = 3;
+                    case 3: return [2 /*return*/, false];
                 }
             });
         });

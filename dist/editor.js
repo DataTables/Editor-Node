@@ -137,6 +137,7 @@ var Editor = /** @class */ (function (_super) {
         _this._debugInfo = [];
         _this._leftJoinRemove = false;
         _this._schema = null;
+        _this._write = true;
         if (db) {
             _this.db(db);
         }
@@ -629,6 +630,22 @@ var Editor = /** @class */ (function (_super) {
         this._where = [];
         return this;
     };
+    /**
+    * Getter/Setter for this._write which is used to decide which actions to allow
+    * @param writeVal Value for this._write
+    */
+    Editor.prototype.write = function (writeVal) {
+        if (writeVal == undefined) {
+            return this._write;
+        }
+        else if (typeof (writeVal) === "boolean") {
+            this._write = writeVal;
+            return this;
+        }
+        else {
+            return this;
+        }
+    };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Private methods
      */
@@ -889,7 +906,7 @@ var Editor = /** @class */ (function (_super) {
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
-                        return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin)];
+                        return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
                     case 6:
                         spopts = _b.sent();
                         if (spopts) {
@@ -1325,13 +1342,13 @@ var Editor = /** @class */ (function (_super) {
                         this._out.searchPanes = outData.searchPanes;
                         return [3 /*break*/, 28];
                     case 6:
-                        if (!(action === Action.Upload)) return [3 /*break*/, 8];
+                        if (!(action === Action.Upload && this._write)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this._upload(data)];
                     case 7:
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 8:
-                        if (!(action === Action.Delete)) return [3 /*break*/, 11];
+                        if (!(action === Action.Delete && this._write)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._remove(data)];
                     case 9:
                         _c.sent();
@@ -1340,7 +1357,7 @@ var Editor = /** @class */ (function (_super) {
                         _c.sent();
                         return [3 /*break*/, 28];
                     case 11:
-                        if (!(action === Action.Create || action === Action.Edit)) return [3 /*break*/, 28];
+                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 28];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _c.label = 12;

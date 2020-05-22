@@ -307,7 +307,7 @@ export default class Field extends NestedData {
     /**
      * @hidden
      */
-    searchPaneOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any): Promise<false | IOption[]>;
+    searchPaneOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any, db: knex): Promise<false | IOption[]>;
     /**
      * @hidden
      */

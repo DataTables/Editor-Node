@@ -179,6 +179,7 @@ export default class Editor extends NestedData {
     private _debugInfo;
     private _leftJoinRemove;
     private _schema;
+    private _write;
     /**
      * Creates an instance of Editor.
      * @param {knex} [db=null] Database connection object
@@ -511,6 +512,11 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining.
      */
     whereClear(): this;
+    /**
+    * Getter/Setter for this._write which is used to decide which actions to allow
+    * @param writeVal Value for this._write
+    */
+    write(writeVal: any): boolean | this;
     private _fileClean;
     private _fileData;
     private _fileDataFields;
