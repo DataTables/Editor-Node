@@ -11,7 +11,7 @@ export interface IOption {
 	value: string | number;
 }
 
-export type IRenderer = (row: object) => string;
+export type IRenderer = (str: string) => string;
 export type CustomOptions = (db: knex) => Promise<IOption[]>;
 
 /**
@@ -263,14 +263,8 @@ export default class SearchPaneOptions {
 
 		// We need a default formatter if one isn't provided
 		if (! formatter) {
-			formatter = function(row) {
-				let a = [];
-
-				for (let i = 0, ien = label.length ; i < ien ; i++) {
-					a.push(row[ label[i] ]);
-				}
-
-				return a.join(' ');
+			formatter = function(str) {
+				return str;
 			};
 		}
 
@@ -349,7 +343,7 @@ export default class SearchPaneOptions {
 				if (recordTot.value === recordCou.value) {
 					out.push({
 						count: recordTot.count,
-						label: recordCou.label,
+						label: formatter(recordCou.label),
 						total: recordCou.total,
 						value: recordCou.value
 					});
@@ -362,7 +356,7 @@ export default class SearchPaneOptions {
 			if (!set) {
 				out.push({
 					count: 0,
-					label: recordCou.label,
+					label: formatter(recordCou.label),
 					total: recordCou.total,
 					value: recordCou.value
 				});
