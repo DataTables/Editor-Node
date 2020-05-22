@@ -968,8 +968,11 @@ var Editor = /** @class */ (function (_super) {
                         // to return the newly inserted row, so we can't know any newly
                         // generated values.
                         this._pkeyValidateInsert(values);
-                        return [4 /*yield*/, this._insertOrUpdate(null, values)];
+                        return [4 /*yield*/, this._trigger('validatedCreate', values)];
                     case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this._insertOrUpdate(null, values)];
+                    case 2:
                         id = _a.sent();
                         if (id === null) {
                             return [2 /*return*/, null];
@@ -980,27 +983,27 @@ var Editor = /** @class */ (function (_super) {
                             this.pkeyToValue(values) :
                             this._pkeySubmitMerge(id, values);
                         i = 0, ien = this._join.length;
-                        _a.label = 2;
-                    case 2:
-                        if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._join[i].create(this, id, values)];
+                        _a.label = 3;
                     case 3:
-                        _a.sent();
-                        _a.label = 4;
+                        if (!(i < ien)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._join[i].create(this, id, values)];
                     case 4:
+                        _a.sent();
+                        _a.label = 5;
+                    case 5:
                         i++;
-                        return [3 /*break*/, 2];
-                    case 5: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
-                    case 6:
+                        return [3 /*break*/, 3];
+                    case 6: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
+                    case 7:
                         _a.sent();
                         return [4 /*yield*/, this._get(id)];
-                    case 7:
+                    case 8:
                         row = _a.sent();
                         row = row.data.length > 0 ?
                             row.data[0] :
                             null;
                         return [4 /*yield*/, this._trigger('postCreate', id, values, row)];
-                    case 8:
+                    case 9:
                         _a.sent();
                         return [2 /*return*/, row];
                 }
@@ -1748,37 +1751,40 @@ var Editor = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         id = id.replace(this.idPrefix(), '');
+                        return [4 /*yield*/, this._trigger('validatedEdit', id, values)];
+                    case 1:
+                        _a.sent();
                         // Update or insert the rows for the parent table and the left joined
                         // tables
                         return [4 /*yield*/, this._insertOrUpdate(id, values)];
-                    case 1:
+                    case 2:
                         // Update or insert the rows for the parent table and the left joined
                         // tables
                         _a.sent();
                         i = 0, ien = this._join.length;
-                        _a.label = 2;
-                    case 2:
-                        if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._join[i].update(this, id, values)];
+                        _a.label = 3;
                     case 3:
-                        _a.sent();
-                        _a.label = 4;
+                        if (!(i < ien)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this._join[i].update(this, id, values)];
                     case 4:
-                        i++;
-                        return [3 /*break*/, 2];
+                        _a.sent();
+                        _a.label = 5;
                     case 5:
+                        i++;
+                        return [3 /*break*/, 3];
+                    case 6:
                         getId = this._pkeySubmitMerge(id, values);
                         return [4 /*yield*/, this._trigger('writeEdit', id, values)];
-                    case 6:
+                    case 7:
                         _a.sent();
                         return [4 /*yield*/, this._get(getId)];
-                    case 7:
+                    case 8:
                         row = _a.sent();
                         row = row.data.length > 0 ?
                             row.data[0] :
                             null;
                         return [4 /*yield*/, this._trigger('postEdit', id, values, row)];
-                    case 8:
+                    case 9:
                         _a.sent();
                         return [2 /*return*/, row];
                 }
