@@ -1110,7 +1110,7 @@ export default class Editor extends NestedData {
 		return null;
 	}
 
-	private async _get(id: string, http = null): Promise<IDtResponse> {
+	private async _get(id: string | string[], http = null): Promise<IDtResponse> {
 		let cancel = await this._trigger('preGet', id);
 		if (cancel === false) {
 			return {};
@@ -1147,7 +1147,17 @@ export default class Editor extends NestedData {
 		this._performLeftJoin(query);
 
 		if (id !== null) {
-			query.where(this.pkeyToObject(id, true));
+			// Allow multiple specific rows to be requested at a time
+			if (Array.isArray(id)) {
+				query.where(q => {
+					for (let ident of id) {
+						q.orWhere(this.pkeyToObject(ident, true));
+					}
+				});
+			}
+			else {
+				query.where(this.pkeyToObject(id, true));
+			}
 		}
 
 		// If searchPanes is in use then add the options selected there to the where condition
@@ -1174,7 +1184,7 @@ export default class Editor extends NestedData {
 		let out = [];
 		for (let i = 0, ien = result.length; i < ien; i++) {
 			let inner = {
-				DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true)
+				DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true),
 			};
 
 			for (let j = 0, jen = fields.length; j < jen; j++) {
@@ -1236,7 +1246,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _insert(values: object): Promise<object> {
+	private async _insert(values: object): Promise<string> {
 		// Only allow a composite insert if the values for the key are
 		// submitted. This is required because there is no reliable way in MySQL
 		// to return the newly inserted row, so we can't know any newly
@@ -1265,14 +1275,7 @@ export default class Editor extends NestedData {
 
 		await this._trigger('writeCreate', id, values);
 
-		let row = await this._get(id);
-		row = row.data.length > 0 ?
-			row.data[0] :
-			null;
-
-		await this._trigger('postCreate', id, values, row);
-
-		return row;
+		return id;
 	}
 
 	private async _insertOrUpdate(id: string, values: object): Promise<string> {
@@ -1652,20 +1655,58 @@ export default class Editor extends NestedData {
 
 				// Field validation
 				let valid = await this.validate(this._out.fieldErrors, data);
-
+				let pkeys = [];
+				let eventName = action === Action.Create ?
+					'Create' :
+					'Edit';
+			
 				if (valid) {
 					keys = Object.keys(data.data);
 
-					for (let i = 0, ien = keys.length; i < ien; i++) {
-						let d = action === Action.Create ?
-							await this._insert(data.data[keys[i]]) :
-							await this._update(keys[i], data.data[keys[i]]);
+					// Perform db insert / update
+					for (let key of keys) {
+						let pkey = action === Action.Create ?
+							await this._insert(data.data[key]) :
+							await this._update(key, data.data[key]);
 
-						if (d !== null) {
-							this._out.data.push(d);
-						}
+						pkeys.push({
+							dataKey: this.idPrefix() + pkey,
+							pkey,
+							submitKey: key, // could be array index (create)
+						});
 					}
 
+					// Get the data that was updated in a single query
+					let returnData = await this._get(pkeys.map(k => k.pkey));
+					this._out.data = returnData.data;
+
+					// post events
+					for (let key of pkeys) {
+						await this._trigger(
+							`post${eventName}`,
+							key.pkey,
+							data.data[key.submitKey],
+							returnData.data.find(row => row['DT_RowId'] === key.dataKey)
+						);
+					}
+
+					// Remap the submitted data from the submitted key to the row id
+					// This isn't just row id without the prefix, since the create is
+					// array indexed
+					let submitedData = {};
+					Object.keys(data.data).forEach(key => {
+						let k = pkeys.find(p => p.submitKey === key);
+						submitedData[k.pkey] = data.data[key];
+					});
+
+					await this._trigger(
+						`post${eventName}All`,
+						pkeys.map(k => k.pkey),
+						submitedData,
+						returnData.data
+					);
+
+					// File tidy up
 					await this._fileClean();
 				}
 			}
@@ -1955,7 +1996,7 @@ export default class Editor extends NestedData {
 		return out;
 	}
 
-	private async _update(id: string, values: object): Promise<object> {
+	private async _update(id: string, values: object): Promise<string> {
 		id = id.replace(this.idPrefix(), '');
 
 		await this._trigger('validatedEdit', id, values);
@@ -1975,14 +2016,7 @@ export default class Editor extends NestedData {
 
 		await this._trigger('writeEdit', id, values);
 
-		let row = await this._get(getId);
-		row = row.data.length > 0 ?
-			row.data[0] :
-			null;
-
-		await this._trigger('postEdit', id, values, row);
-
-		return row;
+		return getId;
 	}
 
 	private async _upload(http: IDtRequest): Promise<void> {

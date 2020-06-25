@@ -826,6 +826,7 @@ var Editor = /** @class */ (function (_super) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
             var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_1, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
+            var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0: return [4 /*yield*/, this._trigger('preGet', id)];
@@ -858,7 +859,18 @@ var Editor = /** @class */ (function (_super) {
                         this._getWhere(query);
                         this._performLeftJoin(query);
                         if (id !== null) {
-                            query.where(this.pkeyToObject(id, true));
+                            // Allow multiple specific rows to be requested at a time
+                            if (Array.isArray(id)) {
+                                query.where(function (q) {
+                                    for (var _i = 0, id_1 = id; _i < id_1.length; _i++) {
+                                        var ident = id_1[_i];
+                                        q.orWhere(_this.pkeyToObject(ident, true));
+                                    }
+                                });
+                            }
+                            else {
+                                query.where(this.pkeyToObject(id, true));
+                            }
                         }
                         // If searchPanes is in use then add the options selected there to the where condition
                         if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
@@ -889,7 +901,7 @@ var Editor = /** @class */ (function (_super) {
                         out = [];
                         for (i = 0, ien = result.length; i < ien; i++) {
                             inner = {
-                                DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true)
+                                DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true),
                             };
                             for (j = 0, jen = fields.length; j < jen; j++) {
                                 if (fields[j].apply('get') && fields[j].http()) {
@@ -963,7 +975,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._insert = function (values) {
         return __awaiter(this, void 0, void 0, function () {
-            var id, i, ien, row;
+            var id, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1000,16 +1012,7 @@ var Editor = /** @class */ (function (_super) {
                     case 6: return [4 /*yield*/, this._trigger('writeCreate', id, values)];
                     case 7:
                         _a.sent();
-                        return [4 /*yield*/, this._get(id)];
-                    case 8:
-                        row = _a.sent();
-                        row = row.data.length > 0 ?
-                            row.data[0] :
-                            null;
-                        return [4 /*yield*/, this._trigger('postCreate', id, values, row)];
-                    case 9:
-                        _a.sent();
-                        return [2 /*return*/, row];
+                        return [2 /*return*/, id];
                 }
             });
         });
@@ -1301,9 +1304,9 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, i, ien, d, _b;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _b, keys_2, key, pkey, _c, returnData, _loop_3, this_2, _d, pkeys_1, key, submitedData_1;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         this._out = {
                             cancelled: [],
@@ -1315,18 +1318,18 @@ var Editor = /** @class */ (function (_super) {
                         this._formData = data.data ? data.data : null;
                         this._prepJoin();
                         _i = 0, _a = this._validators;
-                        _c.label = 1;
+                        _e.label = 1;
                     case 1:
                         if (!(_i < _a.length)) return [3 /*break*/, 4];
                         validator = _a[_i];
                         return [4 /*yield*/, validator(this, data.action, data)];
                     case 2:
-                        ret = _c.sent();
+                        ret = _e.sent();
                         if (typeof ret === 'string') {
                             this._out.error = ret;
                             return [3 /*break*/, 4];
                         }
-                        _c.label = 3;
+                        _e.label = 3;
                     case 3:
                         _i++;
                         return [3 /*break*/, 1];
@@ -1335,11 +1338,11 @@ var Editor = /** @class */ (function (_super) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
                         action = Editor.action(data);
-                        if (!!this._out.error) return [3 /*break*/, 28];
+                        if (!!this._out.error) return [3 /*break*/, 34];
                         if (!(action === Action.Read)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this._get(null, data)];
                     case 5:
-                        outData = _c.sent();
+                        outData = _e.sent();
                         this._out.data = outData.data;
                         this._out.draw = outData.draw;
                         this._out.files = outData.files;
@@ -1347,27 +1350,27 @@ var Editor = /** @class */ (function (_super) {
                         this._out.recordsTotal = outData.recordsTotal;
                         this._out.recordsFiltered = outData.recordsFiltered;
                         this._out.searchPanes = outData.searchPanes;
-                        return [3 /*break*/, 28];
+                        return [3 /*break*/, 34];
                     case 6:
                         if (!(action === Action.Upload && this._write)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this._upload(data)];
                     case 7:
-                        _c.sent();
-                        return [3 /*break*/, 28];
+                        _e.sent();
+                        return [3 /*break*/, 34];
                     case 8:
                         if (!(action === Action.Delete && this._write)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._remove(data)];
                     case 9:
-                        _c.sent();
+                        _e.sent();
                         return [4 /*yield*/, this._fileClean()];
                     case 10:
-                        _c.sent();
-                        return [3 /*break*/, 28];
+                        _e.sent();
+                        return [3 /*break*/, 34];
                     case 11:
-                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 28];
+                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 34];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
-                        _c.label = 12;
+                        _e.label = 12;
                     case 12:
                         if (!(i < ien)) return [3 /*break*/, 18];
                         cancel = null;
@@ -1376,14 +1379,14 @@ var Editor = /** @class */ (function (_super) {
                         if (!(action === Action.Create)) return [3 /*break*/, 14];
                         return [4 /*yield*/, this._trigger('preCreate', values)];
                     case 13:
-                        cancel = _c.sent();
+                        cancel = _e.sent();
                         return [3 /*break*/, 16];
                     case 14:
                         id = idSrc.replace(this.idPrefix(), '');
                         return [4 /*yield*/, this._trigger('preEdit', id, values)];
                     case 15:
-                        cancel = _c.sent();
-                        _c.label = 16;
+                        cancel = _e.sent();
+                        _e.label = 16;
                     case 16:
                         // One of the event handlers returned false - don't continue
                         if (cancel === false) {
@@ -1392,42 +1395,87 @@ var Editor = /** @class */ (function (_super) {
                             // Tell the client-side we aren't updating this row
                             this._out.cancelled.push(idSrc);
                         }
-                        _c.label = 17;
+                        _e.label = 17;
                     case 17:
                         i++;
                         return [3 /*break*/, 12];
                     case 18: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
                     case 19:
-                        valid = _c.sent();
-                        if (!valid) return [3 /*break*/, 28];
+                        valid = _e.sent();
+                        pkeys_2 = [];
+                        eventName = action === Action.Create ?
+                            'Create' :
+                            'Edit';
+                        if (!valid) return [3 /*break*/, 34];
                         keys = Object.keys(data.data);
-                        i = 0, ien = keys.length;
-                        _c.label = 20;
+                        _b = 0, keys_2 = keys;
+                        _e.label = 20;
                     case 20:
-                        if (!(i < ien)) return [3 /*break*/, 26];
+                        if (!(_b < keys_2.length)) return [3 /*break*/, 26];
+                        key = keys_2[_b];
                         if (!(action === Action.Create)) return [3 /*break*/, 22];
-                        return [4 /*yield*/, this._insert(data.data[keys[i]])];
+                        return [4 /*yield*/, this._insert(data.data[key])];
                     case 21:
-                        _b = _c.sent();
+                        _c = _e.sent();
                         return [3 /*break*/, 24];
-                    case 22: return [4 /*yield*/, this._update(keys[i], data.data[keys[i]])];
+                    case 22: return [4 /*yield*/, this._update(key, data.data[key])];
                     case 23:
-                        _b = _c.sent();
-                        _c.label = 24;
+                        _c = _e.sent();
+                        _e.label = 24;
                     case 24:
-                        d = _b;
-                        if (d !== null) {
-                            this._out.data.push(d);
-                        }
-                        _c.label = 25;
+                        pkey = _c;
+                        pkeys_2.push({
+                            dataKey: this.idPrefix() + pkey,
+                            pkey: pkey,
+                            submitKey: key,
+                        });
+                        _e.label = 25;
                     case 25:
-                        i++;
+                        _b++;
                         return [3 /*break*/, 20];
-                    case 26: return [4 /*yield*/, this._fileClean()];
+                    case 26: return [4 /*yield*/, this._get(pkeys_2.map(function (k) { return k.pkey; }))];
                     case 27:
-                        _c.sent();
-                        _c.label = 28;
+                        returnData = _e.sent();
+                        this._out.data = returnData.data;
+                        _loop_3 = function (key) {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, this_2._trigger("post" + eventName, key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/];
+                                }
+                            });
+                        };
+                        this_2 = this;
+                        _d = 0, pkeys_1 = pkeys_2;
+                        _e.label = 28;
                     case 28:
+                        if (!(_d < pkeys_1.length)) return [3 /*break*/, 31];
+                        key = pkeys_1[_d];
+                        return [5 /*yield**/, _loop_3(key)];
+                    case 29:
+                        _e.sent();
+                        _e.label = 30;
+                    case 30:
+                        _d++;
+                        return [3 /*break*/, 28];
+                    case 31:
+                        submitedData_1 = {};
+                        Object.keys(data.data).forEach(function (key) {
+                            var k = pkeys_2.find(function (p) { return p.submitKey === key; });
+                            submitedData_1[k.pkey] = data.data[key];
+                        });
+                        return [4 /*yield*/, this._trigger("post" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
+                    case 32:
+                        _e.sent();
+                        // File tidy up
+                        return [4 /*yield*/, this._fileClean()];
+                    case 33:
+                        // File tidy up
+                        _e.sent();
+                        _e.label = 34;
+                    case 34:
                         if (this._debug) {
                             this._out.debug = this._debugInfo.slice();
                         }
@@ -1543,7 +1591,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_3, this_2, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_4, this_3, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1571,15 +1619,15 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
-                        _loop_3 = function (i, ien) {
-                            var cond = this_2.pkeyToObject(ids[i], true, pkey);
+                        _loop_4 = function (i, ien) {
+                            var cond = this_3.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
                             });
                         };
-                        this_2 = this;
+                        this_3 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
-                            _loop_3(i, ien);
+                            _loop_4(i, ien);
                         }
                         return [4 /*yield*/, q.del()];
                     case 1:
@@ -1670,7 +1718,7 @@ var Editor = /** @class */ (function (_super) {
             });
         }
         if (http.searchPanes !== null && http.searchPanes !== undefined) {
-            var _loop_4 = function (field) {
+            var _loop_5 = function (field) {
                 if (http.searchPanes[field.name()] !== undefined) {
                     query.where(function () {
                         for (var _i = 0, _a = http.searchPanes[field.name()]; _i < _a.length; _i++) {
@@ -1682,7 +1730,7 @@ var Editor = /** @class */ (function (_super) {
             };
             for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
                 var field = fields_1[_i];
-                _loop_4(field);
+                _loop_5(field);
             }
         }
         // Column filter
@@ -1750,7 +1798,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._update = function (id, values) {
         return __awaiter(this, void 0, void 0, function () {
-            var i, ien, getId, row;
+            var i, ien, getId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1781,16 +1829,7 @@ var Editor = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._trigger('writeEdit', id, values)];
                     case 7:
                         _a.sent();
-                        return [4 /*yield*/, this._get(getId)];
-                    case 8:
-                        row = _a.sent();
-                        row = row.data.length > 0 ?
-                            row.data[0] :
-                            null;
-                        return [4 /*yield*/, this._trigger('postEdit', id, values, row)];
-                    case 9:
-                        _a.sent();
-                        return [2 /*return*/, row];
+                        return [2 /*return*/, getId];
                 }
             });
         });
