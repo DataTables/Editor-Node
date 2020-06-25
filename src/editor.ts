@@ -331,6 +331,11 @@ export default class Editor extends NestedData {
 		return this;
 	}
 
+	/** Get the current transaction */
+	public dbTransaction(): knex {
+		return this._knexTransaction;
+	}
+
 	/**
 	 * Get the debug setting for this instance
 	 * @returns {boolean} Debug enabled (true) or not

@@ -199,6 +199,10 @@ var Editor = /** @class */ (function (_super) {
         this._db = db;
         return this;
     };
+    /** Get the current transaction */
+    Editor.prototype.dbTransaction = function () {
+        return this._knexTransaction;
+    };
     Editor.prototype.debug = function (param) {
         if (param === undefined) {
             return this._debug;

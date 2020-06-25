@@ -206,6 +206,8 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     db(db: knex): Editor;
+    /** Get the current transaction */
+    dbTransaction(): knex;
     /**
      * Get the debug setting for this instance
      * @returns {boolean} Debug enabled (true) or not
