@@ -1676,6 +1676,22 @@ export default class Editor extends NestedData {
 						});
 					}
 
+					// Remap the submitted data from the submitted key to the row id
+					// This isn't just row id without the prefix, since the create is
+					// array indexed
+					let submitedData = {};
+					Object.keys(data.data).forEach(key => {
+						let k = pkeys.find(p => p.submitKey === key);
+						submitedData[k.pkey] = data.data[key];
+					});
+
+					// All writes done - trigger `All`
+					await this._trigger(
+						`write${eventName}All`,
+						pkeys.map(k => k.pkey),
+						submitedData
+					);
+
 					// Get the data that was updated in a single query
 					let returnData = await this._get(pkeys.map(k => k.pkey));
 					this._out.data = returnData.data;
@@ -1689,15 +1705,6 @@ export default class Editor extends NestedData {
 							returnData.data.find(row => row['DT_RowId'] === key.dataKey)
 						);
 					}
-
-					// Remap the submitted data from the submitted key to the row id
-					// This isn't just row id without the prefix, since the create is
-					// array indexed
-					let submitedData = {};
-					Object.keys(data.data).forEach(key => {
-						let k = pkeys.find(p => p.submitKey === key);
-						submitedData[k.pkey] = data.data[key];
-					});
 
 					await this._trigger(
 						`post${eventName}All`,

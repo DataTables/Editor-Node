@@ -1304,7 +1304,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _b, keys_2, key, pkey, _c, returnData, _loop_3, this_2, _d, pkeys_1, key, submitedData_1;
+            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _b, keys_2, key, pkey, _c, submitedData_1, returnData, _loop_3, this_2, _d, pkeys_1, key;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -1338,7 +1338,7 @@ var Editor = /** @class */ (function (_super) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
                         action = Editor.action(data);
-                        if (!!this._out.error) return [3 /*break*/, 34];
+                        if (!!this._out.error) return [3 /*break*/, 35];
                         if (!(action === Action.Read)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this._get(null, data)];
                     case 5:
@@ -1350,13 +1350,13 @@ var Editor = /** @class */ (function (_super) {
                         this._out.recordsTotal = outData.recordsTotal;
                         this._out.recordsFiltered = outData.recordsFiltered;
                         this._out.searchPanes = outData.searchPanes;
-                        return [3 /*break*/, 34];
+                        return [3 /*break*/, 35];
                     case 6:
                         if (!(action === Action.Upload && this._write)) return [3 /*break*/, 8];
                         return [4 /*yield*/, this._upload(data)];
                     case 7:
                         _e.sent();
-                        return [3 /*break*/, 34];
+                        return [3 /*break*/, 35];
                     case 8:
                         if (!(action === Action.Delete && this._write)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._remove(data)];
@@ -1365,9 +1365,9 @@ var Editor = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._fileClean()];
                     case 10:
                         _e.sent();
-                        return [3 /*break*/, 34];
+                        return [3 /*break*/, 35];
                     case 11:
-                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 34];
+                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 35];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
                         _e.label = 12;
@@ -1406,7 +1406,7 @@ var Editor = /** @class */ (function (_super) {
                         eventName = action === Action.Create ?
                             'Create' :
                             'Edit';
-                        if (!valid) return [3 /*break*/, 34];
+                        if (!valid) return [3 /*break*/, 35];
                         keys = Object.keys(data.data);
                         _b = 0, keys_2 = keys;
                         _e.label = 20;
@@ -1433,8 +1433,19 @@ var Editor = /** @class */ (function (_super) {
                     case 25:
                         _b++;
                         return [3 /*break*/, 20];
-                    case 26: return [4 /*yield*/, this._get(pkeys_2.map(function (k) { return k.pkey; }))];
+                    case 26:
+                        submitedData_1 = {};
+                        Object.keys(data.data).forEach(function (key) {
+                            var k = pkeys_2.find(function (p) { return p.submitKey === key; });
+                            submitedData_1[k.pkey] = data.data[key];
+                        });
+                        // All writes done - trigger `All`
+                        return [4 /*yield*/, this._trigger("write" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1)];
                     case 27:
+                        // All writes done - trigger `All`
+                        _e.sent();
+                        return [4 /*yield*/, this._get(pkeys_2.map(function (k) { return k.pkey; }))];
+                    case 28:
                         returnData = _e.sent();
                         this._out.data = returnData.data;
                         _loop_3 = function (key) {
@@ -1449,33 +1460,27 @@ var Editor = /** @class */ (function (_super) {
                         };
                         this_2 = this;
                         _d = 0, pkeys_1 = pkeys_2;
-                        _e.label = 28;
-                    case 28:
-                        if (!(_d < pkeys_1.length)) return [3 /*break*/, 31];
+                        _e.label = 29;
+                    case 29:
+                        if (!(_d < pkeys_1.length)) return [3 /*break*/, 32];
                         key = pkeys_1[_d];
                         return [5 /*yield**/, _loop_3(key)];
-                    case 29:
-                        _e.sent();
-                        _e.label = 30;
                     case 30:
-                        _d++;
-                        return [3 /*break*/, 28];
+                        _e.sent();
+                        _e.label = 31;
                     case 31:
-                        submitedData_1 = {};
-                        Object.keys(data.data).forEach(function (key) {
-                            var k = pkeys_2.find(function (p) { return p.submitKey === key; });
-                            submitedData_1[k.pkey] = data.data[key];
-                        });
-                        return [4 /*yield*/, this._trigger("post" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
-                    case 32:
+                        _d++;
+                        return [3 /*break*/, 29];
+                    case 32: return [4 /*yield*/, this._trigger("post" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
+                    case 33:
                         _e.sent();
                         // File tidy up
                         return [4 /*yield*/, this._fileClean()];
-                    case 33:
+                    case 34:
                         // File tidy up
                         _e.sent();
-                        _e.label = 34;
-                    case 34:
+                        _e.label = 35;
+                    case 35:
                         if (this._debug) {
                             this._out.debug = this._debugInfo.slice();
                         }
