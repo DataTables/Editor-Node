@@ -1914,8 +1914,8 @@ export default class Editor extends NestedData {
 
 						if (field) {
 							// Nasty hack for Postgres
-							if (this._db.client.config.client === 'psql') {
-								q.orWhere(field + '::text', 'ILIKE', '%' + http.search.value + '%');
+							if (this._db.client.config.client === 'pg') {
+								q.orWhereRaw('??::text ILIKE ?',[field,'%' + http.search.value + '%']);
 							}
 							else {
 								q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
@@ -1945,11 +1945,10 @@ export default class Editor extends NestedData {
 
 			if (search !== '' && column.searchable.toString() === 'true') {
 				// Nasty hack for Postgres
-				if (this._db.client.config.client === 'psql') {
-					query.where(
-						this._sspField(http, i) + '::text',
-						'ILIKE',
-						'%' + search + '%'
+				if (this._db.client.config.client === 'pg') {
+					query.whereRaw(
+						'??::text ILIKE ?',
+						[this._sspField(http, i),'%' + search + '%']
 					);
 				}
 				else {
