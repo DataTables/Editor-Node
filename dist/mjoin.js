@@ -517,7 +517,7 @@ var Mjoin = /** @class */ (function (_super) {
                         _a.label = 5;
                     case 5:
                         if (!(i < ien)) return [3 /*break*/, 8];
-                        return [4 /*yield*/, this._validateFields(errors, editor, joinData[i], this._name + '[].')];
+                        return [4 /*yield*/, this._validateFields(errors, editor, joinData[i], this._name + '[].', action)];
                     case 6:
                         _a.sent();
                         _a.label = 7;
@@ -624,7 +624,7 @@ var Mjoin = /** @class */ (function (_super) {
             this._join.child = [f3[1], f4[1]];
         }
     };
-    Mjoin.prototype._validateFields = function (errors, editor, data, prefix) {
+    Mjoin.prototype._validateFields = function (errors, editor, data, prefix, action) {
         return __awaiter(this, void 0, void 0, function () {
             var fields, i, ien, field, validation;
             return __generator(this, function (_a) {
@@ -636,7 +636,7 @@ var Mjoin = /** @class */ (function (_super) {
                     case 1:
                         if (!(i < ien)) return [3 /*break*/, 4];
                         field = fields[i];
-                        return [4 /*yield*/, field.validate(data, editor)];
+                        return [4 /*yield*/, field.validate(data, editor, null, action)];
                     case 2:
                         validation = _a.sent();
                         if (validation !== true) {

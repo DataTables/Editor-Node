@@ -334,7 +334,7 @@ var Field = /** @class */ (function (_super) {
     /**
      * @hidden
      */
-    Field.prototype.validate = function (data, editor, id) {
+    Field.prototype.validate = function (data, editor, id, action) {
         if (id === void 0) { id = null; }
         return __awaiter(this, void 0, void 0, function () {
             var val, host, i, ien, validator, testVal, res;
@@ -346,7 +346,7 @@ var Field = /** @class */ (function (_super) {
                         }
                         val = this._readProp(this.name(), data);
                         host = new validators_1.default.Host({
-                            action: editor.inData().action,
+                            action: action,
                             db: editor.db(),
                             editor: editor,
                             field: this,

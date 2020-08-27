@@ -1,6 +1,6 @@
 import * as knex from 'knex';
 
-import Editor from './editor';
+import Editor, {IDtRequest} from './editor';
 import {IFormatter} from './formatters';
 import NestedData from './nestedData';
 import Options, {CustomOptions, IOption} from './options';
@@ -571,14 +571,14 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public async validate(data: object, editor: Editor, id: string = null): Promise<true | string> {
+	public async validate(data: object, editor: Editor, id: string = null, action: IDtRequest['action']): Promise<true | string> {
 		if (this._validator.length === 0) {
 			return true;
 		}
 
 		let val = this._readProp(this.name(), data);
 		let host = new Validator.Host({
-			action: editor.inData().action,
+			action,
 			db: editor.db(),
 			editor,
 			field: this,
