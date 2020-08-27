@@ -615,7 +615,7 @@ export default class Mjoin extends NestedData {
 		}
 
 		for ( let i = 0, ien = joinData.length ; i < ien ; i++ ) {
-			await this._validateFields( errors, editor, joinData[i], this._name + '[].' );
+			await this._validateFields( errors, editor, joinData[i], this._name + '[].', action );
 		}
 	}
 
@@ -713,12 +713,12 @@ export default class Mjoin extends NestedData {
 		}
 	}
 
-	private async _validateFields( errors, editor: Editor, data: object, prefix: string ): Promise<void> {
+	private async _validateFields( errors, editor: Editor, data: object, prefix: string, action: string ): Promise<void> {
 		let fields = this.fields();
 
 		for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
 			let field = fields[i];
-			let validation = await field.validate( data, editor );
+			let validation = await field.validate( data, editor, null, action );
 
 			if ( validation !== true ) {
 				errors.push( {

@@ -25,6 +25,8 @@ export declare enum Action {
  * @export
  */
 export interface IDtError {
+    /** Row id that caused the error */
+    id?: string;
     /** Field name in error. */
     name: string;
     /** Error message string. */

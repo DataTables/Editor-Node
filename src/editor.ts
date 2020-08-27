@@ -35,6 +35,9 @@ export enum Action {
  * @export
  */
 export interface IDtError {
+	/** Row id that caused the error */
+	id?: string;
+
 	/** Field name in error. */
 	name: string;
 
@@ -890,10 +893,12 @@ export default class Editor extends NestedData {
 
 			for (let j = 0, jen = fields.length; j < jen; j++) {
 				let field = fields[j];
-				let validation = await field.validate(values, this, keys[i].replace(idPrefix, ''));
+				let id = keys[i].replace(idPrefix, '');
+				let validation = await field.validate(values, this, id, http.action);
 
 				if (validation !== true) {
 					errors.push({
+						id,
 						name: field.name(),
 						status: validation,
 					});

@@ -12,3 +12,4 @@ export { default as promisify } from './promisify';
 export { default as SearchPaneOptions } from './searchPaneOptions';
 export declare type IDtRequest = editor.IDtRequest;
 export declare type IDtResponse = editor.IDtResponse;
+export declare type IDtError = editor.IDtError;

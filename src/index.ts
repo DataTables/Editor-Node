@@ -14,3 +14,4 @@ export { default as SearchPaneOptions} from './searchPaneOptions';
 
 export type IDtRequest = editor.IDtRequest;
 export type IDtResponse = editor.IDtResponse;
+export type IDtError = editor.IDtError;
