@@ -552,7 +552,7 @@ var Editor = /** @class */ (function (_super) {
      */
     Editor.prototype.validate = function (errors, http) {
         return __awaiter(this, void 0, void 0, function () {
-            var keys, fields, idPrefix, i, ien, values, j, jen, field, validation, j, jen;
+            var keys, fields, idPrefix, i, ien, values, j, jen, field, id, validation, j, jen;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -572,11 +572,13 @@ var Editor = /** @class */ (function (_super) {
                     case 2:
                         if (!(j < jen)) return [3 /*break*/, 5];
                         field = fields[j];
-                        return [4 /*yield*/, field.validate(values, this, keys[i].replace(idPrefix, ''))];
+                        id = keys[i].replace(idPrefix, '');
+                        return [4 /*yield*/, field.validate(values, this, id, http.action)];
                     case 3:
                         validation = _a.sent();
                         if (validation !== true) {
                             errors.push({
+                                id: id,
                                 name: field.name(),
                                 status: validation,
                             });

@@ -1,5 +1,5 @@
 import * as knex from 'knex';
-import Editor from './editor';
+import Editor, { IDtRequest } from './editor';
 import { IFormatter } from './formatters';
 import NestedData from './nestedData';
 import Options, { CustomOptions, IOption } from './options';
@@ -315,7 +315,7 @@ export default class Field extends NestedData {
     /**
      * @hidden
      */
-    validate(data: object, editor: Editor, id?: string): Promise<true | string>;
+    validate(data: object, editor: Editor, id: string, action: IDtRequest['action']): Promise<true | string>;
     /**
      * @hidden
      */
