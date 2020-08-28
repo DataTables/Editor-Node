@@ -166,6 +166,10 @@ export default class Validator {
 					true;
 			}
 
+			if (typeof val === 'number') {
+				return true;
+			}
+
 			if ( decimal !== '.' ) {
 				val = val.toString().replace(decimal, '.');
 			}

@@ -205,6 +205,9 @@ var Validator = /** @class */ (function () {
                                 opts.message :
                                 true];
                     }
+                    if (typeof val === 'number') {
+                        return [2 /*return*/, true];
+                    }
                     if (decimal !== '.') {
                         val = val.toString().replace(decimal, '.');
                     }

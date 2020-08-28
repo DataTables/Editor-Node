@@ -1713,8 +1713,8 @@ var Editor = /** @class */ (function (_super) {
                         var field = _this._sspField(http, i);
                         if (field) {
                             // Nasty hack for Postgres
-                            if (_this._db.client.config.client === 'psql') {
-                                q.orWhere(field + '::text', 'ILIKE', '%' + http.search.value + '%');
+                            if (_this._db.client.config.client === 'pg') {
+                                q.orWhereRaw('??::text ILIKE ?', [field, '%' + http.search.value + '%']);
                             }
                             else {
                                 q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
@@ -1746,8 +1746,8 @@ var Editor = /** @class */ (function (_super) {
             var search = column.search.value;
             if (search !== '' && column.searchable.toString() === 'true') {
                 // Nasty hack for Postgres
-                if (this._db.client.config.client === 'psql') {
-                    query.where(this._sspField(http, i) + '::text', 'ILIKE', '%' + search + '%');
+                if (this._db.client.config.client === 'pg') {
+                    query.whereRaw('??::text ILIKE ?', [this._sspField(http, i), '%' + search + '%']);
                 }
                 else {
                     query.where(this._sspField(http, i), 'LIKE', '%' + search + '%');
