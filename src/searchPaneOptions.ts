@@ -30,7 +30,7 @@ export default class SearchPaneOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
-	private _leftJoin: Array<{[keys: string]: string}> = [];
+	private _leftJoin: Array<{[keys: string]: string}>;
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
@@ -190,6 +190,10 @@ export default class SearchPaneOptions {
 	 * @param field2 the second field
 	 */
 	public leftJoin(table: string, field1: string, operator: string, field2: string): this {
+		if(this._leftJoin === undefined || this._leftJoin === null) {
+			this._leftJoin = [];
+		}
+
 		this._leftJoin.push({
 			field1,
 			field2,
@@ -227,13 +231,11 @@ export default class SearchPaneOptions {
 			let spopts = field.searchPaneOptions();
 			value = spopts.label() !== undefined ?
 				spopts.label()[0] :
-				value = field.name().split('.')[1];
+			 	value = field.name();
 		}
 		// Otherwise we can just get it from the value that has been defined
 		else {
-			value = this._value.indexOf('.') === -1 ?
-				this._value :
-				this._value.split('.')[1];
+			value = this._value;
 		}
 
 		// If label is undefined then just assume the same value as `value`
@@ -242,9 +244,7 @@ export default class SearchPaneOptions {
 		}
 		// Otherwise work it out from what has been defined
 		else {
-			label = this._label[0].indexOf('.') === -1 ?
-				this._label :
-				this._label[0].split('.')[1];
+			label = this._label;
 		}
 
 		// If the table has not been defined then get it from the editor instance
@@ -252,7 +252,7 @@ export default class SearchPaneOptions {
 			editor.table()[0] :
 			this._table;
 
-		if (leftJoinIn !== undefined && leftJoinIn !== null) {
+		if (leftJoinIn !== undefined && leftJoinIn !== null && this._leftJoin === undefined) {
 			join = leftJoinIn;
 		}
 
@@ -274,7 +274,7 @@ export default class SearchPaneOptions {
 			.count({count: '*'})
 			.from(table)
 			.distinct()
-			.groupBy('value');
+			.groupBy(value);
 
 		// This block applies all of the where conditions across the fields
 		// Each field gets it's own where condition which must be satisfied
@@ -299,7 +299,7 @@ export default class SearchPaneOptions {
 			.count({total: '*'})
 			.from(table)
 			.distinct()
-			.groupBy('value');
+			.groupBy(value);
 
 		if (this._where) {
 			q.where(this._where);
