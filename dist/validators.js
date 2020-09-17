@@ -757,7 +757,7 @@ var Validator = /** @class */ (function () {
                                     .where((_a = {}, _a[column] = val, _a))];
                         case 1:
                             res = _b.sent();
-                            return [2 /*return*/, !res ?
+                            return [2 /*return*/, !res || !res.length ?
                                     opts.message :
                                     true];
                     }

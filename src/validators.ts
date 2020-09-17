@@ -685,7 +685,7 @@ export default class Validator {
 				.select( column )
 				.where( { [column]: val } );
 
-			return ! res ?
+			return ! res || ! res.length ?
 				opts.message :
 				true;
 		};
