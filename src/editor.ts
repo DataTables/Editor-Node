@@ -213,7 +213,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '1.9.2';
+	public static version: string = '1.9.5';
 
 	/**
 	 * Determine the request type from an HTTP request.
