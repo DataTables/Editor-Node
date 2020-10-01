@@ -248,9 +248,11 @@ export default class SearchPaneOptions {
 		}
 
 		// If the table has not been defined then get it from the editor instance
-		table = this._table === undefined ?
-			editor.table()[0] :
-			this._table;
+		table = this._table !== undefined ?
+			this._table :
+			editor.readTable().length > 0 ?
+				editor.readTable()[0] :
+				editor.table()[0];
 
 		if (leftJoinIn !== undefined && leftJoinIn !== null && this._leftJoin === undefined) {
 			join = leftJoinIn;
