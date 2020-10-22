@@ -182,6 +182,7 @@ export default class Editor extends NestedData {
     private _leftJoinRemove;
     private _schema;
     private _write;
+    private _doValidate;
     /**
      * Creates an instance of Editor.
      * @param {knex} [db=null] Database connection object
@@ -227,6 +228,17 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     debug(message: any): Editor;
+    /**
+     * Get the validate flag
+     */
+    doValidate(): boolean;
+    /**
+     * Enable / disable validation. This would be used with after the
+     * `validate` method if you call that before `process()`.
+     * @param {boolean} doValidate true (default) = perform validation, false don't.
+     * @returns {Editor} Self for chaining
+     */
+    doValidate(doValidate: boolean): Editor;
     /**
      * Add a new field to the Editor instance
      * @param field Field instance to add=

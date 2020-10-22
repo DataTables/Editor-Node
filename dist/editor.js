@@ -138,6 +138,7 @@ var Editor = /** @class */ (function (_super) {
         _this._leftJoinRemove = false;
         _this._schema = null;
         _this._write = true;
+        _this._doValidate = true;
         if (db) {
             _this.db(db);
         }
@@ -213,6 +214,13 @@ var Editor = /** @class */ (function (_super) {
         }
         // Otherwise its a message
         this._debugInfo.push(param);
+        return this;
+    };
+    Editor.prototype.doValidate = function (doValidate) {
+        if (doValidate === undefined) {
+            return this._doValidate;
+        }
+        this._doValidate = doValidate;
         return this;
     };
     Editor.prototype.field = function (nameOrField) {
@@ -556,6 +564,9 @@ var Editor = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (this._doValidate === false) {
+                            return [2 /*return*/, true];
+                        }
                         if (http.action !== 'create' && http.action !== 'edit') {
                             return [2 /*return*/, true];
                         }
