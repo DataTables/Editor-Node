@@ -270,6 +270,7 @@ export default class Editor extends NestedData {
 	private _leftJoinRemove: boolean = false;
 	private _schema: string = null;
 	private _write: boolean = true;
+	private _doValidate: boolean = true;
 
 	/**
 	 * Creates an instance of Editor.
@@ -368,6 +369,26 @@ export default class Editor extends NestedData {
 		// Otherwise its a message
 		this._debugInfo.push(param);
 
+		return this;
+	}
+
+	/**
+	 * Get the validate flag
+	 */
+	public doValidate(): boolean;
+	/**
+	 * Enable / disable validation. This would be used with after the
+	 * `validate` method if you call that before `process()`.
+	 * @param {boolean} doValidate true (default) = perform validation, false don't.
+	 * @returns {Editor} Self for chaining
+	 */
+	public doValidate(doValidate: boolean): Editor;
+	public doValidate(doValidate?: boolean): any {
+		if (doValidate === undefined) {
+			return this._doValidate;
+		}
+
+		this._doValidate = doValidate;
 		return this;
 	}
 
@@ -880,6 +901,10 @@ export default class Editor extends NestedData {
 	 * @returns {Promise<boolean>} `true` if the data is valid, `false` if not.
 	 */
 	public async validate(errors: IDtError[], http: IDtRequest): Promise<boolean> {
+		if (this._doValidate === false) {
+			return true;
+		}
+		
 		if (http.action !== 'create' && http.action !== 'edit') {
 			return true;
 		}
