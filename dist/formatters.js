@@ -45,7 +45,7 @@ var Formatter = /** @class */ (function () {
      */
     Formatter.formatToSqlDate = function (format) {
         return function (val, data) {
-            if (val === null) {
+            if (val === null || val === '') {
                 return null;
             }
             return moment(val, format).format('YYYY-MM-DD');

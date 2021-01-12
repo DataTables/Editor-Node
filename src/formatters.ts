@@ -46,7 +46,7 @@ export default class Formatter {
 	 */
 	public static formatToSqlDate( format: string ): IFormatter {
 		return function(val: any, data: object ) {
-			if ( val === null ) {
+			if ( val === null || val === '' ) {
 				return null;
 			}
 
