@@ -213,7 +213,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '1.9.6';
+	public static version: string = '2.0.0-dev';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1254,8 +1254,12 @@ export default class Editor extends NestedData {
 			options,
 			recordsFiltered: ssp.recordsFiltered,
 			recordsTotal: ssp.recordsTotal,
-			searchPanes
+			searchPanes: undefined
 		};
+
+		if(Object.keys(searchPanes.options).length > 0) {
+			response.searchPanes = searchPanes;
+		}
 
 		// Row based joins
 		for (let i = 0, ien = this._join.length; i < ien; i++) {
