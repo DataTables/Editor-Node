@@ -1292,8 +1292,12 @@ export default class Editor extends NestedData {
 			options,
 			recordsFiltered: ssp.recordsFiltered,
 			recordsTotal: ssp.recordsTotal,
-			searchPanes
+			searchPanes: undefined
 		};
+
+		if(Object.keys(searchPanes.options).length > 0) {
+			response.searchPanes = searchPanes;
+		}
 
 		// Row based joins
 		for (let i = 0, ien = this._join.length; i < ien; i++) {
