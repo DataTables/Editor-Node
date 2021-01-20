@@ -181,9 +181,10 @@ interface ISSP {
  */
 interface ILeftJoin {
 	table: string;
-	field1: string;
-	field2: string;
-	operator: string;
+	fn?: Function;
+	field1?: string;
+	field2?: string;
+	operator?: string;
 }
 
 /**
@@ -213,7 +214,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '1.9.6';
+	public static version: string = '2.0.0-dev';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -511,6 +512,21 @@ export default class Editor extends NestedData {
 	 * over multiple tables. Multiple `leftJoin()` calls can be made for a
 	 * single Editor instance to join multiple tables.
 	 *
+	 * In this form the method will take a function as the second parameter which
+	 * is a Knex callback function allowing a complex join expression to be built.
+	 * @param {string} table Table name to do a join onto
+	 * @param {function} condition
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoin(
+		table: string,
+		condition: Function
+	): Editor;
+	/**
+	 * Add a left join condition to the Editor instance, allowing it to operate
+	 * over multiple tables. Multiple `leftJoin()` calls can be made for a
+	 * single Editor instance to join multiple tables.
+	 *
 	 * A left join is the most common type of join that is used with Editor
 	 * so this method is provided to make its use very easy to configure. Its
 	 * parameters are basically the same as writing an SQL left join statement,
@@ -538,13 +554,35 @@ export default class Editor extends NestedData {
 	 * @param {string} field2 Field from the child table to use as the join link
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(table: string, field1: string, operator: string, field2: string): Editor {
-		this._leftJoin.push({
-			field1,
-			field2,
-			operator,
-			table,
-		});
+	public leftJoin(
+		table: string,
+		field1: string,
+		operator: string,
+		field2: string
+	): Editor;
+	public leftJoin(
+		table: string,
+		field1: string | Function,
+		operator: string | undefined = undefined,
+		field2: string | undefined = undefined
+	): Editor {
+		if (typeof field1 === 'function') {
+			this._leftJoin.push({
+				field1: '',
+				field2: '',
+				fn: field1,
+				operator: '',
+				table,
+			});
+		}
+		else {
+			this._leftJoin.push({
+				field1,
+				field2,
+				operator,
+				table,
+			});
+		}
 
 		return this;
 	}
@@ -1332,6 +1370,11 @@ export default class Editor extends NestedData {
 		for (let i = 0, ien = this._leftJoin.length; i < ien; i++) {
 			let join = this._leftJoin[i];
 
+			if (join.fn) {
+				// Don't do updates / inserts when we can't understand the join
+				continue;
+			}
+
 			// Which side of the join refers to the parent table?
 			let joinTable = this._alias(join.table, 'alias');
 			let tablePart = this._part(join.field1);
@@ -1558,9 +1601,14 @@ export default class Editor extends NestedData {
 		for (let i = 0, ien = this._leftJoin.length; i < ien; i++) {
 			let join = this._leftJoin[i];
 
-			query.leftJoin(join.table, function() {
-				this.on(join.field1, join.operator, join.field2);
-			});
+			if (join.fn) {
+				query.leftJoin(join.table, join.fn as any);
+			}
+			else {
+				query.leftJoin(join.table, function() {
+					this.on(join.field1, join.operator, join.field2);
+				});
+			}
 		}
 	}
 

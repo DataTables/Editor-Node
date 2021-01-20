@@ -311,6 +311,18 @@ export default class Editor extends NestedData {
      * over multiple tables. Multiple `leftJoin()` calls can be made for a
      * single Editor instance to join multiple tables.
      *
+     * In this form the method will take a function as the second parameter which
+     * is a Knex callback function allowing a complex join expression to be built.
+     * @param {string} table Table name to do a join onto
+     * @param {function} condition
+     * @returns {Editor} Self for chaining
+     */
+    leftJoin(table: string, condition: Function): Editor;
+    /**
+     * Add a left join condition to the Editor instance, allowing it to operate
+     * over multiple tables. Multiple `leftJoin()` calls can be made for a
+     * single Editor instance to join multiple tables.
+     *
      * A left join is the most common type of join that is used with Editor
      * so this method is provided to make its use very easy to configure. Its
      * parameters are basically the same as writing an SQL left join statement,

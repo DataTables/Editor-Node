@@ -273,45 +273,26 @@ var Editor = /** @class */ (function (_super) {
         this._join.push.apply(this._join, join);
         return this;
     };
-    /**
-     * Add a left join condition to the Editor instance, allowing it to operate
-     * over multiple tables. Multiple `leftJoin()` calls can be made for a
-     * single Editor instance to join multiple tables.
-     *
-     * A left join is the most common type of join that is used with Editor
-     * so this method is provided to make its use very easy to configure. Its
-     * parameters are basically the same as writing an SQL left join statement,
-     * but in this case Editor will handle the create, update and remove
-     * requirements of the join for you:
-     *
-     * * Create - On create Editor will insert the data into the primary table
-     *   and then into the joined tables - selecting the required data for each
-     *   table.
-     * * Edit - On edit Editor will update the main table, and then either
-     *   update the existing rows in the joined table that match the join and
-     *   edit conditions, or insert a new row into the joined table if required.
-     * * Remove - On delete Editor will remove the main row and then loop over
-     *   each of the joined tables and remove the joined data matching the join
-     *   link from the main table.
-     *
-     * Please note that when using join tables, Editor requires that you fully
-     * qualify each field with the field's table name. SQL can result table
-     * names for ambiguous field names, but for Editor to provide its full CRUD
-     * options, the table name must also be given. For example the field
-     * `first_name` in the table `users` would be given as `users.first_name`.
-     * @param {string} table Table name to do a join onto
-     * @param {string} field1 Field from the parent table to use as the join link
-     * @param {string} operator Join condition (`=`, '<`, etc)
-     * @param {string} field2 Field from the child table to use as the join link
-     * @returns {Editor} Self for chaining
-     */
     Editor.prototype.leftJoin = function (table, field1, operator, field2) {
-        this._leftJoin.push({
-            field1: field1,
-            field2: field2,
-            operator: operator,
-            table: table,
-        });
+        if (operator === void 0) { operator = undefined; }
+        if (field2 === void 0) { field2 = undefined; }
+        if (typeof field1 === 'function') {
+            this._leftJoin.push({
+                field1: '',
+                field2: '',
+                fn: field1,
+                operator: '',
+                table: table,
+            });
+        }
+        else {
+            this._leftJoin.push({
+                field1: field1,
+                field2: field2,
+                operator: operator,
+                table: table,
+            });
+        }
         return this;
     };
     Editor.prototype.leftJoinRemove = function (remove) {
@@ -1062,6 +1043,10 @@ var Editor = /** @class */ (function (_super) {
                     case 5:
                         if (!(i < ien)) return [3 /*break*/, 8];
                         join = this._leftJoin[i];
+                        if (join.fn) {
+                            // Don't do updates / inserts when we can't understand the join
+                            return [3 /*break*/, 7];
+                        }
                         joinTable = this._alias(join.table, 'alias');
                         tablePart = this._part(join.field1);
                         parentLink = void 0;
@@ -1274,9 +1259,14 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._performLeftJoin = function (query) {
         var _loop_2 = function (i, ien) {
             var join = this_1._leftJoin[i];
-            query.leftJoin(join.table, function () {
-                this.on(join.field1, join.operator, join.field2);
-            });
+            if (join.fn) {
+                query.leftJoin(join.table, join.fn);
+            }
+            else {
+                query.leftJoin(join.table, function () {
+                    this.on(join.field1, join.operator, join.field2);
+                });
+            }
         };
         var this_1 = this;
         for (var i = 0, ien = this._leftJoin.length; i < ien; i++) {
@@ -1918,7 +1908,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '1.9.6';
+    Editor.version = '2.0.0-dev';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
