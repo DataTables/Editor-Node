@@ -935,8 +935,11 @@ var Editor = /** @class */ (function (_super) {
                             options: options,
                             recordsFiltered: ssp.recordsFiltered,
                             recordsTotal: ssp.recordsTotal,
-                            searchPanes: searchPanes
+                            searchPanes: undefined
                         };
+                        if (Object.keys(searchPanes.options).length > 0) {
+                            response.searchPanes = searchPanes;
+                        }
                         i = 0, ien = this._join.length;
                         _b.label = 9;
                     case 9:
