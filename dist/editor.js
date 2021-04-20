@@ -1486,7 +1486,9 @@ var Editor = /** @class */ (function (_super) {
                         // File tidy up
                         _e.sent();
                         _e.label = 35;
-                    case 35:
+                    case 35: return [4 /*yield*/, this._trigger("processed", action, data, this._out)];
+                    case 36:
+                        _e.sent();
                         if (this._debug) {
                             this._out.debug = this._debugInfo.slice();
                         }

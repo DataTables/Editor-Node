@@ -1801,6 +1801,13 @@ export default class Editor extends NestedData {
 			}
 		}
 
+		await this._trigger(
+			`processed`,
+			action,
+			data,
+			this._out
+		);
+
 		if (this._debug) {
 			this._out.debug = this._debugInfo.slice();
 		}
