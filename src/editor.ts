@@ -1319,11 +1319,16 @@ export default class Editor extends NestedData {
 	}
 
 	private async _insert(values: object): Promise<string> {
+		// Get values to generate the id, including from setValue, not just the
+		// submitted values
+		let all = [];
+		this._fields.forEach(f => this._writeProp(all, f.name(), f.val('set', values)));
+
 		// Only allow a composite insert if the values for the key are
 		// submitted. This is required because there is no reliable way in MySQL
 		// to return the newly inserted row, so we can't know any newly
 		// generated values.
-		this._pkeyValidateInsert(values);
+		this._pkeyValidateInsert(all);
 
 		await this._trigger('validatedCreate', values);
 
@@ -1337,8 +1342,8 @@ export default class Editor extends NestedData {
 		// Was the primary key altered as part of the edit, if so use the
 		// submitted values
 		id = this._pkey.length > 1 ?
-			this.pkeyToValue(values) :
-			this._pkeySubmitMerge(id, values);
+			this.pkeyToValue(all) :
+			this._pkeySubmitMerge(id, all);
 
 		// Join
 		for (let i = 0, ien = this._join.length; i < ien; i++) {

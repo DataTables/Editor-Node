@@ -972,15 +972,18 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._insert = function (values) {
         return __awaiter(this, void 0, void 0, function () {
-            var id, i, ien;
+            var all, id, i, ien;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        all = [];
+                        this._fields.forEach(function (f) { return _this._writeProp(all, f.name(), f.val('set', values)); });
                         // Only allow a composite insert if the values for the key are
                         // submitted. This is required because there is no reliable way in MySQL
                         // to return the newly inserted row, so we can't know any newly
                         // generated values.
-                        this._pkeyValidateInsert(values);
+                        this._pkeyValidateInsert(all);
                         return [4 /*yield*/, this._trigger('validatedCreate', values)];
                     case 1:
                         _a.sent();
@@ -993,8 +996,8 @@ var Editor = /** @class */ (function (_super) {
                         // Was the primary key altered as part of the edit, if so use the
                         // submitted values
                         id = this._pkey.length > 1 ?
-                            this.pkeyToValue(values) :
-                            this._pkeySubmitMerge(id, values);
+                            this.pkeyToValue(all) :
+                            this._pkeySubmitMerge(id, all);
                         i = 0, ien = this._join.length;
                         _a.label = 3;
                     case 3:
