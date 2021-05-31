@@ -146,6 +146,7 @@ export interface IDtResponse {
 
 	/** DataTables SSP - SearchPanes Options */
 	searchPanes?: any;
+	searchPanes_null?: any;
 	/** Editor - Upload complete file id. */
 	upload?: {
 		id: string
@@ -214,7 +215,7 @@ interface ILeftJoin {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.0.2';
+	public static version: string = '2.0.3-dev';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1233,8 +1234,13 @@ export default class Editor extends NestedData {
 			let keys = Object.keys(http.searchPanes);
 			for (let key of keys) {
 				query.where(function() {
-					for (let val of http.searchPanes[key]) {
-						this.orWhere(key, val);
+					for (let i = 0; i < http.searchPanes[key].length; i++) {
+						if (http.searchPanes_null[key][i]){
+							this.orWhereNull(key);
+						}
+						else {
+							this.orWhere(key, http.searchPanes[key][i]);
+						}
 					}
 				});
 			}

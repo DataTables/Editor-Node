@@ -282,21 +282,17 @@ export default class SearchPaneOptions {
 		// Each field gets it's own where condition which must be satisfied
 		// Each where condition can have multiple orWhere()s so that the or
 		//  searching within the fields works.
-		if (http.searchPanes !== undefined) {
-			for (let fie of fields) {
-				if (http.searchPanes[fie.name()] !== undefined) {
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							this.orWhere(
-								fie.name(),
-								http.searchPanes_null[fie.name()][i] ?
-									null :
-									http.searchPanes[fie.name()][i]
-							);
-						}
-					});
+		if (http.searchPanes !== undefined && http.searchPanes[field.name()] !== undefined) {
+			query.where(function() {
+				for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
+					if(http.searchPanes_null[field.name()][i]) {
+						this.orWhereNull(field.name());
+					}
+					else {
+						this.orWhere(field.name(), http.searchPanes[field.name()][i]);
+					}
 				}
-			}
+			});
 		}
 
 		// This query will get the total count for the field, assuming no filtering.
