@@ -286,8 +286,13 @@ export default class SearchPaneOptions {
 			for (let fie of fields) {
 				if (http.searchPanes[fie.name()] !== undefined) {
 					query.where(function() {
-						for (let opt of http.searchPanes[fie.name()]) {
-							this.orWhere(fie.name(), opt);
+						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
+							this.orWhere(
+								fie.name(),
+								http.searchPanes_null[fie.name()][i] ?
+									null :
+									http.searchPanes[fie.name()][i]
+							);
 						}
 					});
 				}
