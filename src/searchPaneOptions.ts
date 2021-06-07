@@ -287,7 +287,7 @@ export default class SearchPaneOptions {
 				if (http.searchPanes[fie.name()] !== undefined) {
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							if(http.searchPanes_null[fie.name()][i]) {
+							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
 								this.orWhereNull(fie.name());
 							}
 							else {

@@ -1235,7 +1235,7 @@ export default class Editor extends NestedData {
 			for (let key of keys) {
 				query.where(function() {
 					for (let i = 0; i < http.searchPanes[key].length; i++) {
-						if (http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
+						if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
 							this.orWhereNull(key);
 						}
 						else {
@@ -2031,7 +2031,7 @@ export default class Editor extends NestedData {
 				if (http.searchPanes[field.name()] !== undefined) {
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
-							if(http.searchPanes_null[field.name()][i]) {
+							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i]) {
 								this.orWhereNull(field.name());
 							}
 							else {
