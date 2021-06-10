@@ -1,10 +1,9 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -191,9 +190,13 @@ var SearchPaneOptions = /** @class */ (function () {
                             _loop_1 = function (fie) {
                                 if (http.searchPanes[fie.name()] !== undefined) {
                                     query.where(function () {
-                                        for (var _i = 0, _a = http.searchPanes[fie.name()]; _i < _a.length; _i++) {
-                                            var opt = _a[_i];
-                                            this.orWhere(fie.name(), opt);
+                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
+                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+                                                this.orWhereNull(fie.name());
+                                            }
+                                            else {
+                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+                                            }
                                         }
                                     });
                                 }
