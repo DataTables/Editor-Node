@@ -1328,7 +1328,11 @@ export default class Editor extends NestedData {
 		// Get values to generate the id, including from setValue, not just the
 		// submitted values
 		let all = [];
-		this._fields.forEach(f => this._writeProp(all, f.name(), f.val('set', values)));
+		this._fields.forEach(f => {
+			if (f.val('set', values)) {
+				this._writeProp(all, f.name(), f.val('set', values));
+			}
+		});
 
 		// Only allow a composite insert if the values for the key are
 		// submitted. This is required because there is no reliable way in MySQL
