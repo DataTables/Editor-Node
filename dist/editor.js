@@ -986,7 +986,11 @@ var Editor = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         all = [];
-                        this._fields.forEach(function (f) { return _this._writeProp(all, f.name(), f.val('set', values)); });
+                        this._fields.forEach(function (f) {
+                            if (f.val('set', values)) {
+                                _this._writeProp(all, f.name(), f.val('set', values));
+                            }
+                        });
                         // Only allow a composite insert if the values for the key are
                         // submitted. This is required because there is no reliable way in MySQL
                         // to return the newly inserted row, so we can't know any newly
