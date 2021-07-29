@@ -251,7 +251,7 @@ var Mjoin = /** @class */ (function (_super) {
                         pkeyIsJoin = joinField === editor.pkey()[0] ||
                             dteTableAlias + '.' + joinField === editor.pkey()[0];
                         query = editor.db().table(dteTable)
-                            .distinct(dteTableAlias + '.' + joinField + ' as dteditor_pkey');
+                            .select(dteTableAlias + '.' + joinField + ' as dteditor_pkey');
                         order = this.order();
                         if (order) {
                             a = order.split(' ');
