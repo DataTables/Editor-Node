@@ -819,7 +819,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_1, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
+            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_1, _i, keys_1, key, _constructSearchBuilderQuery_1, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -885,6 +885,175 @@ var Editor = /** @class */ (function (_super) {
                                 key = keys_1[_i];
                                 _loop_1(key);
                             }
+                        }
+                        // If there is a searchBuilder condition present in the request data
+                        if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== 'false') {
+                            _constructSearchBuilderQuery_1 = function (sbData) {
+                                // The first where condition has to be a normal where rather than an orwhere.
+                                // Therefore we have to track that we have added a where condition before
+                                // there is an attempt to create a new orwhere
+                                var first = true;
+                                var _loop_2 = function (crit) {
+                                    // If criteria is defined then this must be a group
+                                    if (crit.criteria !== undefined) {
+                                        // Check if this is the first, or if it is and logic
+                                        if (sbData.logic === 'AND' || first) {
+                                            // Call the function for the next group
+                                            this_1.where(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
+                                            // Set first to false so that in future only the logic is checked
+                                            first = false;
+                                        }
+                                        else {
+                                            // Call the function for the next group, OR logic in this block
+                                            this_1.orWhere(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
+                                        }
+                                    }
+                                    else if (crit.condition !== undefined && crit.value !== undefined) {
+                                        // Sometimes the structure of the object that is passed across is named in a strange way.
+                                        // This conditional assignment solves that issue
+                                        var val1_1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+                                        var val2_1 = '';
+                                        if (crit.value.length > 1) {
+                                            val2_1 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
+                                        }
+                                        // Switch on the condition that has been passed in
+                                        switch (crit.condition) {
+                                            case '=':
+                                                // Check if this is the first, or if it is and logic
+                                                if (sbData.logic === 'AND' || first) {
+                                                    // Call the where function for this condition
+                                                    this_1.where(crit.origData, val1_1);
+                                                    // Set first to false so that in future only the logic is checked
+                                                    first = false;
+                                                }
+                                                else {
+                                                    // Call the orWhere function - has to be or logic in this block
+                                                    this_1.orWhere(crit.origData, val1_1);
+                                                }
+                                                break;
+                                            case '!=':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.whereNot(crit.origData, val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.whereNot(crit.origData, val1_1); });
+                                                }
+                                                break;
+                                            case 'contains':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, 'LIKE', '%' + val1_1 + '%');
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1 + '%'); });
+                                                }
+                                                break;
+                                            case 'starts':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, 'LIKE', val1_1 + '%');
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', val1_1 + '%'); });
+                                                }
+                                                break;
+                                            case 'ends':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, 'LIKE', '%' + val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1); });
+                                                }
+                                                break;
+                                            case '<':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, '<', val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '<', val1_1); });
+                                                }
+                                                break;
+                                            case '<=':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, '<=', val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '<=', val1_1); });
+                                                }
+                                                break;
+                                            case '>=':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, '>=', val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '>=', val1_1); });
+                                                }
+                                                break;
+                                            case '>':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.where(crit.origData, '>', val1_1);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '>', val1_1); });
+                                                }
+                                                break;
+                                            case 'between':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.whereBetween(crit.origData, [val1_1, val2_1]);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.whereBetween(crit.origData, [val1_1, val2_1]); });
+                                                }
+                                                break;
+                                            case '!between':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.whereNotBetween(crit.origData, [val1_1, val2_1]);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.orWhere(function (q) { return q.whereNotBetween(crit.origData, [val1_1, val2_1]); });
+                                                }
+                                                break;
+                                            case 'empty':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.whereNull(crit.origData);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.whereNull(crit.origData);
+                                                }
+                                                break;
+                                            case '!empty':
+                                                if (sbData.logic === 'AND' || first) {
+                                                    this_1.whereNotNull(crit.origData);
+                                                    first = false;
+                                                }
+                                                else {
+                                                    this_1.whereNotNull(crit.origData);
+                                                }
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                };
+                                var this_1 = this;
+                                // Iterate over every group or criteria in the current group
+                                for (var _i = 0, _a = sbData.criteria; _i < _a.length; _i++) {
+                                    var crit = _a[_i];
+                                    _loop_2(crit);
+                                }
+                                return this;
+                            };
+                            // Run the above function for the first level of the searchBuilder data
+                            query = _constructSearchBuilderQuery_1.apply(query, [http.searchBuilder]);
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
                     case 2:
@@ -1271,8 +1440,8 @@ var Editor = /** @class */ (function (_super) {
         }
     };
     Editor.prototype._performLeftJoin = function (query) {
-        var _loop_2 = function (i, ien) {
-            var join = this_1._leftJoin[i];
+        var _loop_3 = function (i, ien) {
+            var join = this_2._leftJoin[i];
             if (join.fn) {
                 query.leftJoin(join.table, join.fn);
             }
@@ -1282,9 +1451,9 @@ var Editor = /** @class */ (function (_super) {
                 });
             }
         };
-        var this_1 = this;
+        var this_2 = this;
         for (var i = 0, ien = this._leftJoin.length; i < ien; i++) {
-            _loop_2(i, ien);
+            _loop_3(i, ien);
         }
     };
     Editor.prototype._pkeySeparator = function () {
@@ -1321,7 +1490,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _b, keys_2, key, pkey, _c, submitedData_1, returnData, _loop_3, this_2, _d, pkeys_1, key;
+            var _i, _a, validator, ret, action, outData, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _b, keys_2, key, pkey, _c, submitedData_1, returnData, _loop_4, this_3, _d, pkeys_1, key;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -1465,23 +1634,23 @@ var Editor = /** @class */ (function (_super) {
                     case 28:
                         returnData = _e.sent();
                         this._out.data = returnData.data;
-                        _loop_3 = function (key) {
+                        _loop_4 = function (key) {
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
-                                    case 0: return [4 /*yield*/, this_2._trigger("post" + eventName, key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 0: return [4 /*yield*/, this_3._trigger("post" + eventName, key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
                                         _a.sent();
                                         return [2 /*return*/];
                                 }
                             });
                         };
-                        this_2 = this;
+                        this_3 = this;
                         _d = 0, pkeys_1 = pkeys_2;
                         _e.label = 29;
                     case 29:
                         if (!(_d < pkeys_1.length)) return [3 /*break*/, 32];
                         key = pkeys_1[_d];
-                        return [5 /*yield**/, _loop_3(key)];
+                        return [5 /*yield**/, _loop_4(key)];
                     case 30:
                         _e.sent();
                         _e.label = 31;
@@ -1615,7 +1784,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_4, this_3, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_5, this_4, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1643,15 +1812,15 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
-                        _loop_4 = function (i, ien) {
-                            var cond = this_3.pkeyToObject(ids[i], true, pkey);
+                        _loop_5 = function (i, ien) {
+                            var cond = this_4.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
                             });
                         };
-                        this_3 = this;
+                        this_4 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
-                            _loop_4(i, ien);
+                            _loop_5(i, ien);
                         }
                         return [4 /*yield*/, q.del()];
                     case 1:
@@ -1742,7 +1911,7 @@ var Editor = /** @class */ (function (_super) {
             });
         }
         if (http.searchPanes !== null && http.searchPanes !== undefined) {
-            var _loop_5 = function (field) {
+            var _loop_6 = function (field) {
                 if (http.searchPanes[field.name()] !== undefined) {
                     query.where(function () {
                         for (var i = 0; i < http.searchPanes[field.name()].length; i++) {
@@ -1758,7 +1927,7 @@ var Editor = /** @class */ (function (_super) {
             };
             for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
                 var field = fields_1[_i];
-                _loop_5(field);
+                _loop_6(field);
             }
         }
         // Column filter

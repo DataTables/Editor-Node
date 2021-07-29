@@ -1246,6 +1246,181 @@ export default class Editor extends NestedData {
 			}
 		}
 
+		// If there is a searchBuilder condition present in the request data
+		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== 'false') {
+			/**
+			 * This function constructs the queries that are required to implement SearchBuilder filtering
+			 * 
+			 * @param sbData The criteria that has to have conditions created for it
+			 * @returns The new query with added where conditions
+			 */
+			let _constructSearchBuilderQuery = function (sbData) {
+				// The first where condition has to be a normal where rather than an orwhere.
+				// Therefore we have to track that we have added a where condition before
+				// there is an attempt to create a new orwhere
+				let first = true;
+	
+				// Iterate over every group or criteria in the current group
+				for (let crit of sbData.criteria) {
+					// If criteria is defined then this must be a group
+					if (crit.criteria !== undefined) {
+						// Check if this is the first, or if it is and logic
+						if(sbData.logic === 'AND' || first) {
+							// Call the function for the next group
+							this.where(q => _constructSearchBuilderQuery.apply(q, [crit]));
+							// Set first to false so that in future only the logic is checked
+							first = false;
+						}
+						else {
+							// Call the function for the next group, OR logic in this block
+							this.orWhere(q => _constructSearchBuilderQuery.apply(q, [crit]));
+						}
+					}
+					else if (crit.condition !== undefined && crit.value !== undefined) {
+						// Sometimes the structure of the object that is passed across is named in a strange way.
+						// This conditional assignment solves that issue
+						let val1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+						let val2 = '';
+		
+						if (crit.value.length > 1) {
+							val2 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1]; 
+						}
+		
+						// Switch on the condition that has been passed in
+						switch(crit.condition) {
+							case '=':
+								// Check if this is the first, or if it is and logic
+								if(sbData.logic === 'AND' || first) {
+									// Call the where function for this condition
+									this.where(crit.origData, val1);
+									// Set first to false so that in future only the logic is checked
+									first = false;
+								}
+								else {
+									// Call the orWhere function - has to be or logic in this block
+									this.orWhere(crit.origData, val1);
+								}
+								break;
+							case '!=':
+								if(sbData.logic === 'AND' || first) {
+									this.whereNot(crit.origData, val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.whereNot(crit.origData, val1));
+								}
+								break;
+							case 'contains':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, 'LIKE', '%' + val1 + '%');
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
+								}
+								break;
+							case 'starts':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, 'LIKE', val1 + '%');
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
+								}
+								break;
+							case 'ends':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, 'LIKE', '%' + val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1));
+								}
+								break;
+							case '<':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, '<', val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, '<', val1));
+								}
+								break;
+							case '<=':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, '<=', val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, '<=', val1));
+								}
+								break;
+							case '>=':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, '>=', val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, '>=', val1));
+								}
+								break;
+							case '>':
+								if(sbData.logic === 'AND' || first) {
+									this.where(crit.origData, '>', val1);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.where(crit.origData, '>', val1));
+								}
+								break;
+							case 'between':
+								if(sbData.logic === 'AND' || first) {
+									this.whereBetween(crit.origData, [val1, val2]);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.whereBetween(crit.origData, [val1, val2]));
+								}
+								break;
+							case '!between':
+								if(sbData.logic === 'AND' || first) {
+									this.whereNotBetween(crit.origData, [val1, val2]);
+									first = false;
+								}
+								else {
+									this.orWhere(q => q.whereNotBetween(crit.origData, [val1, val2]));
+								}
+								break;
+							case 'empty':
+								if(sbData.logic === 'AND' || first) {
+									this.whereNull(crit.origData);
+									first = false;
+								}
+								else {
+									this.whereNull(crit.origData);
+								}
+								break;
+							case '!empty':
+								if(sbData.logic === 'AND' || first) {
+									this.whereNotNull(crit.origData);
+									first = false;
+								}
+								else {
+									this.whereNotNull(crit.origData);
+								}
+								break;
+							default:
+								break;
+						}
+					}
+				}
+				return this;
+			}
+
+			// Run the above function for the first level of the searchBuilder data
+			query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+		}
+
 		let ssp = await this._ssp(query, http);
 
 		let result = await query;
