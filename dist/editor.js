@@ -3,12 +3,10 @@ var __extends = (this && this.__extends) || (function () {
     var extendStatics = function (d, b) {
         extendStatics = Object.setPrototypeOf ||
             ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
         return extendStatics(d, b);
     };
     return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
         extendStatics(d, b);
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
@@ -26,11 +24,10 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -62,7 +59,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Action = void 0;
 var crc = require("crc");
 var field_1 = require("./field");
 var nestedData_1 = require("./nestedData");
@@ -986,7 +982,11 @@ var Editor = /** @class */ (function (_super) {
                 switch (_a.label) {
                     case 0:
                         all = [];
-                        this._fields.forEach(function (f) { return _this._writeProp(all, f.name(), f.val('set', values)); });
+                        this._fields.forEach(function (f) {
+                            if (f.val('set', values)) {
+                                _this._writeProp(all, f.name(), f.val('set', values));
+                            }
+                        });
                         // Only allow a composite insert if the values for the key are
                         // submitted. This is required because there is no reliable way in MySQL
                         // to return the newly inserted row, so we can't know any newly
@@ -1181,7 +1181,7 @@ var Editor = /** @class */ (function (_super) {
                     case 7: return [4 /*yield*/, this
                             .db()
                             .table(table)
-                            .insert(__assign(__assign({}, set), where))];
+                            .insert(__assign({}, set, where))];
                     case 8:
                         _a.sent();
                         _a.label = 9;
@@ -1444,7 +1444,7 @@ var Editor = /** @class */ (function (_super) {
                         pkeys_2.push({
                             dataKey: this.idPrefix() + pkey,
                             pkey: pkey,
-                            submitKey: key, // could be array index (create)
+                            submitKey: key,
                         });
                         _e.label = 25;
                     case 25:
@@ -1466,11 +1466,11 @@ var Editor = /** @class */ (function (_super) {
                         returnData = _e.sent();
                         this._out.data = returnData.data;
                         _loop_3 = function (key) {
-                            return __generator(this, function (_f) {
-                                switch (_f.label) {
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
                                     case 0: return [4 /*yield*/, this_2._trigger("post" + eventName, key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
-                                        _f.sent();
+                                        _a.sent();
                                         return [2 /*return*/];
                                 }
                             });
