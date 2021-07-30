@@ -1247,7 +1247,7 @@ export default class Editor extends NestedData {
 		}
 
 		// If there is a searchBuilder condition present in the request data
-		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== 'false') {
+		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
 			/**
 			 * This function constructs the queries that are required to implement SearchBuilder filtering
 			 * 
@@ -1276,14 +1276,24 @@ export default class Editor extends NestedData {
 							this.orWhere(q => _constructSearchBuilderQuery.apply(q, [crit]));
 						}
 					}
-					else if (crit.condition !== undefined && crit.value !== undefined) {
-						// Sometimes the structure of the object that is passed across is named in a strange way.
-						// This conditional assignment solves that issue
-						let val1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+					else if (crit.condition !== undefined && (crit.value !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+						let val1 = '';
 						let val2 = '';
-		
-						if (crit.value.length > 1) {
-							val2 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1]; 
+						if(crit.value !== undefined) {
+							crit.value.sort();
+							// Sometimes the structure of the object that is passed across is named in a strange way.
+							// This conditional assignment solves that issue
+							val1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+							if (val1.length === 0 && crit.condition !== "null") {
+								continue;
+							}
+							
+							if (crit.value.length > 1) {
+								val2 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
+								if(val2.length === 0) {
+									continue;
+								}
+							}
 						}
 		
 						// Switch on the condition that has been passed in
@@ -1391,22 +1401,30 @@ export default class Editor extends NestedData {
 									this.orWhere(q => q.whereNotBetween(crit.origData, [val1, val2]));
 								}
 								break;
-							case 'empty':
+							case 'null':
 								if(sbData.logic === 'AND' || first) {
-									this.whereNull(crit.origData);
+									this.where(q => {
+										q.whereNull(crit.origData);
+										q.orWhere(crit.origData, "");
+									})
 									first = false;
 								}
 								else {
-									this.whereNull(crit.origData);
+									this.orWhere(q => q.whereNull(crit.origData));
+									this.orWhere(q => q.where(crit.origData, ""));
 								}
 								break;
-							case '!empty':
+							case '!null':
 								if(sbData.logic === 'AND' || first) {
-									this.whereNotNull(crit.origData);
+									this.where(q => {
+										q.whereNotNull(crit.origData);
+										q.whereNot(crit.origData, "");
+									})
 									first = false;
 								}
 								else {
-									this.whereNotNull(crit.origData);
+									this.orWhere(q => q.whereNotNull(crit.origData));
+									this.orWhere(q => q.whereNot(crit.origData, ""));
 								}
 								break;
 							default:
@@ -1418,7 +1436,9 @@ export default class Editor extends NestedData {
 			}
 
 			// Run the above function for the first level of the searchBuilder data
-			query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+			if(http.searchBuilder.criteria !== undefined) {
+				query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+			}
 		}
 
 		let ssp = await this._ssp(query, http);

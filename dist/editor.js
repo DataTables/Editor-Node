@@ -887,7 +887,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         // If there is a searchBuilder condition present in the request data
-                        if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== 'false') {
+                        if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
                             _constructSearchBuilderQuery_1 = function (sbData) {
                                 // The first where condition has to be a normal where rather than an orwhere.
                                 // Therefore we have to track that we have added a where condition before
@@ -908,13 +908,23 @@ var Editor = /** @class */ (function (_super) {
                                             this_1.orWhere(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
                                         }
                                     }
-                                    else if (crit.condition !== undefined && crit.value !== undefined) {
-                                        // Sometimes the structure of the object that is passed across is named in a strange way.
-                                        // This conditional assignment solves that issue
-                                        var val1_1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+                                    else if (crit.condition !== undefined && (crit.value !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+                                        var val1_1 = '';
                                         var val2_1 = '';
-                                        if (crit.value.length > 1) {
-                                            val2_1 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
+                                        if (crit.value !== undefined) {
+                                            crit.value.sort();
+                                            // Sometimes the structure of the object that is passed across is named in a strange way.
+                                            // This conditional assignment solves that issue
+                                            val1_1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
+                                            if (val1_1.length === 0 && crit.condition !== "null") {
+                                                return "continue";
+                                            }
+                                            if (crit.value.length > 1) {
+                                                val2_1 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
+                                                if (val2_1.length === 0) {
+                                                    return "continue";
+                                                }
+                                            }
                                         }
                                         // Switch on the condition that has been passed in
                                         switch (crit.condition) {
@@ -1021,22 +1031,30 @@ var Editor = /** @class */ (function (_super) {
                                                     this_1.orWhere(function (q) { return q.whereNotBetween(crit.origData, [val1_1, val2_1]); });
                                                 }
                                                 break;
-                                            case 'empty':
+                                            case 'null':
                                                 if (sbData.logic === 'AND' || first) {
-                                                    this_1.whereNull(crit.origData);
+                                                    this_1.where(function (q) {
+                                                        q.whereNull(crit.origData);
+                                                        q.orWhere(crit.origData, "");
+                                                    });
                                                     first = false;
                                                 }
                                                 else {
-                                                    this_1.whereNull(crit.origData);
+                                                    this_1.orWhere(function (q) { return q.whereNull(crit.origData); });
+                                                    this_1.orWhere(function (q) { return q.where(crit.origData, ""); });
                                                 }
                                                 break;
-                                            case '!empty':
+                                            case '!null':
                                                 if (sbData.logic === 'AND' || first) {
-                                                    this_1.whereNotNull(crit.origData);
+                                                    this_1.where(function (q) {
+                                                        q.whereNotNull(crit.origData);
+                                                        q.whereNot(crit.origData, "");
+                                                    });
                                                     first = false;
                                                 }
                                                 else {
-                                                    this_1.whereNotNull(crit.origData);
+                                                    this_1.orWhere(function (q) { return q.whereNotNull(crit.origData); });
+                                                    this_1.orWhere(function (q) { return q.whereNot(crit.origData, ""); });
                                                 }
                                                 break;
                                             default:
@@ -1053,7 +1071,9 @@ var Editor = /** @class */ (function (_super) {
                                 return this;
                             };
                             // Run the above function for the first level of the searchBuilder data
-                            query = _constructSearchBuilderQuery_1.apply(query, [http.searchBuilder]);
+                            if (http.searchBuilder.criteria !== undefined) {
+                                query = _constructSearchBuilderQuery_1.apply(query, [http.searchBuilder]);
+                            }
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
                     case 2:
