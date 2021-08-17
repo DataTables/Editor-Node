@@ -1396,26 +1396,38 @@ export default class Editor extends NestedData {
 								if(sbData.logic === 'AND' || first) {
 									this.where(q => {
 										q.whereNull(crit.origData);
-										q.orWhere(crit.origData, "");
-									})
+										if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+											q.orWhere(crit.origData, "");
+										}
+									});
 									first = false;
 								}
 								else {
-									this.orWhere(q => q.whereNull(crit.origData));
-									this.orWhere(q => q.where(crit.origData, ""));
+									this.where(q => {
+										q.orWhere(q => q.whereNull(crit.origData));
+										if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+											q.orWhere(q => q.where(crit.origData, ""));
+										}
+									}, 'OR');
 								}
 								break;
 							case '!null':
 								if(sbData.logic === 'AND' || first) {
 									this.where(q => {
 										q.whereNotNull(crit.origData);
-										q.whereNot(crit.origData, "");
-									})
+										if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+											q.whereNot(crit.origData, "");
+										}
+									});
 									first = false;
 								}
 								else {
-									this.orWhere(q => q.whereNotNull(crit.origData));
-									this.orWhere(q => q.whereNot(crit.origData, ""));
+									this.where(q => {
+										q.orWhere(q => q.whereNotNull(crit.origData));
+										if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+											q.orWhere(q => q.whereNot(crit.origData, ""));
+										}
+									}, 'OR');
 								}
 								break;
 							default:

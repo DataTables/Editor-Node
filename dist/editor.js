@@ -1026,26 +1026,38 @@ var Editor = /** @class */ (function (_super) {
                                                 if (sbData.logic === 'AND' || first) {
                                                     this_1.where(function (q) {
                                                         q.whereNull(crit.origData);
-                                                        q.orWhere(crit.origData, "");
+                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                                            q.orWhere(crit.origData, "");
+                                                        }
                                                     });
                                                     first = false;
                                                 }
                                                 else {
-                                                    this_1.orWhere(function (q) { return q.whereNull(crit.origData); });
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, ""); });
+                                                    this_1.where(function (q) {
+                                                        q.orWhere(function (q) { return q.whereNull(crit.origData); });
+                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                                            q.orWhere(function (q) { return q.where(crit.origData, ""); });
+                                                        }
+                                                    }, 'OR');
                                                 }
                                                 break;
                                             case '!null':
                                                 if (sbData.logic === 'AND' || first) {
                                                     this_1.where(function (q) {
                                                         q.whereNotNull(crit.origData);
-                                                        q.whereNot(crit.origData, "");
+                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                                            q.whereNot(crit.origData, "");
+                                                        }
                                                     });
                                                     first = false;
                                                 }
                                                 else {
-                                                    this_1.orWhere(function (q) { return q.whereNotNull(crit.origData); });
-                                                    this_1.orWhere(function (q) { return q.whereNot(crit.origData, ""); });
+                                                    this_1.where(function (q) {
+                                                        q.orWhere(function (q) { return q.whereNotNull(crit.origData); });
+                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                                            q.orWhere(function (q) { return q.whereNot(crit.origData, ""); });
+                                                        }
+                                                    }, 'OR');
                                                 }
                                                 break;
                                             default:
