@@ -1276,26 +1276,17 @@ export default class Editor extends NestedData {
 							this.orWhere(q => _constructSearchBuilderQuery.apply(q, [crit]));
 						}
 					}
-					else if (crit.condition !== undefined && (crit.value !== undefined || crit.condition === "null" || crit.condition === "!null")) {
-						let val1 = '';
-						let val2 = '';
-						if(crit.value !== undefined) {
-							crit.value.sort();
-							// Sometimes the structure of the object that is passed across is named in a strange way.
-							// This conditional assignment solves that issue
-							val1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
-							if (val1.length === 0 && crit.condition !== "null") {
-								continue;
-							}
-							
-							if (crit.value.length > 1) {
-								val2 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
-								if(val2.length === 0) {
-									continue;
-								}
-							}
+					else if (crit.condition !== undefined && (crit.value1 !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+						let val1 = crit.value1;
+						let val2 = crit.value2;
+
+						if ((val1 === undefined || val1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
+							continue;
 						}
-		
+						if((val2 === undefined || val2.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
+							continue;
+						}
+						
 						// Switch on the condition that has been passed in
 						switch(crit.condition) {
 							case '=':

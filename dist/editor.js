@@ -908,23 +908,14 @@ var Editor = /** @class */ (function (_super) {
                                             this_1.orWhere(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
                                         }
                                     }
-                                    else if (crit.condition !== undefined && (crit.value !== undefined || crit.condition === "null" || crit.condition === "!null")) {
-                                        var val1_1 = '';
-                                        var val2_1 = '';
-                                        if (crit.value !== undefined) {
-                                            crit.value.sort();
-                                            // Sometimes the structure of the object that is passed across is named in a strange way.
-                                            // This conditional assignment solves that issue
-                                            val1_1 = crit.value[0] === undefined ? crit.value['[0]'] : crit.value[0];
-                                            if (val1_1.length === 0 && crit.condition !== "null") {
-                                                return "continue";
-                                            }
-                                            if (crit.value.length > 1) {
-                                                val2_1 = crit.value[1] === undefined ? crit.value['[1]'] : crit.value[1];
-                                                if (val2_1.length === 0) {
-                                                    return "continue";
-                                                }
-                                            }
+                                    else if (crit.condition !== undefined && (crit.value1 !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+                                        var val1_1 = crit.value1;
+                                        var val2_1 = crit.value2;
+                                        if ((val1_1 === undefined || val1_1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
+                                            return "continue";
+                                        }
+                                        if ((val2_1 === undefined || val2_1.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
+                                            return "continue";
                                         }
                                         // Switch on the condition that has been passed in
                                         switch (crit.condition) {
