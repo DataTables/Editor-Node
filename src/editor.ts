@@ -1376,20 +1376,20 @@ export default class Editor extends NestedData {
 								break;
 							case 'between':
 								if(sbData.logic === 'AND' || first) {
-									this.whereBetween(crit.origData, [val1, val2]);
+									this.whereBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]);
 									first = false;
 								}
 								else {
-									this.orWhere(q => q.whereBetween(crit.origData, [val1, val2]));
+									this.orWhere(q => q.whereBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]));
 								}
 								break;
 							case '!between':
 								if(sbData.logic === 'AND' || first) {
-									this.whereNotBetween(crit.origData, [val1, val2]);
+									this.whereNotBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]);
 									first = false;
 								}
 								else {
-									this.orWhere(q => q.whereNotBetween(crit.origData, [val1, val2]));
+									this.orWhere(q => q.whereNotBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]));
 								}
 								break;
 							case 'null':
