@@ -85,6 +85,198 @@ var Action;
     Action[Action["Upload"] = 4] = "Upload";
 })(Action = exports.Action || (exports.Action = {}));
 /**
+ * This function constructs the queries that are required to implement SearchBuilder filtering
+ * It is given as a function rather than a method so that the scope of the function can be set to the correct query
+ *
+ * @param sbData The criteria that has to have conditions created for it
+ * @returns The new query with added where conditions
+ */
+var _constructSearchBuilderQuery = function (sbData) {
+    // The first where condition has to be a normal where rather than an orwhere.
+    // Therefore we have to track that we have added a where condition before
+    // there is an attempt to create a new orwhere
+    var first = true;
+    var _loop_1 = function (crit) {
+        // If criteria is defined then this must be a group
+        if (crit.criteria !== undefined) {
+            // Check if this is the first, or if it is and logic
+            if (sbData.logic === 'AND' || first) {
+                // Call the function for the next group
+                this_1.where(function (q) { return _constructSearchBuilderQuery.apply(q, [crit]); });
+                // Set first to false so that in future only the logic is checked
+                first = false;
+            }
+            else {
+                // Call the function for the next group, OR logic in this block
+                this_1.orWhere(function (q) { return _constructSearchBuilderQuery.apply(q, [crit]); });
+            }
+        }
+        else if (crit.condition !== undefined && (crit.value1 !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+            var val1_1 = crit.value1;
+            var val2_1 = crit.value2;
+            if ((val1_1 === undefined || val1_1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
+                return "continue";
+            }
+            if ((val2_1 === undefined || val2_1.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
+                return "continue";
+            }
+            // Switch on the condition that has been passed in
+            switch (crit.condition) {
+                case '=':
+                    // Check if this is the first, or if it is and logic
+                    if (sbData.logic === 'AND' || first) {
+                        // Call the where function for this condition
+                        this_1.where(crit.origData, val1_1);
+                        // Set first to false so that in future only the logic is checked
+                        first = false;
+                    }
+                    else {
+                        // Call the orWhere function - has to be or logic in this block
+                        this_1.orWhere(crit.origData, val1_1);
+                    }
+                    break;
+                case '!=':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.whereNot(crit.origData, val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.whereNot(crit.origData, val1_1); });
+                    }
+                    break;
+                case 'contains':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'LIKE', '%' + val1_1 + '%');
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1 + '%'); });
+                    }
+                    break;
+                case 'starts':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'LIKE', val1_1 + '%');
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', val1_1 + '%'); });
+                    }
+                    break;
+                case 'ends':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'LIKE', '%' + val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1); });
+                    }
+                    break;
+                case '<':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, '<', val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, '<', val1_1); });
+                    }
+                    break;
+                case '<=':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, '<=', val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, '<=', val1_1); });
+                    }
+                    break;
+                case '>=':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, '>=', val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, '>=', val1_1); });
+                    }
+                    break;
+                case '>':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, '>', val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, '>', val1_1); });
+                    }
+                    break;
+                case 'between':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.whereBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.whereBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]); });
+                    }
+                    break;
+                case '!between':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.whereNotBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.whereNotBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]); });
+                    }
+                    break;
+                case 'null':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(function (q) {
+                            q.whereNull(crit.origData);
+                            if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                q.orWhere(crit.origData, "");
+                            }
+                        });
+                        first = false;
+                    }
+                    else {
+                        this_1.where(function (q) {
+                            q.orWhere(function (q) { return q.whereNull(crit.origData); });
+                            if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                q.orWhere(function (q) { return q.where(crit.origData, ""); });
+                            }
+                        }, 'OR');
+                    }
+                    break;
+                case '!null':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(function (q) {
+                            q.whereNotNull(crit.origData);
+                            if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                q.whereNot(crit.origData, "");
+                            }
+                        });
+                        first = false;
+                    }
+                    else {
+                        this_1.where(function (q) {
+                            q.orWhere(function (q) { return q.whereNotNull(crit.origData); });
+                            if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
+                                q.orWhere(function (q) { return q.whereNot(crit.origData, ""); });
+                            }
+                        }, 'OR');
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+    var this_1 = this;
+    // Iterate over every group or criteria in the current group
+    for (var _i = 0, _a = sbData.criteria; _i < _a.length; _i++) {
+        var crit = _a[_i];
+        _loop_1(crit);
+    }
+    return this;
+};
+/**
  * DataTables Editor base class for creating editable tables.
  *
  * Editor class instances are capable of servicing all of the requests that
@@ -823,7 +1015,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_1, _i, keys_1, key, _constructSearchBuilderQuery_1, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
+            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -873,7 +1065,7 @@ var Editor = /** @class */ (function (_super) {
                         // If searchPanes is in use then add the options selected there to the where condition
                         if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
                             keys = Object.keys(http.searchPanes);
-                            _loop_1 = function (key) {
+                            _loop_2 = function (key) {
                                 query.where(function () {
                                     for (var i = 0; i < http.searchPanes[key].length; i++) {
                                         if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
@@ -887,199 +1079,14 @@ var Editor = /** @class */ (function (_super) {
                             };
                             for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
                                 key = keys_1[_i];
-                                _loop_1(key);
+                                _loop_2(key);
                             }
                         }
                         // If there is a searchBuilder condition present in the request data
                         if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
-                            _constructSearchBuilderQuery_1 = function (sbData) {
-                                // The first where condition has to be a normal where rather than an orwhere.
-                                // Therefore we have to track that we have added a where condition before
-                                // there is an attempt to create a new orwhere
-                                var first = true;
-                                var _loop_2 = function (crit) {
-                                    // If criteria is defined then this must be a group
-                                    if (crit.criteria !== undefined) {
-                                        // Check if this is the first, or if it is and logic
-                                        if (sbData.logic === 'AND' || first) {
-                                            // Call the function for the next group
-                                            this_1.where(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
-                                            // Set first to false so that in future only the logic is checked
-                                            first = false;
-                                        }
-                                        else {
-                                            // Call the function for the next group, OR logic in this block
-                                            this_1.orWhere(function (q) { return _constructSearchBuilderQuery_1.apply(q, [crit]); });
-                                        }
-                                    }
-                                    else if (crit.condition !== undefined && (crit.value1 !== undefined || crit.condition === "null" || crit.condition === "!null")) {
-                                        var val1_1 = crit.value1;
-                                        var val2_1 = crit.value2;
-                                        if ((val1_1 === undefined || val1_1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
-                                            return "continue";
-                                        }
-                                        if ((val2_1 === undefined || val2_1.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
-                                            return "continue";
-                                        }
-                                        // Switch on the condition that has been passed in
-                                        switch (crit.condition) {
-                                            case '=':
-                                                // Check if this is the first, or if it is and logic
-                                                if (sbData.logic === 'AND' || first) {
-                                                    // Call the where function for this condition
-                                                    this_1.where(crit.origData, val1_1);
-                                                    // Set first to false so that in future only the logic is checked
-                                                    first = false;
-                                                }
-                                                else {
-                                                    // Call the orWhere function - has to be or logic in this block
-                                                    this_1.orWhere(crit.origData, val1_1);
-                                                }
-                                                break;
-                                            case '!=':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.whereNot(crit.origData, val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.whereNot(crit.origData, val1_1); });
-                                                }
-                                                break;
-                                            case 'contains':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, 'LIKE', '%' + val1_1 + '%');
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1 + '%'); });
-                                                }
-                                                break;
-                                            case 'starts':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, 'LIKE', val1_1 + '%');
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', val1_1 + '%'); });
-                                                }
-                                                break;
-                                            case 'ends':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, 'LIKE', '%' + val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1); });
-                                                }
-                                                break;
-                                            case '<':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, '<', val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '<', val1_1); });
-                                                }
-                                                break;
-                                            case '<=':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, '<=', val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '<=', val1_1); });
-                                                }
-                                                break;
-                                            case '>=':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, '>=', val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '>=', val1_1); });
-                                                }
-                                                break;
-                                            case '>':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(crit.origData, '>', val1_1);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.where(crit.origData, '>', val1_1); });
-                                                }
-                                                break;
-                                            case 'between':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.whereBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.whereBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]); });
-                                                }
-                                                break;
-                                            case '!between':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.whereNotBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]);
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.orWhere(function (q) { return q.whereNotBetween(crit.origData, [isNaN(val1_1) ? val1_1 : +val1_1, isNaN(val2_1) ? val2_1 : +val2_1]); });
-                                                }
-                                                break;
-                                            case 'null':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(function (q) {
-                                                        q.whereNull(crit.origData);
-                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-                                                            q.orWhere(crit.origData, "");
-                                                        }
-                                                    });
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.where(function (q) {
-                                                        q.orWhere(function (q) { return q.whereNull(crit.origData); });
-                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-                                                            q.orWhere(function (q) { return q.where(crit.origData, ""); });
-                                                        }
-                                                    }, 'OR');
-                                                }
-                                                break;
-                                            case '!null':
-                                                if (sbData.logic === 'AND' || first) {
-                                                    this_1.where(function (q) {
-                                                        q.whereNotNull(crit.origData);
-                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-                                                            q.whereNot(crit.origData, "");
-                                                        }
-                                                    });
-                                                    first = false;
-                                                }
-                                                else {
-                                                    this_1.where(function (q) {
-                                                        q.orWhere(function (q) { return q.whereNotNull(crit.origData); });
-                                                        if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-                                                            q.orWhere(function (q) { return q.whereNot(crit.origData, ""); });
-                                                        }
-                                                    }, 'OR');
-                                                }
-                                                break;
-                                            default:
-                                                break;
-                                        }
-                                    }
-                                };
-                                var this_1 = this;
-                                // Iterate over every group or criteria in the current group
-                                for (var _i = 0, _a = sbData.criteria; _i < _a.length; _i++) {
-                                    var crit = _a[_i];
-                                    _loop_2(crit);
-                                }
-                                return this;
-                            };
                             // Run the above function for the first level of the searchBuilder data
                             if (http.searchBuilder.criteria !== undefined) {
-                                query = _constructSearchBuilderQuery_1.apply(query, [http.searchBuilder]);
+                                query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
                             }
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
@@ -1955,6 +1962,13 @@ var Editor = /** @class */ (function (_super) {
             for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
                 var field = fields_1[_i];
                 _loop_6(field);
+            }
+        }
+        // If there is a searchBuilder condition present in the request data
+        if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
+            // Run the above function for the first level of the searchBuilder data
+            if (http.searchBuilder.criteria !== undefined) {
+                query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
             }
         }
         // Column filter
