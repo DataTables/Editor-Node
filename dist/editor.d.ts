@@ -265,7 +265,7 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     fields(...fields: Field[]): Editor;
-    get(fn: IGet): void;
+    get(fn: IGet): this;
     /**
      * Get the id prefix.
      *

@@ -636,8 +636,10 @@ export default class Editor extends NestedData {
 		return this;
 	}
 
-	public get(fn: IGet) {
+	public get(fn: IGet): this {
 		this._customGet = fn;
+
+		return this;
 	}
 
 	/**

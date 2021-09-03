@@ -445,6 +445,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype.get = function (fn) {
         this._customGet = fn;
+        return this;
     };
     Editor.prototype.idPrefix = function (idPrefix) {
         if (idPrefix === undefined) {
