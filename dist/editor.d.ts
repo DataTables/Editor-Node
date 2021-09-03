@@ -123,6 +123,7 @@ export interface IDtResponse {
  * be validates together, rather than individually.
  */
 export declare type IGlobalValidator = (editor: Editor, action: string, http: IDtRequest) => Promise<true | string>;
+declare type IGet = (id: string | string[], http: any) => Promise<IDtResponse>;
 /**
  * DataTables Editor base class for creating editable tables.
  *
@@ -184,6 +185,7 @@ export default class Editor extends NestedData {
     private _schema;
     private _write;
     private _doValidate;
+    private _customGet;
     /**
      * Creates an instance of Editor.
      * @param {knex} [db=null] Database connection object
@@ -263,6 +265,7 @@ export default class Editor extends NestedData {
      * @returns {Editor} Self for chaining
      */
     fields(...fields: Field[]): Editor;
+    get(fn: IGet): void;
     /**
      * Get the id prefix.
      *
@@ -575,3 +578,4 @@ export default class Editor extends NestedData {
     private _update;
     private _upload;
 }
+export {};

@@ -335,6 +335,7 @@ var Editor = /** @class */ (function (_super) {
         _this._schema = null;
         _this._write = true;
         _this._doValidate = true;
+        _this._customGet = null;
         if (db) {
             _this.db(db);
         }
@@ -441,6 +442,9 @@ var Editor = /** @class */ (function (_super) {
         }
         this._fields.push.apply(this._fields, fields);
         return this;
+    };
+    Editor.prototype.get = function (fn) {
+        this._customGet = fn;
     };
     Editor.prototype.idPrefix = function (idPrefix) {
         if (idPrefix === undefined) {
@@ -1015,7 +1019,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, response, i, ien, _a;
+            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1025,6 +1029,10 @@ var Editor = /** @class */ (function (_super) {
                         if (cancel === false) {
                             return [2 /*return*/, {}];
                         }
+                        if (!this._customGet) return [3 /*break*/, 2];
+                        response = this._customGet(id, http);
+                        return [3 /*break*/, 13];
+                    case 2:
                         fields = this.fields();
                         pkeys = this.pkey();
                         query = this.db().table(this._readTable()[0]);
@@ -1090,10 +1098,10 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
-                    case 2:
+                    case 3:
                         ssp = _b.sent();
                         return [4 /*yield*/, query];
-                    case 3:
+                    case 4:
                         result = _b.sent();
                         if (!result) {
                             throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
@@ -1112,29 +1120,30 @@ var Editor = /** @class */ (function (_super) {
                             out.push(inner);
                         }
                         spOptions = {};
-                        if (!(id === null)) return [3 /*break*/, 8];
+                        if (!(id === null)) return [3 /*break*/, 9];
                         i = 0, ien = fields.length;
-                        _b.label = 4;
-                    case 4:
-                        if (!(i < ien)) return [3 /*break*/, 8];
-                        return [4 /*yield*/, fields[i].optionsExec(this.db())];
+                        _b.label = 5;
                     case 5:
+                        if (!(i < ien)) return [3 /*break*/, 9];
+                        return [4 /*yield*/, fields[i].optionsExec(this.db())];
+                    case 6:
                         opts = _b.sent();
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
                         return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
-                    case 6:
+                    case 7:
                         spopts = _b.sent();
                         if (spopts) {
                             spOptions[fields[i].name()] = spopts;
                         }
-                        _b.label = 7;
-                    case 7:
-                        i++;
-                        return [3 /*break*/, 4];
+                        _b.label = 8;
                     case 8:
+                        i++;
+                        return [3 /*break*/, 5];
+                    case 9:
                         searchPanes = { options: spOptions };
+                        // Build a DtResponse object
                         response = {
                             data: out,
                             draw: ssp.draw,
@@ -1148,23 +1157,23 @@ var Editor = /** @class */ (function (_super) {
                             response.searchPanes = searchPanes;
                         }
                         i = 0, ien = this._join.length;
-                        _b.label = 9;
-                    case 9:
-                        if (!(i < ien)) return [3 /*break*/, 12];
-                        return [4 /*yield*/, this._join[i].data(this, response)];
+                        _b.label = 10;
                     case 10:
-                        _b.sent();
-                        _b.label = 11;
+                        if (!(i < ien)) return [3 /*break*/, 13];
+                        return [4 /*yield*/, this._join[i].data(this, response)];
                     case 11:
-                        i++;
-                        return [3 /*break*/, 9];
+                        _b.sent();
+                        _b.label = 12;
                     case 12:
+                        i++;
+                        return [3 /*break*/, 10];
+                    case 13:
                         _a = response;
                         return [4 /*yield*/, this._fileData(null, null, response.data)];
-                    case 13:
-                        _a.files = _b.sent();
-                        return [4 /*yield*/, this._trigger('postGet', id, out)];
                     case 14:
+                        _a.files = _b.sent();
+                        return [4 /*yield*/, this._trigger('postGet', id, response.data)];
+                    case 15:
                         _b.sent();
                         return [2 /*return*/, response];
                 }

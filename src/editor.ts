@@ -188,6 +188,8 @@ interface ILeftJoin {
 	operator?: string;
 }
 
+type IGet = (id: string | string[], http) => Promise<IDtResponse>;
+
 /**
  * This function constructs the queries that are required to implement SearchBuilder filtering
  * It is given as a function rather than a method so that the scope of the function can be set to the correct query
@@ -464,6 +466,7 @@ export default class Editor extends NestedData {
 	private _schema: string = null;
 	private _write: boolean = true;
 	private _doValidate: boolean = true;
+	private _customGet: null | IGet = null;
 
 	/**
 	 * Creates an instance of Editor.
@@ -631,6 +634,10 @@ export default class Editor extends NestedData {
 		this._fields.push.apply(this._fields, fields);
 
 		return this;
+	}
+
+	public get(fn: IGet) {
+		this._customGet = fn;
 	}
 
 	/**
@@ -1371,147 +1378,154 @@ export default class Editor extends NestedData {
 	}
 
 	private async _get(id: string | string[], http = null): Promise<IDtResponse> {
+		let response;
 		let cancel = await this._trigger('preGet', id);
+
 		if (cancel === false) {
 			return {};
 		}
 
-		let fields = this.fields();
-		let pkeys = this.pkey();
-		let query = this.db().table(this._readTable()[0]);
-		let options = {};
-
-		for (let i = 0, ien = pkeys.length; i < ien; i++) {
-			query.select(pkeys[i] + ' as ' + pkeys[i]);
+		if (this._customGet) {
+			response = this._customGet(id, http);
 		}
+		else {
+			let fields = this.fields();
+			let pkeys = this.pkey();
+			let query = this.db().table(this._readTable()[0]);
+			let options = {};
 
-		for (let i = 0, ien = fields.length; i < ien; i++) {
-			if (pkeys.includes(fields[i].dbField())) {
-				continue;
+			for (let i = 0, ien = pkeys.length; i < ien; i++) {
+				query.select(pkeys[i] + ' as ' + pkeys[i]);
 			}
 
-			if (fields[i].apply('get') && fields[i].getValue() === undefined) {
-				// Use the `as` to ensure that the table name is included, if using a join
-				let dbField = fields[i].dbField();
+			for (let i = 0, ien = fields.length; i < ien; i++) {
+				if (pkeys.includes(fields[i].dbField())) {
+					continue;
+				}
 
-				if (dbField.indexOf('(') === -1) {
-					query.select(dbField + ' as ' + dbField);
+				if (fields[i].apply('get') && fields[i].getValue() === undefined) {
+					// Use the `as` to ensure that the table name is included, if using a join
+					let dbField = fields[i].dbField();
+
+					if (dbField.indexOf('(') === -1) {
+						query.select(dbField + ' as ' + dbField);
+					}
+					else {
+						query.select(this.db().raw(dbField + ' as "' + dbField + '"'));
+					}
+				}
+			}
+
+			this._getWhere(query);
+			this._performLeftJoin(query);
+
+			if (id !== null) {
+				// Allow multiple specific rows to be requested at a time
+				if (Array.isArray(id)) {
+					query.where(q => {
+						for (let ident of id) {
+							q.orWhere(this.pkeyToObject(ident, true));
+						}
+					});
 				}
 				else {
-					query.select(this.db().raw(dbField + ' as "' + dbField + '"'));
+					query.where(this.pkeyToObject(id, true));
 				}
 			}
-		}
 
-		this._getWhere(query);
-		this._performLeftJoin(query);
-
-		if (id !== null) {
-			// Allow multiple specific rows to be requested at a time
-			if (Array.isArray(id)) {
-				query.where(q => {
-					for (let ident of id) {
-						q.orWhere(this.pkeyToObject(ident, true));
-					}
-				});
-			}
-			else {
-				query.where(this.pkeyToObject(id, true));
-			}
-		}
-
-		// If searchPanes is in use then add the options selected there to the where condition
-		if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
-			let keys = Object.keys(http.searchPanes);
-			for (let key of keys) {
-				query.where(function() {
-					for (let i = 0; i < http.searchPanes[key].length; i++) {
-						if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
-							this.orWhereNull(key);
+			// If searchPanes is in use then add the options selected there to the where condition
+			if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
+				let keys = Object.keys(http.searchPanes);
+				for (let key of keys) {
+					query.where(function() {
+						for (let i = 0; i < http.searchPanes[key].length; i++) {
+							if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
+								this.orWhereNull(key);
+							}
+							else {
+								this.orWhere(key, http.searchPanes[key][i]);
+							}
 						}
-						else {
-							this.orWhere(key, http.searchPanes[key][i]);
-						}
+					});
+				}
+			}
+
+			// If there is a searchBuilder condition present in the request data
+			if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
+				// Run the above function for the first level of the searchBuilder data
+				if(http.searchBuilder.criteria !== undefined) {
+					query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+				}
+			}
+
+			let ssp = await this._ssp(query, http);
+
+			let result = await query;
+			if (! result) {
+				throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
+					'`debug: true` in your Knex db configuration'
+				);
+			}
+
+			let out = [];
+			for (let i = 0, ien = result.length; i < ien; i++) {
+				let inner = {
+					DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true),
+				};
+
+				for (let j = 0, jen = fields.length; j < jen; j++) {
+					if (fields[j].apply('get') && fields[j].http()) {
+						fields[j].write(inner, result[i]);
 					}
-				});
+				}
+
+				out.push(inner);
 			}
-		}
 
-		// If there is a searchBuilder condition present in the request data
-		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
-			// Run the above function for the first level of the searchBuilder data
-			if(http.searchBuilder.criteria !== undefined) {
-				query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+			let spOptions = {};
+			// Field options and SearchPane Options
+			if (id === null) {
+				for (let i = 0, ien = fields.length; i < ien; i++) {
+					let opts = await fields[i].optionsExec(this.db());
+
+					if (opts) {
+						options[ fields[i].name() ] = opts;
+					}
+
+					let spopts = await fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
+
+					if (spopts) {
+						spOptions[fields[i].name()] = spopts;
+					}
+				}
 			}
-		}
 
-		let ssp = await this._ssp(query, http);
+			let searchPanes = {options: spOptions};
 
-		let result = await query;
-		if (! result) {
-			throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
-				'`debug: true` in your Knex db configuration'
-			);
-		}
-
-		let out = [];
-		for (let i = 0, ien = result.length; i < ien; i++) {
-			let inner = {
-				DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true),
+			// Build a DtResponse object
+			response = {
+				data: out,
+				draw: ssp.draw,
+				files: {},
+				options,
+				recordsFiltered: ssp.recordsFiltered,
+				recordsTotal: ssp.recordsTotal,
+				searchPanes: undefined
 			};
 
-			for (let j = 0, jen = fields.length; j < jen; j++) {
-				if (fields[j].apply('get') && fields[j].http()) {
-					fields[j].write(inner, result[i]);
-				}
+			if(Object.keys(searchPanes.options).length > 0) {
+				response.searchPanes = searchPanes;
 			}
 
-			out.push(inner);
-		}
-
-		let spOptions = {};
-		// Field options and SearchPane Options
-		if (id === null) {
-			for (let i = 0, ien = fields.length; i < ien; i++) {
-				let opts = await fields[i].optionsExec(this.db());
-
-				if (opts) {
-					options[ fields[i].name() ] = opts;
-				}
-
-				let spopts = await fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
-
-				if (spopts) {
-					spOptions[fields[i].name()] = spopts;
-				}
+			// Row based joins
+			for (let i = 0, ien = this._join.length; i < ien; i++) {
+				await this._join[i].data(this, response);
 			}
-		}
-
-		let searchPanes = {options: spOptions};
-
-		// Build a DtResponse object
-		let response = {
-			data: out,
-			draw: ssp.draw,
-			files: {},
-			options,
-			recordsFiltered: ssp.recordsFiltered,
-			recordsTotal: ssp.recordsTotal,
-			searchPanes: undefined
-		};
-
-		if(Object.keys(searchPanes.options).length > 0) {
-			response.searchPanes = searchPanes;
-		}
-
-		// Row based joins
-		for (let i = 0, ien = this._join.length; i < ien; i++) {
-			await this._join[i].data(this, response);
 		}
 
 		response.files = await this._fileData(null, null, response.data);
 
-		await this._trigger('postGet', id, out);
+		await this._trigger('postGet', id, response.data);
 		return response;
 	}
 
