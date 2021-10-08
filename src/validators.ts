@@ -131,6 +131,10 @@ export default class Validator {
 					true;
 			}
 
+			if (typeof val === 'string') {
+				val = val.toLocaleLowerCase();
+			}
+
 			if (
 				val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
 				val === 'on' || val === 'yes' || val === '✓' || val === 'x' || val === 'X' ||
