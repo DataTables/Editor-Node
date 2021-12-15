@@ -686,7 +686,8 @@ export default class Validator {
 				);
 			}
 
-			let res = await db( table )
+			let res = await db
+				.from( table )
 				.select( column )
 				.where( { [column]: val } );
 

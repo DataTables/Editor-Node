@@ -757,7 +757,8 @@ var Validator = /** @class */ (function () {
                                 throw new Error('Table or column for database value check is not ' +
                                     'defined for field ' + host.field.name());
                             }
-                            return [4 /*yield*/, db(table)
+                            return [4 /*yield*/, db
+                                    .from(table)
                                     .select(column)
                                     .where((_a = {}, _a[column] = val, _a))];
                         case 1:
