@@ -43,7 +43,7 @@ export default class SearchPaneOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
-	private _leftJoin: ILeftJoin[] = [];
+	private _leftJoin: ILeftJoin[];
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
@@ -202,7 +202,7 @@ export default class SearchPaneOptions {
 	 * @param operator operator for the join
 	 * @param field2 the second field
 	 */
-	public leftJoin(table: string, field1: string, operator: string, field2: string): this {
+	public leftJoin(table: string, field1: string | Function, operator: string, field2: string): this {
 		if(this._leftJoin === undefined || this._leftJoin === null) {
 			this._leftJoin = [];
 		}
@@ -366,7 +366,7 @@ export default class SearchPaneOptions {
 		// If a left join needs to be done for the above queries we can just do it in the same place
 		if (join !== null && join !== undefined) {
 			for (let joiner of join) {
-				if(join["fn"]) {
+				if(joiner.fn) {
 					q.leftJoin(joiner.table, joiner.fn as any);
 					query.leftJoin(joiner.table, joiner.fn as any);
 					queryLast.leftJoin(joiner.table, joiner.fn as any);
