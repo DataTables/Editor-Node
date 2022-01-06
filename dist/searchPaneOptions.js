@@ -53,7 +53,6 @@ function isNumeric(n) {
  */
 var SearchPaneOptions = /** @class */ (function () {
     function SearchPaneOptions() {
-        this._leftJoin = [];
     }
     SearchPaneOptions.prototype.label = function (label) {
         if (label === undefined) {
@@ -231,7 +230,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         // If a left join needs to be done for the above queries we can just do it in the same place
                         if (join !== null && join !== undefined) {
                             _loop_2 = function (joiner) {
-                                if (join["fn"]) {
+                                if (joiner.fn) {
                                     q.leftJoin(joiner.table, joiner.fn);
                                     query.leftJoin(joiner.table, joiner.fn);
                                 }
