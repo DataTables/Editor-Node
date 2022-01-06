@@ -11,6 +11,19 @@ export interface IOption {
 	value: string | number;
 }
 
+/**
+ * Left join object structure
+ * @interface ILeftJoin
+ * @private
+ */
+ interface ILeftJoin {
+	table: string;
+	fn?: Function;
+	field1?: string;
+	field2?: string;
+	operator?: string;
+}
+
 export type IRenderer = (str: string) => string;
 export type CustomOptions = (db: knex) => Promise<IOption[]>;
 
@@ -30,7 +43,7 @@ export default class SearchPaneOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
-	private _leftJoin: Array<{[keys: string]: string}>;
+	private _leftJoin: ILeftJoin[] = [];
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
@@ -194,12 +207,24 @@ export default class SearchPaneOptions {
 			this._leftJoin = [];
 		}
 
-		this._leftJoin.push({
-			field1,
-			field2,
-			operator,
-			table
-		});
+		if (typeof field1 === 'function') {
+			this._leftJoin.push({
+				field1: '',
+				field2: '',
+				fn: field1,
+				operator: '',
+				table,
+			});
+		}
+		else {
+			this._leftJoin.push({
+				field1,
+				field2,
+				operator,
+				table,
+			});
+		}
+
 		return this;
 	}
 
@@ -315,8 +340,18 @@ export default class SearchPaneOptions {
 		// If a left join needs to be done for the above queries we can just do it in the same place
 		if (join !== null && join !== undefined) {
 			for (let joiner of join) {
-				q.leftJoin(joiner.table, joiner.field1, joiner.field2);
-				query.leftJoin(joiner.table, joiner.field1, joiner.field2);
+				if(join["fn"]) {
+					q.leftJoin(joiner.table, joiner.fn as any);
+					query.leftJoin(joiner.table, joiner.fn as any);
+				}
+				else {
+					q.leftJoin(joiner.table, function() {
+						this.on(joiner.field1, joiner.operator, joiner.field2);
+					});
+					query.leftJoin(joiner.table, function() {
+						this.on(joiner.field1, joiner.operator, joiner.field2);
+					});
+				}
 			}
 		}
 
