@@ -53,6 +53,7 @@ function isNumeric(n) {
  */
 var SearchPaneOptions = /** @class */ (function () {
     function SearchPaneOptions() {
+        this._leftJoin = [];
     }
     SearchPaneOptions.prototype.label = function (label) {
         if (label === undefined) {
@@ -111,12 +112,23 @@ var SearchPaneOptions = /** @class */ (function () {
         if (this._leftJoin === undefined || this._leftJoin === null) {
             this._leftJoin = [];
         }
-        this._leftJoin.push({
-            field1: field1,
-            field2: field2,
-            operator: operator,
-            table: table
-        });
+        if (typeof field1 === 'function') {
+            this._leftJoin.push({
+                field1: '',
+                field2: '',
+                fn: field1,
+                operator: '',
+                table: table,
+            });
+        }
+        else {
+            this._leftJoin.push({
+                field1: field1,
+                field2: field2,
+                operator: operator,
+                table: table,
+            });
+        }
         return this;
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -132,7 +144,7 @@ var SearchPaneOptions = /** @class */ (function () {
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, spopts, db, query, queryLast, _loop_1, _i, fields_1, fie, _loop_2, _a, fields_2, fie, q, _b, join_1, joiner, res, cts, ctsLast, out, _c, res_1, recordCou, set, _d, ctsLast_1, recordTot, _e, cts_1, recordTot;
+            var label, value, table, formatter, join, fields, spopts, db, query, queryLast, _loop_1, _i, fields_1, fie, _loop_2, _a, fields_2, fie, q, _loop_3, _b, join_1, joiner, res, cts, ctsLast, out, _c, res_1, recordCou, set, _d, ctsLast_1, recordTot, _e, cts_1, recordTot;
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
@@ -213,6 +225,8 @@ var SearchPaneOptions = /** @class */ (function () {
                                 _loop_1(fie);
                             }
                         }
+                        // If there is a last value set then a slightly different set of results is required for cascade
+                        // That panes results are based off of the results when only considering the selections of all of the others
                         if (http.searchPanes !== undefined && http.searchPanesLast) {
                             _loop_2 = function (fie) {
                                 if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
@@ -244,11 +258,27 @@ var SearchPaneOptions = /** @class */ (function () {
                         }
                         // If a left join needs to be done for the above queries we can just do it in the same place
                         if (join !== null && join !== undefined) {
+                            _loop_3 = function (joiner) {
+                                if (join["fn"]) {
+                                    q.leftJoin(joiner.table, joiner.fn);
+                                    query.leftJoin(joiner.table, joiner.fn);
+                                    queryLast.leftJoin(joiner.table, joiner.fn);
+                                }
+                                else {
+                                    q.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                    query.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                    queryLast.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                }
+                            };
                             for (_b = 0, join_1 = join; _b < join_1.length; _b++) {
                                 joiner = join_1[_b];
-                                q.leftJoin(joiner.table, joiner.field1, joiner.field2);
-                                query.leftJoin(joiner.table, joiner.field1, joiner.field2);
-                                queryLast.leftJoin(joiner.table, joiner.field1, joiner.field2);
+                                _loop_3(joiner);
                             }
                         }
                         if (this._order) {
@@ -280,6 +310,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         for (_c = 0, res_1 = res; _c < res_1.length; _c++) {
                             recordCou = res_1[_c];
                             set = false;
+                            // Send slightly different results if this is the last pane
                             if (http.searchPanesLast && field.name() === http.searchPanesLast) {
                                 for (_d = 0, ctsLast_1 = ctsLast; _d < ctsLast_1.length; _d++) {
                                     recordTot = ctsLast_1[_d];
