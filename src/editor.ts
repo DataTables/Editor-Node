@@ -408,7 +408,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.0.5';
+	public static version: string = '2.0.6';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1219,7 +1219,7 @@ export default class Editor extends NestedData {
 			return this._where;
 		}
 
-		this._where.push(...cond);
+		this._where.push(cond);
 
 		return this;
 	}
@@ -1535,7 +1535,7 @@ export default class Editor extends NestedData {
 		let where = this.where();
 
 		for (let i = 0, ien = where.length; i < ien; i++) {
-			query.where(where[i]);
+			query.where.apply(query, where[i]);
 		}
 	}
 
