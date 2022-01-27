@@ -488,7 +488,7 @@ var Mjoin = /** @class */ (function (_super) {
      */
     Mjoin.prototype.validate = function (errors, editor, data, action) {
         return __awaiter(this, void 0, void 0, function () {
-            var joinData, j, jen, validator, res, i, ien;
+            var joinData, submittedCount, j, jen, validator, res, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -497,6 +497,11 @@ var Mjoin = /** @class */ (function (_super) {
                         }
                         this._prepare(editor);
                         joinData = data[this._name] || [];
+                        submittedCount = data[this._name + '-many-count'] || null;
+                        // On edit, an empty submission means we are doing nothing.
+                        if (action === 'edit' && submittedCount === null) {
+                            return [2 /*return*/];
+                        }
                         j = 0, jen = this._validators.length;
                         _a.label = 1;
                     case 1:

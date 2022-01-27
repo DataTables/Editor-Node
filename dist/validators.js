@@ -171,6 +171,9 @@ var Validator = /** @class */ (function () {
                                 opts.message :
                                 true];
                     }
+                    if (typeof val === 'string') {
+                        val = val.toLocaleLowerCase();
+                    }
                     if (val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
                         val === 'on' || val === 'yes' || val === '✓' || val === 'x' || val === 'X' ||
                         val === false || val === 0 || val === '0' || val === 'false' || val === 'f' ||
@@ -754,7 +757,8 @@ var Validator = /** @class */ (function () {
                                 throw new Error('Table or column for database value check is not ' +
                                     'defined for field ' + host.field.name());
                             }
-                            return [4 /*yield*/, db(table)
+                            return [4 /*yield*/, db
+                                    .from(table)
                                     .select(column)
                                     .where((_a = {}, _a[column] = val, _a))];
                         case 1:

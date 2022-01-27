@@ -601,6 +601,12 @@ export default class Mjoin extends NestedData {
 
 		this._prepare( editor );
 		let joinData = data[ this._name ] || [];
+		let submittedCount = data[ this._name + '-many-count' ] || null;
+
+		// On edit, an empty submission means we are doing nothing.
+		if (action === 'edit' && submittedCount === null) {
+			return;
+		}
 
 		for ( let j = 0, jen=this._validators.length ; j < jen ; j++ ) {
 			let validator = this._validators[j];

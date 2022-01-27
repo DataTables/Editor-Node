@@ -265,17 +265,16 @@ export default class Options {
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
 			this._order.split(',').forEach((val) => {
-				let field = val.toLocaleLowerCase()
-					.replace(' asc', '')
-					.replace('desc', '')
-					.trim();
+				val = val.toLocaleLowerCase();
+				const direction = val.match(/( desc$| asc$)/g);
+				const field = val.replace(/( desc$| asc$)/, '').trim();
 
 				if (! fields.includes(field)) {
 					q.select(field);
 				}
-			});
 
-			q.orderBy(this._order);
+				q.orderBy(field, direction ? direction[0].trim() : 'asc');
+			});
 		}
 
 		if (this._limit) {

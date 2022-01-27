@@ -120,7 +120,7 @@ export default class SearchPaneOptions {
      * @param operator operator for the join
      * @param field2 the second field
      */
-    leftJoin(table: string, field1: string, operator: string, field2: string): this;
+    leftJoin(table: string, field1: string | Function, operator: string, field2: string): this;
     /**
      * Execution function for getting the SearchPane options
      * @param field The field to retrieve data from

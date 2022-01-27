@@ -111,12 +111,23 @@ var SearchPaneOptions = /** @class */ (function () {
         if (this._leftJoin === undefined || this._leftJoin === null) {
             this._leftJoin = [];
         }
-        this._leftJoin.push({
-            field1: field1,
-            field2: field2,
-            operator: operator,
-            table: table
-        });
+        if (typeof field1 === 'function') {
+            this._leftJoin.push({
+                field1: '',
+                field2: '',
+                fn: field1,
+                operator: '',
+                table: table,
+            });
+        }
+        else {
+            this._leftJoin.push({
+                field1: field1,
+                field2: field2,
+                operator: operator,
+                table: table,
+            });
+        }
         return this;
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -132,7 +143,7 @@ var SearchPaneOptions = /** @class */ (function () {
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, spopts, db, query, _loop_1, _i, fields_1, fie, q, _a, join_1, joiner, res, cts, out, _b, res_1, recordCou, set, _c, cts_1, recordTot;
+            var label, value, table, formatter, join, fields, spopts, db, query, _loop_1, _i, fields_1, fie, q, _loop_2, _a, join_1, joiner, res, cts, out, _b, res_1, recordCou, set, _c, cts_1, recordTot;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -218,10 +229,23 @@ var SearchPaneOptions = /** @class */ (function () {
                         }
                         // If a left join needs to be done for the above queries we can just do it in the same place
                         if (join !== null && join !== undefined) {
+                            _loop_2 = function (joiner) {
+                                if (joiner.fn) {
+                                    q.leftJoin(joiner.table, joiner.fn);
+                                    query.leftJoin(joiner.table, joiner.fn);
+                                }
+                                else {
+                                    q.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                    query.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                }
+                            };
                             for (_a = 0, join_1 = join; _a < join_1.length; _a++) {
                                 joiner = join_1[_a];
-                                q.leftJoin(joiner.table, joiner.field1, joiner.field2);
-                                query.leftJoin(joiner.table, joiner.field1, joiner.field2);
+                                _loop_2(joiner);
                             }
                         }
                         if (this._order) {
