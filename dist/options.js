@@ -165,15 +165,14 @@ var Options = /** @class */ (function () {
                             // of fields to display, we need to add the ordering field, due to the
                             // select distinct.
                             this._order.split(',').forEach(function (val) {
-                                var field = val.toLocaleLowerCase()
-                                    .replace(' asc', '')
-                                    .replace('desc', '')
-                                    .trim();
+                                val = val.toLocaleLowerCase();
+                                var direction = val.match(/( desc$| asc$)/g);
+                                var field = val.replace(/( desc$| asc$)/, '').trim();
                                 if (!fields.includes(field)) {
                                     q.select(field);
                                 }
+                                q.orderBy(field, direction ? direction[0].trim() : 'asc');
                             });
-                            q.orderBy(this._order);
                         }
                         if (this._limit) {
                             q.limit(this.limit());
