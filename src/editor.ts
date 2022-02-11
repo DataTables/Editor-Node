@@ -2303,13 +2303,15 @@ export default class Editor extends NestedData {
 	}
 
 	private _sspSort(query: knex.QueryBuilder, http: IDtRequest): void {
-		for (let i = 0, ien = http.order.length; i < ien; i++) {
-			let order = http.order[i];
+		if (http.order) {
+			for (let i = 0, ien = http.order.length; i < ien; i++) {
+				let order = http.order[i];
 
-			query.orderBy(
-				this._sspField(http, order.column),
-				order.dir === 'asc' ? 'asc' : 'desc'
-			);
+				query.orderBy(
+					this._sspField(http, order.column),
+					order.dir === 'asc' ? 'asc' : 'desc'
+				);
+			}
 		}
 	}
 
