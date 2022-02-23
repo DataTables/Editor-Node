@@ -506,7 +506,9 @@ export default class Upload {
 			.from( this._dbTable )
 			.returning( this._dbPkey );
 
-		let id = res[0];
+		let id = typeof res[0] === 'object'
+			? res[0][this._dbPkey] // Knex 1.0+
+			: res[0]; // Knex 0.95 and earlier
 
 		// Update the newly inserted row with the path information. We have to
 		// use a second statement here as we don't know in advance what the

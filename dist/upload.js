@@ -520,7 +520,9 @@ var Upload = /** @class */ (function () {
                             .returning(this._dbPkey)];
                     case 14:
                         res = _e.sent();
-                        id = res[0];
+                        id = typeof res[0] === 'object'
+                            ? res[0][this._dbPkey] // Knex 1.0+
+                            : res[0];
                         pathKeys = Object.keys(pathFields);
                         if (!pathKeys.length) return [3 /*break*/, 16];
                         toSet = {};
