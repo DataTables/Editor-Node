@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
 import * as moment from 'moment';
 import * as validUrl from 'valid-url';
 
@@ -576,7 +577,7 @@ export default class Validator {
 	 *   value. If not given the host field's database column name is used
 	 * @param {string} [table=null] Table to check that this value is uniquely
 	 *   valid on. If not given the host Editor's table name is used
-	 * @param {knex} [db=null] Database connection. If not given the host
+	 * @param {Knex} [db=null] Database connection. If not given the host
 	 *   Editor's database connection is used
 	 * @returns {IValidator} Configured validation function
 	 */
@@ -584,7 +585,7 @@ export default class Validator {
 		cfg: ValidationOptions | null = null,
 		column: string | null = null,
 		table: string | null = null,
-		db: knex | null = null
+		db: Knex | null = null
 	): IValidator {
 		let opts = ValidationOptions.select( cfg );
 
@@ -641,7 +642,7 @@ export default class Validator {
 	 *   value. If not given the host field's database column name is used
 	 * @param {string} [table=null] Table to check that this value is uniquely
 	 *   valid on. If not given the host Editor's table name is used
-	 * @param {knex} [db=null] Database connection. If not given the host
+	 * @param {Knex} [db=null] Database connection. If not given the host
 	 *   Editor's database connection is used
 	 * @returns {IValidator} Configured validation function
 	 */
@@ -649,7 +650,7 @@ export default class Validator {
 		cfg: ValidationOptions | null = null,
 		column: string | null = null,
 		table: string | null = null,
-		db: knex | null = null,
+		db: Knex | null = null,
 		values: any[] = []
 	): IValidator {
 		let opts = ValidationOptions.select( cfg );

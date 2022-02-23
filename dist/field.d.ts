@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import Editor, { IDtRequest } from './editor';
 import { IFormatter } from './formatters';
 import NestedData from './nestedData';
@@ -303,11 +303,11 @@ export default class Field extends NestedData {
     /**
      * @hidden
      */
-    optionsExec(db: knex): Promise<false | IOption[]>;
+    optionsExec(db: Knex): Promise<false | IOption[]>;
     /**
      * @hidden
      */
-    searchPaneOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any, db: knex): Promise<false | IOption[]>;
+    searchPaneOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any, db: Knex): Promise<false | IOption[]>;
     /**
      * @hidden
      */

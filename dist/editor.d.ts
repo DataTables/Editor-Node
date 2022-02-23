@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import Field from './field';
 import Mjoin from './mjoin';
 import NestedData from './nestedData';
@@ -195,7 +195,7 @@ export default class Editor extends NestedData {
      * @param {(string|string[])} [pkey=null] Primary key column name in the
      *   table given in
      */
-    constructor(db?: knex, table?: string | string[], pkey?: string | string[]);
+    constructor(db?: Knex, table?: string | string[], pkey?: string | string[]);
     /**
      * Get the data constructed in this instance.
      * @returns {IDtResponse} Data object
@@ -205,15 +205,15 @@ export default class Editor extends NestedData {
      * Get the database connection assigned to the instance.
      * @returns {knex} Knex db interface
      */
-    db(): knex;
+    db(): Knex;
     /**
      * Set the database connection.
-     * @param {knex} Knex db interface
+     * @param {Knex} Knex db interface
      * @returns {Editor} Self for chaining
      */
-    db(db: knex): Editor;
+    db(db: Knex): Editor;
     /** Get the current transaction */
-    dbTransaction(): knex;
+    dbTransaction(): Knex;
     /**
      * Get the debug setting for this instance
      * @returns {boolean} Debug enabled (true) or not

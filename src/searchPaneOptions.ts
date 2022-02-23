@@ -1,4 +1,6 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
+
 import Field from './field';
 import Editor from './editor';
 
@@ -25,7 +27,7 @@ export interface IOption {
 }
 
 export type IRenderer = (str: string) => string;
-export type CustomOptions = (db: knex) => Promise<IOption[]>;
+export type CustomOptions = (db: Knex) => Promise<IOption[]>;
 
 /**
  * The Options class provides a convenient method of specifying where Editor

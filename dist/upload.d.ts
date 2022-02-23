@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import Editor from './editor';
 import Field from './field';
 export declare enum DbOpts {
@@ -145,7 +145,7 @@ export default class Upload {
     /**
      * @ignore
      */
-    data(db: knex, ids?: string[]): Promise<object>;
+    data(db: Knex, ids?: string[]): Promise<object>;
     /**
      * @ignore
      */

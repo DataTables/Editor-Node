@@ -3,6 +3,8 @@ import * as path from 'path';
 
 import * as rootPath from 'app-root-path';
 import * as knex from 'knex';
+import {Knex} from 'knex';
+
 import * as mv from 'mv';
 
 import Editor from './editor';
@@ -217,7 +219,7 @@ export default class Upload {
 	/**
 	 * @ignore
 	 */
-	public async data( db: knex, ids: string[] = null ): Promise<object> {
+	public async data( db: Knex, ids: string[] = null ): Promise<object> {
 		if ( ! this._dbTable ) {
 			return null;
 		}
@@ -362,7 +364,7 @@ export default class Upload {
 			to;
 	}
 
-	private async _dbClean( db: knex, editorTable: string, fieldName: string ): Promise<void> {
+	private async _dbClean( db: Knex, editorTable: string, fieldName: string ): Promise<void> {
 		let callback = this._dbCleanCallback;
 		let that = this;
 
@@ -438,7 +440,7 @@ export default class Upload {
 		}
 	}
 
-	private async _dbExec( db: knex, files: IUpload ): Promise<string> {
+	private async _dbExec( db: Knex, files: IUpload ): Promise<string> {
 		let pathFields = {};
 		let fields = this._dbFields;
 		let columns = Object.keys( fields );

@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
 
 import Editor, {IDtRequest} from './editor';
 import {IFormatter} from './formatters';
@@ -507,7 +508,7 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public async optionsExec(db: knex): Promise<false | IOption[]> {
+	public async optionsExec(db: Knex): Promise<false | IOption[]> {
 		if (this._opts instanceof Options) {
 			return this._opts.exec(db);
 		}
@@ -521,7 +522,7 @@ export default class Field extends NestedData {
 	 * @hidden
 	 */
 	public async searchPaneOptionsExec(
-		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: knex
+		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: Knex
 	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {
 			let retVal = await this._spopts.exec(field, editor, http, fields, leftJoin);

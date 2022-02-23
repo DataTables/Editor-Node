@@ -650,7 +650,7 @@ var Validator = /** @class */ (function () {
      *   value. If not given the host field's database column name is used
      * @param {string} [table=null] Table to check that this value is uniquely
      *   valid on. If not given the host Editor's table name is used
-     * @param {knex} [db=null] Database connection. If not given the host
+     * @param {Knex} [db=null] Database connection. If not given the host
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
@@ -716,7 +716,7 @@ var Validator = /** @class */ (function () {
      *   value. If not given the host field's database column name is used
      * @param {string} [table=null] Table to check that this value is uniquely
      *   valid on. If not given the host Editor's table name is used
-     * @param {knex} [db=null] Database connection. If not given the host
+     * @param {Knex} [db=null] Database connection. If not given the host
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */

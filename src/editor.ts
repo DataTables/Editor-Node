@@ -1,5 +1,6 @@
 import * as crc from 'crc';
 import * as knex from 'knex';
+import {Knex} from 'knex';
 
 import Field, {SetType} from './field';
 import Format from './formatters';
@@ -442,7 +443,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _db: knex;
+	private _db: Knex;
 	private _fields: Field[] = [];
 	private _formData;
 	private _processData;
@@ -458,7 +459,7 @@ export default class Editor extends NestedData {
 	private _events = [];
 	private _validators: IGlobalValidator[] = [];
 	private _tryCatch: boolean = false;
-	private _knexTransaction: knex;
+	private _knexTransaction: Knex;
 	private _uploadData: IUpload;
 	private _debug: boolean = false;
 	private _debugInfo: any[] = [];
@@ -477,7 +478,7 @@ export default class Editor extends NestedData {
 	 * @param {(string|string[])} [pkey=null] Primary key column name in the
 	 *   table given in
 	 */
-	constructor(db: knex = null, table: string | string[] = null, pkey: string | string[] = null) {
+	constructor(db: Knex = null, table: string | string[] = null, pkey: string | string[] = null) {
 		super();
 
 		if (db) {
@@ -505,14 +506,14 @@ export default class Editor extends NestedData {
 	 * Get the database connection assigned to the instance.
 	 * @returns {knex} Knex db interface
 	 */
-	public db(): knex;
+	public db(): Knex;
 	/**
 	 * Set the database connection.
-	 * @param {knex} Knex db interface
+	 * @param {Knex} Knex db interface
 	 * @returns {Editor} Self for chaining
 	 */
-	public db(db: knex): Editor;
-	public db(db?: knex): any {
+	public db(db: Knex): Editor;
+	public db(db?: Knex): any {
 		if (db === undefined) {
 			if (this._knexTransaction) {
 				return this._schema
@@ -532,7 +533,7 @@ export default class Editor extends NestedData {
 	}
 
 	/** Get the current transaction */
-	public dbTransaction(): knex {
+	public dbTransaction(): Knex {
 		return this._knexTransaction;
 	}
 
@@ -1531,7 +1532,7 @@ export default class Editor extends NestedData {
 		return response;
 	}
 
-	private _getWhere(query: knex.QueryBuilder): void {
+	private _getWhere(query: Knex.QueryBuilder): void {
 		let where = this.where();
 
 		for (let i = 0, ien = where.length; i < ien; i++) {
@@ -1831,7 +1832,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _performLeftJoin(query: knex.QueryBuilder): void {
+	private _performLeftJoin(query: Knex.QueryBuilder): void {
 		for (let i = 0, ien = this._leftJoin.length; i < ien; i++) {
 			let join = this._leftJoin[i];
 
@@ -2163,7 +2164,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _ssp(query: knex.QueryBuilder, http: IDtRequest): Promise<ISSP> {
+	private async _ssp(query: Knex.QueryBuilder, http: IDtRequest): Promise<ISSP> {
 		if (! http || ! http.draw) {
 			return {};
 		}
@@ -2221,7 +2222,7 @@ export default class Editor extends NestedData {
 		return field.dbField();
 	}
 
-	private _sspFilter(query: knex.QueryBuilder, http): void {
+	private _sspFilter(query: Knex.QueryBuilder, http): void {
 		let fields = this.fields();
 
 		// Global filter
@@ -2294,7 +2295,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _sspLimit(query: knex.QueryBuilder, http: IDtRequest): void {
+	private _sspLimit(query: Knex.QueryBuilder, http: IDtRequest): void {
 		if (http.length !== -1) { // -1 is 'show all' in DataTables
 			query
 				.limit(http.length * 1)
@@ -2302,7 +2303,7 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _sspSort(query: knex.QueryBuilder, http: IDtRequest): void {
+	private _sspSort(query: Knex.QueryBuilder, http: IDtRequest): void {
 		if (http.order) {
 			for (let i = 0, ien = http.order.length; i < ien; i++) {
 				let order = http.order[i];

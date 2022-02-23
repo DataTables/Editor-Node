@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import Editor from './editor';
 import Field from './field';
 export interface IHostOpts {
@@ -6,7 +6,7 @@ export interface IHostOpts {
     id: string;
     field: Field;
     editor: Editor;
-    db: knex;
+    db: Knex;
 }
 /**
  * Information container about the Field and Editor instances
@@ -42,9 +42,9 @@ export default class ValidationHost {
     /**
      * Database connection
      *
-     * @type {knex}
+     * @type {Knex}
      */
-    db: knex;
+    db: Knex;
     /**
      * Creates an instance of ValidationHost.
      *

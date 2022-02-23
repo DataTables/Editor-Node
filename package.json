@@ -18,7 +18,7 @@
   "dependencies": {
     "app-root-path": "^2.0.1",
     "crc": "^3.4.4",
-    "knex": "^0.19.0",
+    "knex": "^1.0.3",
     "moment": "^2.18.1",
     "mv": "^2.1.1",
     "valid-url": "^1.0.9",

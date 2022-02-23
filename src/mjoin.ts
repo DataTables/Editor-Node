@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
 
 import Editor, {IDtRequest, IDtResponse} from './editor';
 import Field, {SetType} from './field';
@@ -628,7 +629,7 @@ export default class Mjoin extends NestedData {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
-	private _applyWhere( query: knex.QueryBuilder<any, any> ): void {
+	private _applyWhere( query: Knex.QueryBuilder<any, any> ): void {
 		let where = this._where;
 
 		for ( let i = 0, ien = where.length ; i < ien ; i++ ) {
@@ -636,7 +637,7 @@ export default class Mjoin extends NestedData {
 		}
 	}
 
-	private async _insert( db: knex, parentId: string, data: object ): Promise<void> {
+	private async _insert( db: Knex, parentId: string, data: object ): Promise<void> {
 		let join = this._join;
 		let fields = this.fields();
 

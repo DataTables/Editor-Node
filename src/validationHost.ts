@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
 
 import Editor from './editor';
 import Field from './field';
@@ -8,7 +9,7 @@ export interface IHostOpts {
 	id: string;
 	field: Field;
 	editor: Editor;
-	db: knex;
+	db: Knex;
 }
 
 /**
@@ -49,9 +50,9 @@ export default class ValidationHost {
 	/**
 	 * Database connection
 	 *
-	 * @type {knex}
+	 * @type {Knex}
 	 */
-	public db: knex;
+	public db: Knex;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Constructor

@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import { IMjoinValidator } from './mjoin';
 import { IFile } from './upload';
 import ValidationHost from './validationHost';
@@ -205,11 +205,11 @@ export default class Validator {
      *   value. If not given the host field's database column name is used
      * @param {string} [table=null] Table to check that this value is uniquely
      *   valid on. If not given the host Editor's table name is used
-     * @param {knex} [db=null] Database connection. If not given the host
+     * @param {Knex} [db=null] Database connection. If not given the host
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    static dbUnique(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: knex | null): IValidator;
+    static dbUnique(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: Knex | null): IValidator;
     /**
      * Check that the given value is a value that is available in a database -
      * i.e. a join primary key. This will attempt to automatically use the table
@@ -223,11 +223,11 @@ export default class Validator {
      *   value. If not given the host field's database column name is used
      * @param {string} [table=null] Table to check that this value is uniquely
      *   valid on. If not given the host Editor's table name is used
-     * @param {knex} [db=null] Database connection. If not given the host
+     * @param {Knex} [db=null] Database connection. If not given the host
      *   Editor's database connection is used
      * @returns {IValidator} Configured validation function
      */
-    static dbValues(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: knex | null, values?: any[]): IValidator;
+    static dbValues(cfg?: ValidationOptions | null, column?: string | null, table?: string | null, db?: Knex | null, values?: any[]): IValidator;
     /**
      * Check that the uploaded file has a given extension
      *

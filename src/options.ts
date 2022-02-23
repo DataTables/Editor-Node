@@ -1,4 +1,5 @@
 import * as knex from 'knex';
+import {Knex} from 'knex';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -10,7 +11,7 @@ export interface IOption {
 }
 
 export type IRenderer = (row: object) => string;
-export type CustomOptions = (db: knex) => Promise<IOption[]>;
+export type CustomOptions = (db: Knex) => Promise<IOption[]>;
 
 /**
  * The Options class provides a convenient method of specifying where Editor
@@ -230,7 +231,7 @@ export default class Options {
 	/**
 	 * @ignore
 	 */
-	public async exec(db: knex): Promise<IOption[]> {
+	public async exec(db: Knex): Promise<IOption[]> {
 		let label = this._label;
 		let value = this._value;
 		let formatter = this._renderer;

@@ -1,4 +1,4 @@
-import * as knex from 'knex';
+import { Knex } from 'knex';
 import Field from './field';
 import Editor from './editor';
 export interface IOption {
@@ -6,7 +6,7 @@ export interface IOption {
     value: string | number;
 }
 export declare type IRenderer = (str: string) => string;
-export declare type CustomOptions = (db: knex) => Promise<IOption[]>;
+export declare type CustomOptions = (db: Knex) => Promise<IOption[]>;
 /**
  * The Options class provides a convenient method of specifying where Editor
  * should get the list of options for a `select`, `radio` or `checkbox` field.
