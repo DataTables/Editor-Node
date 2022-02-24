@@ -41,9 +41,9 @@ var fs = require("fs");
 var path = require("path");
 var mv = require("mv");
 var promisify_1 = require("./promisify");
-var stat = promisify_1.default(fs.stat);
-var readFile = promisify_1.default(fs.readFile);
-var rename = promisify_1.default(mv);
+var stat = (0, promisify_1.default)(fs.stat);
+var readFile = (0, promisify_1.default)(fs.readFile);
+var rename = (0, promisify_1.default)(mv);
 var DbOpts;
 (function (DbOpts) {
     DbOpts[DbOpts["Content"] = 0] = "Content";

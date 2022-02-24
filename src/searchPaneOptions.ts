@@ -226,10 +226,6 @@ export default class SearchPaneOptions {
 				table,
 			});
 		}
-<<<<<<< HEAD
-
-=======
->>>>>>> SP2
 		return this;
 	}
 
@@ -385,8 +381,11 @@ export default class SearchPaneOptions {
 						this.on(joiner.field1, joiner.operator, joiner.field2);
 					});
 					queryLast.leftJoin(joiner.table, function() {
+						this.on(joiner.field1, joiner.operator, joiner.field2);
+					});
 				}
 			}
+		}
 
 		if (this._order) {
 			// For cases where we are ordering by a field which isn't included in the list

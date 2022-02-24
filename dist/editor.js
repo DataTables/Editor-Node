@@ -1669,7 +1669,7 @@ var Editor = /** @class */ (function (_super) {
                             submitedData_1[k.pkey] = data.data[key];
                         });
                         // All writes done - trigger `All`
-                        return [4 /*yield*/, this._trigger("write" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1)];
+                        return [4 /*yield*/, this._trigger("write".concat(eventName, "All"), pkeys_2.map(function (k) { return k.pkey; }), submitedData_1)];
                     case 27:
                         // All writes done - trigger `All`
                         _e.sent();
@@ -1680,7 +1680,7 @@ var Editor = /** @class */ (function (_super) {
                         _loop_4 = function (key) {
                             return __generator(this, function (_f) {
                                 switch (_f.label) {
-                                    case 0: return [4 /*yield*/, this_3._trigger("post" + eventName, key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 0: return [4 /*yield*/, this_3._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
                                         _f.sent();
                                         return [2 /*return*/];
@@ -1700,7 +1700,7 @@ var Editor = /** @class */ (function (_super) {
                     case 31:
                         _d++;
                         return [3 /*break*/, 29];
-                    case 32: return [4 /*yield*/, this._trigger("post" + eventName + "All", pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
+                    case 32: return [4 /*yield*/, this._trigger("post".concat(eventName, "All"), pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
                     case 33:
                         _e.sent();
                         // File tidy up
