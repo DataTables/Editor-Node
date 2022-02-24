@@ -226,7 +226,10 @@ export default class SearchPaneOptions {
 				table,
 			});
 		}
+<<<<<<< HEAD
 
+=======
+>>>>>>> SP2
 		return this;
 	}
 
@@ -305,6 +308,14 @@ export default class SearchPaneOptions {
 			.distinct()
 			.groupBy(value);
 
+		// The last pane to have a selection runs a slightly different query
+		let queryLast = db
+			.select(label + ' as label', value + ' as value')
+			.count({count: '*'})
+			.from(table)
+			.distinct()
+			.groupBy(value);
+
 		// This block applies all of the where conditions across the fields
 		// Each field gets it's own where condition which must be satisfied
 		// Each where condition can have multiple orWhere()s so that the or
@@ -313,6 +324,25 @@ export default class SearchPaneOptions {
 			for (let fie of fields) {
 				if (http.searchPanes[fie.name()] !== undefined) {
 					query.where(function() {
+						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
+							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+								this.orWhereNull(fie.name());
+							}
+							else {
+								this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+							}
+						}
+					});
+				}
+			}
+		}
+
+		// If there is a last value set then a slightly different set of results is required for cascade
+		// That panes results are based off of the results when only considering the selections of all of the others
+		if (http.searchPanes !== undefined && http.searchPanesLast) {
+			for (let fie of fields) {
+				if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
+					queryLast.where(function() {
 						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
 							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
 								this.orWhereNull(fie.name());
@@ -345,6 +375,7 @@ export default class SearchPaneOptions {
 				if(joiner.fn) {
 					q.leftJoin(joiner.table, joiner.fn as any);
 					query.leftJoin(joiner.table, joiner.fn as any);
+					queryLast.leftJoin(joiner.table, joiner.fn as any);
 				}
 				else {
 					q.leftJoin(joiner.table, function() {
@@ -353,9 +384,9 @@ export default class SearchPaneOptions {
 					query.leftJoin(joiner.table, function() {
 						this.on(joiner.field1, joiner.operator, joiner.field2);
 					});
+					queryLast.leftJoin(joiner.table, function() {
 				}
 			}
-		}
 
 		if (this._order) {
 			// For cases where we are ordering by a field which isn't included in the list
@@ -377,22 +408,40 @@ export default class SearchPaneOptions {
 
 		let res = await q;
 		let cts = await query;
+		let ctsLast = await queryLast;
 		let out = [];
 
 		// Create the output array and add the values of count, label, total and value for each unique entry
 		for (let recordCou of res) {
 			let set = false;
 
-			for (let recordTot of cts) {
-				if (recordTot.value === recordCou.value) {
-					out.push({
-						count: recordTot.count,
-						label: formatter(recordCou.label),
-						total: recordCou.total,
-						value: recordCou.value
-					});
-					set = true;
-					break;
+			// Send slightly different results if this is the last pane
+			if(http.searchPanesLast && field.name() === http.searchPanesLast) {
+				for (let recordTot of ctsLast) {
+					if (recordTot.value === recordCou.value) {
+						out.push({
+							count: recordTot.count,
+							label: formatter(recordCou.label),
+							total: recordCou.total,
+							value: recordCou.value
+						});
+						set = true;
+						break;
+					}
+				}
+			}
+			else {
+				for (let recordTot of cts) {
+					if (recordTot.value === recordCou.value) {
+						out.push({
+							count: recordTot.count,
+							label: formatter(recordCou.label),
+							total: recordCou.total,
+							value: recordCou.value
+						});
+						set = true;
+						break;
+					}
 				}
 			}
 
