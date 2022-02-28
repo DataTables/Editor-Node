@@ -2149,7 +2149,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '2.0.6';
+    Editor.version = '2.0.7';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
