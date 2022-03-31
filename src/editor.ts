@@ -264,6 +264,15 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
 					}
 					break;
+				case '!contains':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', '%' + val1 + '%');
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
+					}
+					break;
 				case 'starts':
 					if(sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', val1 + '%');
@@ -273,9 +282,27 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
 					}
 					break;
+				case '!starts':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', val1 + '%');
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
+					}
+					break;
 				case 'ends':
 					if(sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', '%' + val1);
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1));
+					}
+					break;
+				case '!ends':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', '%' + val1);
 						first = false;
 					}
 					else {

@@ -153,6 +153,15 @@ var _constructSearchBuilderQuery = function (sbData) {
                         this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1 + '%'); });
                     }
                     break;
+                case '!contains':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'NOT LIKE', '%' + val1_1 + '%');
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1 + '%'); });
+                    }
+                    break;
                 case 'starts':
                     if (sbData.logic === 'AND' || first) {
                         this_1.where(crit.origData, 'LIKE', val1_1 + '%');
@@ -162,9 +171,27 @@ var _constructSearchBuilderQuery = function (sbData) {
                         this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', val1_1 + '%'); });
                     }
                     break;
+                case '!starts':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'NOT LIKE', val1_1 + '%');
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', val1_1 + '%'); });
+                    }
+                    break;
                 case 'ends':
                     if (sbData.logic === 'AND' || first) {
                         this_1.where(crit.origData, 'LIKE', '%' + val1_1);
+                        first = false;
+                    }
+                    else {
+                        this_1.orWhere(function (q) { return q.where(crit.origData, 'LIKE', '%' + val1_1); });
+                    }
+                    break;
+                case '!ends':
+                    if (sbData.logic === 'AND' || first) {
+                        this_1.where(crit.origData, 'NOT LIKE', '%' + val1_1);
                         first = false;
                     }
                     else {
