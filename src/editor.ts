@@ -1922,13 +1922,9 @@ export default class Editor extends NestedData {
 			if (action === Action.Read) {
 				let outData = await this._get(null, data);
 
-				this._out.data = outData.data;
-				this._out.draw = outData.draw;
-				this._out.files = outData.files;
-				this._out.options = outData.options;
-				this._out.recordsTotal = outData.recordsTotal;
-				this._out.recordsFiltered = outData.recordsFiltered;
-				this._out.searchPanes = outData.searchPanes;
+				for (let [key, val] of Object.entries(outData)) {
+					this._out[key] = val;
+				}
 			}
 			else if (action === Action.Upload && this._write) {
 				await this._upload(data);
