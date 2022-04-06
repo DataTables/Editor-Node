@@ -264,6 +264,15 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
 					}
 					break;
+				case '!contains':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', '%' + val1 + '%');
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
+					}
+					break;
 				case 'starts':
 					if(sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', val1 + '%');
@@ -273,9 +282,27 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
 					}
 					break;
+				case '!starts':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', val1 + '%');
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
+					}
+					break;
 				case 'ends':
 					if(sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', '%' + val1);
+						first = false;
+					}
+					else {
+						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1));
+					}
+					break;
+				case '!ends':
+					if(sbData.logic === 'AND' || first) {
+						this.where(crit.origData, 'NOT LIKE', '%' + val1);
 						first = false;
 					}
 					else {
@@ -409,7 +436,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.0.5';
+	public static version: string = '2.0.7';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1922,13 +1949,9 @@ export default class Editor extends NestedData {
 			if (action === Action.Read) {
 				let outData = await this._get(null, data);
 
-				this._out.data = outData.data;
-				this._out.draw = outData.draw;
-				this._out.files = outData.files;
-				this._out.options = outData.options;
-				this._out.recordsTotal = outData.recordsTotal;
-				this._out.recordsFiltered = outData.recordsFiltered;
-				this._out.searchPanes = outData.searchPanes;
+				for (let [key, val] of Object.entries(outData)) {
+					this._out[key] = val;
+				}
 			}
 			else if (action === Action.Upload && this._write) {
 				await this._upload(data);
@@ -2233,8 +2256,9 @@ export default class Editor extends NestedData {
 						let field = this._sspField(http, i);
 
 						if (field) {
+							let client = this._db.client.config.client;
 							// Nasty hack for Postgres
-							if (this._db.client.config.client === 'pg') {
+							if (client === 'pg' || client === 'postgres') {
 								q.orWhereRaw('??::text ILIKE ?',[field,'%' + http.search.value + '%']);
 							}
 							else {
