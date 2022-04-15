@@ -296,6 +296,42 @@ export default class SearchPaneOptions {
 			};
 		}
 
+		if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
+			let keys = Object.keys(http.searchPanes);
+			for (let key of keys) {
+				for(let i = 0; i < http.searchPanes[key].length; i++) {
+					// Check the number of rows...
+					let q = db
+						.count({count: '*'})
+						.from(table);
+					
+					if (join !== null && join !== undefined) {
+						for (let joiner of join) {
+							if(joiner.fn) {
+								q.leftJoin(joiner.table, joiner.fn as any);
+							}
+							else {
+								q.leftJoin(joiner.table, function() {
+									this.on(joiner.field1, joiner.operator, joiner.field2);
+								});
+							}
+						}
+					}
+
+					// ... where the selected option is present...
+					q.where(key, http.searchPanes[key][i]);
+					
+					let r = await q;
+
+					// ... If there are none then don't bother with this selection
+					if(r[0].count == 0) {
+						http.searchPanes[key].splice(i, 1);
+						i--;
+					}
+				}
+			}
+		}
+
 		// This query will get the count's according to any selections made in the SearchPanes
 		let query = db
 			.select(label + ' as label', value + ' as value')

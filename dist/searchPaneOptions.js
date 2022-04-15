@@ -143,9 +143,9 @@ var SearchPaneOptions = /** @class */ (function () {
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, spopts, db, query, queryLast, _loop_1, _i, fields_1, fie, _loop_2, _a, fields_2, fie, q, _loop_3, _b, join_1, joiner, res, cts, ctsLast, out, _c, res_1, recordCou, set, _d, ctsLast_1, recordTot, _e, cts_1, recordTot;
-            return __generator(this, function (_f) {
-                switch (_f.label) {
+            var label, value, table, formatter, join, fields, spopts, db, keys, _i, keys_1, key, i, q_1, _loop_1, _a, join_1, joiner, r, query, queryLast, _loop_2, _b, fields_1, fie, _loop_3, _c, fields_2, fie, q, _loop_4, _d, join_2, joiner, res, cts, ctsLast, out, _e, res_1, recordCou, set, _f, ctsLast_1, recordTot, _g, cts_1, recordTot;
+            return __generator(this, function (_h) {
+                switch (_h.label) {
                     case 0:
                         formatter = this._renderer;
                         join = this._leftJoin;
@@ -188,6 +188,54 @@ var SearchPaneOptions = /** @class */ (function () {
                                 return str;
                             };
                         }
+                        if (!(http !== null && http.searchPanes !== undefined && http.searchPanes !== null)) return [3 /*break*/, 6];
+                        keys = Object.keys(http.searchPanes);
+                        _i = 0, keys_1 = keys;
+                        _h.label = 1;
+                    case 1:
+                        if (!(_i < keys_1.length)) return [3 /*break*/, 6];
+                        key = keys_1[_i];
+                        i = 0;
+                        _h.label = 2;
+                    case 2:
+                        if (!(i < http.searchPanes[key].length)) return [3 /*break*/, 5];
+                        q_1 = db
+                            .count({ count: '*' })
+                            .from(table);
+                        if (join !== null && join !== undefined) {
+                            _loop_1 = function (joiner) {
+                                if (joiner.fn) {
+                                    q_1.leftJoin(joiner.table, joiner.fn);
+                                }
+                                else {
+                                    q_1.leftJoin(joiner.table, function () {
+                                        this.on(joiner.field1, joiner.operator, joiner.field2);
+                                    });
+                                }
+                            };
+                            for (_a = 0, join_1 = join; _a < join_1.length; _a++) {
+                                joiner = join_1[_a];
+                                _loop_1(joiner);
+                            }
+                        }
+                        // ... where the selected option is present...
+                        q_1.where(key, http.searchPanes[key][i]);
+                        return [4 /*yield*/, q_1];
+                    case 3:
+                        r = _h.sent();
+                        // ... If there are none then don't bother with this selection
+                        if (r[0].count == 0) {
+                            http.searchPanes[key].splice(i, 1);
+                            i--;
+                        }
+                        _h.label = 4;
+                    case 4:
+                        i++;
+                        return [3 /*break*/, 2];
+                    case 5:
+                        _i++;
+                        return [3 /*break*/, 1];
+                    case 6:
                         query = db
                             .select(label + ' as label', value + ' as value')
                             .count({ count: '*' })
@@ -205,7 +253,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         // Each where condition can have multiple orWhere()s so that the or
                         //  searching within the fields works.
                         if (http.searchPanes !== undefined) {
-                            _loop_1 = function (fie) {
+                            _loop_2 = function (fie) {
                                 if (http.searchPanes[fie.name()] !== undefined) {
                                     query.where(function () {
                                         for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
@@ -219,15 +267,15 @@ var SearchPaneOptions = /** @class */ (function () {
                                     });
                                 }
                             };
-                            for (_i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
-                                fie = fields_1[_i];
-                                _loop_1(fie);
+                            for (_b = 0, fields_1 = fields; _b < fields_1.length; _b++) {
+                                fie = fields_1[_b];
+                                _loop_2(fie);
                             }
                         }
                         // If there is a last value set then a slightly different set of results is required for cascade
                         // That panes results are based off of the results when only considering the selections of all of the others
                         if (http.searchPanes !== undefined && http.searchPanesLast) {
-                            _loop_2 = function (fie) {
+                            _loop_3 = function (fie) {
                                 if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
                                     queryLast.where(function () {
                                         for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
@@ -241,9 +289,9 @@ var SearchPaneOptions = /** @class */ (function () {
                                     });
                                 }
                             };
-                            for (_a = 0, fields_2 = fields; _a < fields_2.length; _a++) {
-                                fie = fields_2[_a];
-                                _loop_2(fie);
+                            for (_c = 0, fields_2 = fields; _c < fields_2.length; _c++) {
+                                fie = fields_2[_c];
+                                _loop_3(fie);
                             }
                         }
                         q = db
@@ -257,7 +305,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         }
                         // If a left join needs to be done for the above queries we can just do it in the same place
                         if (join !== null && join !== undefined) {
-                            _loop_3 = function (joiner) {
+                            _loop_4 = function (joiner) {
                                 if (joiner.fn) {
                                     q.leftJoin(joiner.table, joiner.fn);
                                     query.leftJoin(joiner.table, joiner.fn);
@@ -275,9 +323,9 @@ var SearchPaneOptions = /** @class */ (function () {
                                     });
                                 }
                             };
-                            for (_b = 0, join_1 = join; _b < join_1.length; _b++) {
-                                joiner = join_1[_b];
-                                _loop_3(joiner);
+                            for (_d = 0, join_2 = join; _d < join_2.length; _d++) {
+                                joiner = join_2[_d];
+                                _loop_4(joiner);
                             }
                         }
                         if (this._order) {
@@ -296,23 +344,23 @@ var SearchPaneOptions = /** @class */ (function () {
                             q.orderBy(this._order);
                         }
                         return [4 /*yield*/, q];
-                    case 1:
-                        res = _f.sent();
+                    case 7:
+                        res = _h.sent();
                         return [4 /*yield*/, query];
-                    case 2:
-                        cts = _f.sent();
+                    case 8:
+                        cts = _h.sent();
                         return [4 /*yield*/, queryLast];
-                    case 3:
-                        ctsLast = _f.sent();
+                    case 9:
+                        ctsLast = _h.sent();
                         out = [];
                         // Create the output array and add the values of count, label, total and value for each unique entry
-                        for (_c = 0, res_1 = res; _c < res_1.length; _c++) {
-                            recordCou = res_1[_c];
+                        for (_e = 0, res_1 = res; _e < res_1.length; _e++) {
+                            recordCou = res_1[_e];
                             set = false;
                             // Send slightly different results if this is the last pane
                             if (http.searchPanesLast && field.name() === http.searchPanesLast) {
-                                for (_d = 0, ctsLast_1 = ctsLast; _d < ctsLast_1.length; _d++) {
-                                    recordTot = ctsLast_1[_d];
+                                for (_f = 0, ctsLast_1 = ctsLast; _f < ctsLast_1.length; _f++) {
+                                    recordTot = ctsLast_1[_f];
                                     if (recordTot.value === recordCou.value) {
                                         out.push({
                                             count: recordTot.count,
@@ -326,8 +374,8 @@ var SearchPaneOptions = /** @class */ (function () {
                                 }
                             }
                             else {
-                                for (_e = 0, cts_1 = cts; _e < cts_1.length; _e++) {
-                                    recordTot = cts_1[_e];
+                                for (_g = 0, cts_1 = cts; _g < cts_1.length; _g++) {
+                                    recordTot = cts_1[_g];
                                     if (recordTot.value === recordCou.value) {
                                         out.push({
                                             count: recordTot.count,
