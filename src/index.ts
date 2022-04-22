@@ -11,6 +11,7 @@ export { default as Upload } from './upload';
 export { default as Validate } from './validators';
 export { default as promisify } from './promisify';
 export { default as SearchPaneOptions} from './searchPaneOptions';
+export { default as SearchBuilderOptions} from './searchBuilderOptions';
 
 export type IDtRequest = editor.IDtRequest;
 export type IDtResponse = editor.IDtResponse;

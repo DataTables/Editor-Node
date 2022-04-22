@@ -145,6 +145,9 @@ export interface IDtResponse {
 	/** DataTables SSP - number of records after filtering. */
 	recordsFiltered?: number;
 
+	/** DataTables SSP - SearchBuilder Options */
+	searchBuilder?: any;
+
 	/** DataTables SSP - SearchPanes Options */
 	searchPanes?: any;
 	searchPanes_null?: any;
@@ -199,7 +202,6 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
  * @returns The new query with added where conditions
  */
  let _constructSearchBuilderQuery = function (sbData) {
-	 console.log("SB")
 	// The first where condition has to be a normal where rather than an orwhere.
 	// Therefore we have to track that we have added a where condition before
 	// there is an attempt to create a new orwhere
@@ -1533,6 +1535,8 @@ export default class Editor extends NestedData {
 			}
 
 			let spOptions = {};
+			let sbOptions = {};
+
 			// Field options and SearchPane Options
 			if (id === null) {
 				for (let i = 0, ien = fields.length; i < ien; i++) {
@@ -1547,10 +1551,17 @@ export default class Editor extends NestedData {
 					if (spopts) {
 						spOptions[fields[i].name()] = spopts;
 					}
+
+					let sbopts = await fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
+
+					if (sbopts) {
+						sbOptions[fields[i].name()] = sbopts;
+					}
 				}
 			}
 
 			let searchPanes = {options: spOptions};
+			let searchBuilder = {options: sbOptions};
 
 			// Build a DtResponse object
 			response = {
@@ -1560,11 +1571,16 @@ export default class Editor extends NestedData {
 				options,
 				recordsFiltered: ssp.recordsFiltered,
 				recordsTotal: ssp.recordsTotal,
-				searchPanes: undefined
+				searchPanes: undefined,
+				searchBuilder: undefined
 			};
 
 			if(Object.keys(searchPanes.options).length > 0) {
 				response.searchPanes = searchPanes;
+			}
+
+			if(Object.keys(searchBuilder.options).length > 0) {
+				response.searchBuilder = searchBuilder;
 			}
 
 			// Row based joins

@@ -4,6 +4,7 @@ import { IFormatter } from './formatters';
 import NestedData from './nestedData';
 import Options, { CustomOptions, IOption } from './options';
 import SearchPaneOptions from './searchPaneOptions';
+import SearchBuilderOptions from './searchBuilderOptions';
 import Upload from './upload';
 import { IValidator } from './validators';
 import { Ixss } from './xss';
@@ -47,6 +48,7 @@ export default class Field extends NestedData {
     private _opts;
     private _name;
     private _spopts;
+    private _sbopts;
     private _set;
     private _setFormatter;
     private _setValue;
@@ -170,6 +172,16 @@ export default class Field extends NestedData {
      * @returns {Field} Self for chaining
      */
     options(opts: Options & CustomOptions): Field;
+    /**
+     * Set how a list iof options (values and labels) will be retrieved for the fields SearchBuilder.
+     *
+     * Gets a list of values that can be used for the options list in SearchBuilder.
+     *
+     * @param spopts: SearchBuilderOptions
+     * @return this
+     */
+    searchBuilderOptions(): SearchBuilderOptions;
+    searchBuilderOptions(sbopts: SearchBuilderOptions): Field;
     /**
      * Set how a list iof options (values and labels) will be retrieved for the fields searchpane.
      *
@@ -304,6 +316,10 @@ export default class Field extends NestedData {
      * @hidden
      */
     optionsExec(db: Knex): Promise<false | IOption[]>;
+    /**
+     * @hidden
+     */
+    searchBuilderOptionsExec(field: Field, editor: Editor, http: any, fields: Field[], leftJoin: any, db: Knex): Promise<false | IOption[]>;
     /**
      * @hidden
      */

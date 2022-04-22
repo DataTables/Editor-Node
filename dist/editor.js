@@ -92,7 +92,6 @@ var Action;
  * @returns The new query with added where conditions
  */
 var _constructSearchBuilderQuery = function (sbData) {
-    console.log("SB");
     // The first where condition has to be a normal where rather than an orwhere.
     // Therefore we have to track that we have added a where condition before
     // there is an attempt to create a new orwhere
@@ -1047,7 +1046,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, this_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, i, ien, _a;
+            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, this_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, sbOptions, i, ien, opts, spopts, sbopts, searchPanes, searchBuilder, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1059,7 +1058,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!this._customGet) return [3 /*break*/, 2];
                         response = this._customGet(id, http);
-                        return [3 /*break*/, 17];
+                        return [3 /*break*/, 18];
                     case 2:
                         fields = this.fields();
                         pkeys = this.pkey();
@@ -1186,11 +1185,12 @@ var Editor = /** @class */ (function (_super) {
                             out.push(inner);
                         }
                         spOptions = {};
-                        if (!(id === null)) return [3 /*break*/, 13];
+                        sbOptions = {};
+                        if (!(id === null)) return [3 /*break*/, 14];
                         i = 0, ien = fields.length;
                         _b.label = 9;
                     case 9:
-                        if (!(i < ien)) return [3 /*break*/, 13];
+                        if (!(i < ien)) return [3 /*break*/, 14];
                         return [4 /*yield*/, fields[i].optionsExec(this.db())];
                     case 10:
                         opts = _b.sent();
@@ -1203,12 +1203,19 @@ var Editor = /** @class */ (function (_super) {
                         if (spopts) {
                             spOptions[fields[i].name()] = spopts;
                         }
-                        _b.label = 12;
+                        return [4 /*yield*/, fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
                     case 12:
+                        sbopts = _b.sent();
+                        if (sbopts) {
+                            sbOptions[fields[i].name()] = sbopts;
+                        }
+                        _b.label = 13;
+                    case 13:
                         i++;
                         return [3 /*break*/, 9];
-                    case 13:
+                    case 14:
                         searchPanes = { options: spOptions };
+                        searchBuilder = { options: sbOptions };
                         // Build a DtResponse object
                         response = {
                             data: out,
@@ -1217,29 +1224,33 @@ var Editor = /** @class */ (function (_super) {
                             options: options,
                             recordsFiltered: ssp.recordsFiltered,
                             recordsTotal: ssp.recordsTotal,
-                            searchPanes: undefined
+                            searchPanes: undefined,
+                            searchBuilder: undefined
                         };
                         if (Object.keys(searchPanes.options).length > 0) {
                             response.searchPanes = searchPanes;
                         }
+                        if (Object.keys(searchBuilder.options).length > 0) {
+                            response.searchBuilder = searchBuilder;
+                        }
                         i = 0, ien = this._join.length;
-                        _b.label = 14;
-                    case 14:
-                        if (!(i < ien)) return [3 /*break*/, 17];
-                        return [4 /*yield*/, this._join[i].data(this, response)];
+                        _b.label = 15;
                     case 15:
-                        _b.sent();
-                        _b.label = 16;
+                        if (!(i < ien)) return [3 /*break*/, 18];
+                        return [4 /*yield*/, this._join[i].data(this, response)];
                     case 16:
-                        i++;
-                        return [3 /*break*/, 14];
+                        _b.sent();
+                        _b.label = 17;
                     case 17:
+                        i++;
+                        return [3 /*break*/, 15];
+                    case 18:
                         _a = response;
                         return [4 /*yield*/, this._fileData(null, null, response.data)];
-                    case 18:
+                    case 19:
                         _a.files = _b.sent();
                         return [4 /*yield*/, this._trigger('postGet', id, response.data)];
-                    case 19:
+                    case 20:
                         _b.sent();
                         return [2 /*return*/, response];
                 }

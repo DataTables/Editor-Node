@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SearchPaneOptions = exports.promisify = exports.Validate = exports.Upload = exports.Options = exports.Mjoin = exports.Format = exports.Field = exports.Editor = void 0;
+exports.SearchBuilderOptions = exports.SearchPaneOptions = exports.promisify = exports.Validate = exports.Upload = exports.Options = exports.Mjoin = exports.Format = exports.Field = exports.Editor = void 0;
 var editor_1 = require("./editor");
 exports.Editor = editor_1.default;
 exports.default = editor_1.default;
@@ -20,5 +20,7 @@ var promisify_1 = require("./promisify");
 Object.defineProperty(exports, "promisify", { enumerable: true, get: function () { return promisify_1.default; } });
 var searchPaneOptions_1 = require("./searchPaneOptions");
 Object.defineProperty(exports, "SearchPaneOptions", { enumerable: true, get: function () { return searchPaneOptions_1.default; } });
+var searchBuilderOptions_1 = require("./searchBuilderOptions");
+Object.defineProperty(exports, "SearchBuilderOptions", { enumerable: true, get: function () { return searchBuilderOptions_1.default; } });
 
 //# sourceMappingURL=index.js.map
