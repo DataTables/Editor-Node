@@ -2140,6 +2140,8 @@ export default class Editor extends NestedData {
 		for (let i = 0, ien = ids.length; i < ien; i++) {
 			await this._trigger('postRemove', ids[i], http.data[ this.idPrefix() + ids[i] ]);
 		}
+
+		await this._trigger('postRemoveAll', ids, http.data);
 	}
 
 	private async _removeTable(table: string, ids: string[], pkey: string[] = null): Promise<void> {
