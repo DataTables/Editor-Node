@@ -1893,7 +1893,10 @@ var Editor = /** @class */ (function (_super) {
                     case 19:
                         i++;
                         return [3 /*break*/, 17];
-                    case 20: return [2 /*return*/];
+                    case 20: return [4 /*yield*/, this._trigger('postRemoveAll', ids, http.data)];
+                    case 21:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
