@@ -145,6 +145,9 @@ export interface IDtResponse {
 	/** DataTables SSP - number of records after filtering. */
 	recordsFiltered?: number;
 
+	/** DataTables SSP - SearchBuilder Options */
+	searchBuilder?: any;
+
 	/** DataTables SSP - SearchPanes Options */
 	searchPanes?: any;
 	searchPanes_null?: any;
@@ -436,7 +439,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.0.7';
+	public static version: string = '2.0.8';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1467,6 +1470,25 @@ export default class Editor extends NestedData {
 			if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
 				let keys = Object.keys(http.searchPanes);
 				for (let key of keys) {
+					for(let i = 0; i < http.searchPanes[key].length; i++) {
+						// Check the number of rows...
+						let q = this.db()
+						.table(this._readTable()[0])
+							.count({count: '*'})
+						
+						this._performLeftJoin(q);
+
+						// ... where the selected option is present...
+						q.where(key, http.searchPanes[key][i]);
+						
+						let r = await q;
+
+						// ... If there are none then don't bother with this selection
+						if(r[0].count == 0) {
+							http.searchPanes[key].splice(i, 1);
+							i--;
+						}
+					}
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[key].length; i++) {
 							if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
@@ -1513,6 +1535,8 @@ export default class Editor extends NestedData {
 			}
 
 			let spOptions = {};
+			let sbOptions = {};
+
 			// Field options and SearchPane Options
 			if (id === null) {
 				for (let i = 0, ien = fields.length; i < ien; i++) {
@@ -1527,10 +1551,17 @@ export default class Editor extends NestedData {
 					if (spopts) {
 						spOptions[fields[i].name()] = spopts;
 					}
+
+					let sbopts = await fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
+
+					if (sbopts) {
+						sbOptions[fields[i].name()] = sbopts;
+					}
 				}
 			}
 
 			let searchPanes = {options: spOptions};
+			let searchBuilder = {options: sbOptions};
 
 			// Build a DtResponse object
 			response = {
@@ -1540,11 +1571,16 @@ export default class Editor extends NestedData {
 				options,
 				recordsFiltered: ssp.recordsFiltered,
 				recordsTotal: ssp.recordsTotal,
-				searchPanes: undefined
+				searchPanes: undefined,
+				searchBuilder: undefined
 			};
 
 			if(Object.keys(searchPanes.options).length > 0) {
 				response.searchPanes = searchPanes;
+			}
+
+			if(Object.keys(searchBuilder.options).length > 0) {
+				response.searchBuilder = searchBuilder;
 			}
 
 			// Row based joins
@@ -2258,8 +2294,9 @@ export default class Editor extends NestedData {
 						let field = this._sspField(http, i);
 
 						if (field) {
+							let client = this._db.client.config.client;
 							// Nasty hack for Postgres
-							if (this._db.client.config.client === 'pg') {
+							if (client === 'pg' || client === 'postgres') {
 								q.orWhereRaw('??::text ILIKE ?',[field,'%' + http.search.value + '%']);
 							}
 							else {

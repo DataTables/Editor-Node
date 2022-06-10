@@ -41,7 +41,7 @@ export type CustomOptions = (db: Knex) => Promise<IOption[]>;
  * @export
  * @class Options
  */
-export default class SearchPaneOptions {
+export default class SearchBuilderOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
@@ -66,7 +66,7 @@ export default class SearchPaneOptions {
 	 * @param {string[]} label Database column names
 	 * @returns {Options} Self for chaining
 	 */
-	public label(label: string[]): SearchPaneOptions;
+	public label(label: string[]): SearchBuilderOptions;
 	public label(label?: string[]): any {
 		if (label === undefined) {
 			return this._label;
@@ -93,7 +93,7 @@ export default class SearchPaneOptions {
 	 * @param {string} order ORDER BY statement
 	 * @returns {Options} Self for chaining
 	 */
-	public order(order: string): SearchPaneOptions;
+	public order(order: string): SearchBuilderOptions;
 	public order(order?: string): any {
 		if (order === undefined) {
 			return this._order;
@@ -117,7 +117,7 @@ export default class SearchPaneOptions {
 	 * @param {IRenderer} fn Renderering function
 	 * @returns {Options} Self for chaining
 	 */
-	public render(fn: IRenderer): SearchPaneOptions;
+	public render(fn: IRenderer): SearchBuilderOptions;
 	public render(fn?: IRenderer): any {
 		if (fn === undefined) {
 			return this._renderer;
@@ -139,7 +139,7 @@ export default class SearchPaneOptions {
 	 * @param {string} table Table name
 	 * @returns {Options} Self for chaining
 	 */
-	public table(table: string): SearchPaneOptions;
+	public table(table: string): SearchBuilderOptions;
 	public table(table?: string): any {
 		if (table === undefined) {
 			return this._table;
@@ -162,7 +162,7 @@ export default class SearchPaneOptions {
 	 * @param {string} value Column name
 	 * @returns {Options} Self for chaining
 	 */
-	public value(value: string): SearchPaneOptions;
+	public value(value: string): SearchBuilderOptions;
 	public value(value?: string): any {
 		if (value === undefined) {
 			return this._value;
@@ -185,7 +185,7 @@ export default class SearchPaneOptions {
 	 * @param {*} where Knex WHERE condition
 	 * @returns {Options} Self for chaining
 	 */
-	public where(where: any): SearchPaneOptions;
+	public where(where: any): SearchBuilderOptions;
 	public where(where?: any): any {
 		if (where === undefined) {
 			return this._where;
@@ -234,7 +234,7 @@ export default class SearchPaneOptions {
 	 */
 
 	/**
-	 * Execution function for getting the SearchPane options
+	 * Execution function for getting the SearchBuilder options
 	 * @param field The field to retrieve data from
 	 * @param editor The editor instance
 	 * @param http The http sent to the server
@@ -252,11 +252,11 @@ export default class SearchPaneOptions {
 		let fields = fieldsIn;
 
 		// First get a value for `value`. This can be retrieved from either the
-		//  SearchPaneOptions or the fieldName if it has not been declared
+		//  SearchBuilderOptions or the fieldName if it has not been declared
 		if (this._value === undefined) {
-			let spopts = field.searchPaneOptions();
-			value = spopts.label() !== undefined ?
-				spopts.label()[0] :
+			let sbopts = field.searchBuilderOptions();
+			value = sbopts.label() !== undefined ?
+				sbopts.label()[0] :
 			 	value = field.name();
 		}
 		// Otherwise we can just get it from the value that has been defined
@@ -296,199 +296,36 @@ export default class SearchPaneOptions {
 			};
 		}
 
-		if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
-			let keys = Object.keys(http.searchPanes);
-			for (let key of keys) {
-				for(let i = 0; i < http.searchPanes[key].length; i++) {
-					// Check the number of rows...
-					let q = db
-						.count({count: '*'})
-						.from(table);
-					
-					if (join !== null && join !== undefined) {
-						for (let joiner of join) {
-							if(joiner.fn) {
-								q.leftJoin(joiner.table, joiner.fn as any);
-							}
-							else {
-								q.leftJoin(joiner.table, function() {
-									this.on(joiner.field1, joiner.operator, joiner.field2);
-								});
-							}
-						}
-					}
-
-					// ... where the selected option is present...
-					q.where(key, http.searchPanes[key][i]);
-					
-					let r = await q;
-
-					// ... If there are none then don't bother with this selection
-					if(r[0].count == 0) {
-						http.searchPanes[key].splice(i, 1);
-						i--;
-					}
-				}
-			}
-		}
-
-		// This query will get the count's according to any selections made in the SearchPanes
+		// This query will get the count's according to any selections made in the SearchBuilders
 		let query = db
 			.select(label + ' as label', value + ' as value')
-			.count({count: '*'})
 			.from(table)
 			.distinct()
 			.groupBy(value);
-
-		// The last pane to have a selection runs a slightly different query
-		let queryLast = db
-			.select(label + ' as label', value + ' as value')
-			.count({count: '*'})
-			.from(table)
-			.distinct()
-			.groupBy(value);
-
-		// This block applies all of the where conditions across the fields
-		// Each field gets it's own where condition which must be satisfied
-		// Each where condition can have multiple orWhere()s so that the or
-		//  searching within the fields works.
-		if (http.searchPanes !== undefined) {
-			for (let fie of fields) {
-				if (http.searchPanes[fie.name()] !== undefined) {
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-								this.orWhereNull(fie.name());
-							}
-							else {
-								this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-							}
-						}
-					});
-				}
-			}
-		}
-
-		// If there is a last value set then a slightly different set of results is required for cascade
-		// That panes results are based off of the results when only considering the selections of all of the others
-		if (http.searchPanes !== undefined && http.searchPanesLast) {
-			for (let fie of fields) {
-				if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
-					queryLast.where(function() {
-						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-								this.orWhereNull(fie.name());
-							}
-							else {
-								this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-							}
-						}
-					});
-				}
-			}
-		}
-
-		// This query will get the total count for the field, assuming no filtering.
-		// This is necessary for viewTotal and cascadePanes functionality
-		let q = db
-			.select(label + ' as label', value + ' as value')
-			.count({total: '*'})
-			.from(table)
-			.distinct()
-			.groupBy(value);
-
-		if (this._where) {
-			q.where(this._where);
-		}
 
 		// If a left join needs to be done for the above queries we can just do it in the same place
 		if (join !== null && join !== undefined) {
 			for (let joiner of join) {
 				if(joiner.fn) {
-					q.leftJoin(joiner.table, joiner.fn as any);
 					query.leftJoin(joiner.table, joiner.fn as any);
-					queryLast.leftJoin(joiner.table, joiner.fn as any);
 				}
 				else {
-					q.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
 					query.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
-					queryLast.leftJoin(joiner.table, function() {
 						this.on(joiner.field1, joiner.operator, joiner.field2);
 					});
 				}
 			}
 		}
 
-		if (this._order) {
-			// For cases where we are ordering by a field which isn't included in the list
-			// of fields to display, we need to add the ordering field, due to the
-			// select distinct.
-			this._order.split(',').forEach((val) => {
-				let fie = val.toLocaleLowerCase()
-					.replace(' asc', '')
-					.replace('desc', '')
-					.trim();
-
-				if (! fields.includes(fie)) {
-					q.select(fie);
-				}
-			});
-
-			q.orderBy(this._order);
-		}
-
-		let res = await q;
-		let cts = await query;
-		let ctsLast = await queryLast;
+		let res = await query;
 		let out = [];
 
 		// Create the output array and add the values of count, label, total and value for each unique entry
 		for (let recordCou of res) {
-			let set = false;
-
-			// Send slightly different results if this is the last pane
-			if(http.searchPanesLast && field.name() === http.searchPanesLast) {
-				for (let recordTot of ctsLast) {
-					if (recordTot.value === recordCou.value) {
-						out.push({
-							count: recordTot.count,
-							label: formatter(recordCou.label),
-							total: recordCou.total,
-							value: recordCou.value
-						});
-						set = true;
-						break;
-					}
-				}
-			}
-			else {
-				for (let recordTot of cts) {
-					if (recordTot.value === recordCou.value) {
-						out.push({
-							count: recordTot.count,
-							label: formatter(recordCou.label),
-							total: recordCou.total,
-							value: recordCou.value
-						});
-						set = true;
-						break;
-					}
-				}
-			}
-
-			// If the values are not found then the count is 0 according to `query` so add it anyway but with that value
-			if (!set) {
-				out.push({
-					count: 0,
-					label: formatter(recordCou.label),
-					total: recordCou.total,
-					value: recordCou.value
-				});
-			}
+			out.push({
+				value: recordCou.value,
+				label: recordCou.label,
+			})
 		}
 
 		// Only sort if there was no SQL order field
@@ -503,6 +340,7 @@ export default class SearchPaneOptions {
 						0;
 			});
 		}
+
 		return out;
 	}
 }

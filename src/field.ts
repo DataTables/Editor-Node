@@ -6,6 +6,7 @@ import {IFormatter} from './formatters';
 import NestedData from './nestedData';
 import Options, {CustomOptions, IOption} from './options';
 import SearchPaneOptions from './searchPaneOptions';
+import SearchBuilderOptions from './searchBuilderOptions';
 import Upload from './upload';
 import Validator, {IValidator} from './validators';
 import xss, {Ixss} from './xss';
@@ -55,6 +56,7 @@ export default class Field extends NestedData {
 	private _opts: Options & CustomOptions;
 	private _name: string;
 	private _spopts: SearchPaneOptions;
+	private _sbopts: SearchBuilderOptions;
 	private _set: SetType = SetType.Both;
 	private _setFormatter: IFormatter;
 	private _setValue: any;
@@ -262,6 +264,25 @@ export default class Field extends NestedData {
 		}
 
 		this._opts = opts;
+		return this;
+	}
+
+	/**
+	 * Set how a list iof options (values and labels) will be retrieved for the fields SearchBuilder.
+	 *
+	 * Gets a list of values that can be used for the options list in SearchBuilder.
+	 *
+	 * @param spopts: SearchBuilderOptions
+	 * @return this
+	 */
+	public searchBuilderOptions(): SearchBuilderOptions;
+	public searchBuilderOptions(sbopts: SearchBuilderOptions): Field;
+	public searchBuilderOptions(sbopts?: SearchBuilderOptions): any {
+		if (sbopts === undefined) {
+			return this._sbopts;
+		}
+
+		this._sbopts = sbopts;
 		return this;
 	}
 
@@ -521,7 +542,24 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public async searchPaneOptionsExec(
+	public async searchBuilderOptionsExec(
+		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: Knex
+	): Promise<false | IOption[]> {
+		if (this._sbopts instanceof SearchBuilderOptions) {
+			let retVal = await this._sbopts.exec(field, editor, http, fields, leftJoin);
+			return retVal;
+		}
+		else if (this._sbopts) {
+			return (this._sbopts as any)(db, editor);
+		}
+		return false;
+	}
+
+
+	/**
+	 * @hidden
+	 */
+	 public async searchPaneOptionsExec(
 		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: Knex
 	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {

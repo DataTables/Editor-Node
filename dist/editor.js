@@ -1046,7 +1046,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, i, ien, opts, spopts, searchPanes, i, ien, _a;
+            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, this_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, sbOptions, i, ien, opts, spopts, sbopts, searchPanes, searchBuilder, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1058,7 +1058,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!this._customGet) return [3 /*break*/, 2];
                         response = this._customGet(id, http);
-                        return [3 /*break*/, 13];
+                        return [3 /*break*/, 18];
                     case 2:
                         fields = this.fields();
                         pkeys = this.pkey();
@@ -1097,26 +1097,64 @@ var Editor = /** @class */ (function (_super) {
                                 query.where(this.pkeyToObject(id, true));
                             }
                         }
-                        // If searchPanes is in use then add the options selected there to the where condition
-                        if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
-                            keys = Object.keys(http.searchPanes);
-                            _loop_2 = function (key) {
-                                query.where(function () {
-                                    for (var i = 0; i < http.searchPanes[key].length; i++) {
-                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
-                                            this.orWhereNull(key);
+                        if (!(http !== null && http.searchPanes !== undefined && http.searchPanes !== null)) return [3 /*break*/, 6];
+                        keys = Object.keys(http.searchPanes);
+                        _loop_2 = function (key) {
+                            var i, q, r;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
+                                    case 0:
+                                        i = 0;
+                                        _c.label = 1;
+                                    case 1:
+                                        if (!(i < http.searchPanes[key].length)) return [3 /*break*/, 4];
+                                        q = this_2.db()
+                                            .table(this_2._readTable()[0])
+                                            .count({ count: '*' });
+                                        this_2._performLeftJoin(q);
+                                        // ... where the selected option is present...
+                                        q.where(key, http.searchPanes[key][i]);
+                                        return [4 /*yield*/, q];
+                                    case 2:
+                                        r = _c.sent();
+                                        // ... If there are none then don't bother with this selection
+                                        if (r[0].count == 0) {
+                                            http.searchPanes[key].splice(i, 1);
+                                            i--;
                                         }
-                                        else {
-                                            this.orWhere(key, http.searchPanes[key][i]);
-                                        }
-                                    }
-                                });
-                            };
-                            for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-                                key = keys_1[_i];
-                                _loop_2(key);
-                            }
-                        }
+                                        _c.label = 3;
+                                    case 3:
+                                        i++;
+                                        return [3 /*break*/, 1];
+                                    case 4:
+                                        query.where(function () {
+                                            for (var i = 0; i < http.searchPanes[key].length; i++) {
+                                                if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
+                                                    this.orWhereNull(key);
+                                                }
+                                                else {
+                                                    this.orWhere(key, http.searchPanes[key][i]);
+                                                }
+                                            }
+                                        });
+                                        return [2 /*return*/];
+                                }
+                            });
+                        };
+                        this_2 = this;
+                        _i = 0, keys_1 = keys;
+                        _b.label = 3;
+                    case 3:
+                        if (!(_i < keys_1.length)) return [3 /*break*/, 6];
+                        key = keys_1[_i];
+                        return [5 /*yield**/, _loop_2(key)];
+                    case 4:
+                        _b.sent();
+                        _b.label = 5;
+                    case 5:
+                        _i++;
+                        return [3 /*break*/, 3];
+                    case 6:
                         // If there is a searchBuilder condition present in the request data
                         if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
                             // Run the above function for the first level of the searchBuilder data
@@ -1125,10 +1163,10 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
-                    case 3:
+                    case 7:
                         ssp = _b.sent();
                         return [4 /*yield*/, query];
-                    case 4:
+                    case 8:
                         result = _b.sent();
                         if (!result) {
                             throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
@@ -1147,29 +1185,37 @@ var Editor = /** @class */ (function (_super) {
                             out.push(inner);
                         }
                         spOptions = {};
-                        if (!(id === null)) return [3 /*break*/, 9];
+                        sbOptions = {};
+                        if (!(id === null)) return [3 /*break*/, 14];
                         i = 0, ien = fields.length;
-                        _b.label = 5;
-                    case 5:
-                        if (!(i < ien)) return [3 /*break*/, 9];
+                        _b.label = 9;
+                    case 9:
+                        if (!(i < ien)) return [3 /*break*/, 14];
                         return [4 /*yield*/, fields[i].optionsExec(this.db())];
-                    case 6:
+                    case 10:
                         opts = _b.sent();
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
                         return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
-                    case 7:
+                    case 11:
                         spopts = _b.sent();
                         if (spopts) {
                             spOptions[fields[i].name()] = spopts;
                         }
-                        _b.label = 8;
-                    case 8:
+                        return [4 /*yield*/, fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
+                    case 12:
+                        sbopts = _b.sent();
+                        if (sbopts) {
+                            sbOptions[fields[i].name()] = sbopts;
+                        }
+                        _b.label = 13;
+                    case 13:
                         i++;
-                        return [3 /*break*/, 5];
-                    case 9:
+                        return [3 /*break*/, 9];
+                    case 14:
                         searchPanes = { options: spOptions };
+                        searchBuilder = { options: sbOptions };
                         // Build a DtResponse object
                         response = {
                             data: out,
@@ -1178,29 +1224,33 @@ var Editor = /** @class */ (function (_super) {
                             options: options,
                             recordsFiltered: ssp.recordsFiltered,
                             recordsTotal: ssp.recordsTotal,
-                            searchPanes: undefined
+                            searchPanes: undefined,
+                            searchBuilder: undefined
                         };
                         if (Object.keys(searchPanes.options).length > 0) {
                             response.searchPanes = searchPanes;
                         }
+                        if (Object.keys(searchBuilder.options).length > 0) {
+                            response.searchBuilder = searchBuilder;
+                        }
                         i = 0, ien = this._join.length;
-                        _b.label = 10;
-                    case 10:
-                        if (!(i < ien)) return [3 /*break*/, 13];
+                        _b.label = 15;
+                    case 15:
+                        if (!(i < ien)) return [3 /*break*/, 18];
                         return [4 /*yield*/, this._join[i].data(this, response)];
-                    case 11:
+                    case 16:
                         _b.sent();
-                        _b.label = 12;
-                    case 12:
+                        _b.label = 17;
+                    case 17:
                         i++;
-                        return [3 /*break*/, 10];
-                    case 13:
+                        return [3 /*break*/, 15];
+                    case 18:
                         _a = response;
                         return [4 /*yield*/, this._fileData(null, null, response.data)];
-                    case 14:
+                    case 19:
                         _a.files = _b.sent();
                         return [4 /*yield*/, this._trigger('postGet', id, response.data)];
-                    case 15:
+                    case 20:
                         _b.sent();
                         return [2 /*return*/, response];
                 }
@@ -1511,7 +1561,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._performLeftJoin = function (query) {
         var _loop_3 = function (i, ien) {
-            var join = this_2._leftJoin[i];
+            var join = this_3._leftJoin[i];
             if (join.fn) {
                 query.leftJoin(join.table, join.fn);
             }
@@ -1521,7 +1571,7 @@ var Editor = /** @class */ (function (_super) {
                 });
             }
         };
-        var this_2 = this;
+        var this_3 = this;
         for (var i = 0, ien = this._leftJoin.length; i < ien; i++) {
             _loop_3(i, ien);
         }
@@ -1560,7 +1610,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_2, key, pkey, _f, submitedData_1, returnData, _loop_4, this_3, _g, pkeys_1, key;
+            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_2, key, pkey, _f, submitedData_1, returnData, _loop_4, this_4, _g, pkeys_1, key;
             return __generator(this, function (_h) {
                 switch (_h.label) {
                     case 0:
@@ -1704,14 +1754,14 @@ var Editor = /** @class */ (function (_super) {
                         _loop_4 = function (key) {
                             return __generator(this, function (_j) {
                                 switch (_j.label) {
-                                    case 0: return [4 /*yield*/, this_3._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 0: return [4 /*yield*/, this_4._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
                                         _j.sent();
                                         return [2 /*return*/];
                                 }
                             });
                         };
-                        this_3 = this;
+                        this_4 = this;
                         _g = 0, pkeys_1 = pkeys_2;
                         _h.label = 29;
                     case 29:
@@ -1851,7 +1901,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_5, this_4, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_5, this_5, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1880,12 +1930,12 @@ var Editor = /** @class */ (function (_super) {
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
                         _loop_5 = function (i, ien) {
-                            var cond = this_4.pkeyToObject(ids[i], true, pkey);
+                            var cond = this_5.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
                             });
                         };
-                        this_4 = this;
+                        this_5 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
                             _loop_5(i, ien);
                         }
@@ -1965,8 +2015,9 @@ var Editor = /** @class */ (function (_super) {
                     if (http.columns[i].searchable.toString() === 'true') {
                         var field = _this._sspField(http, i);
                         if (field) {
+                            var client = _this._db.client.config.client;
                             // Nasty hack for Postgres
-                            if (_this._db.client.config.client === 'pg') {
+                            if (client === 'pg' || client === 'postgres') {
                                 q.orWhereRaw('??::text ILIKE ?', [field, '%' + http.search.value + '%']);
                             }
                             else {
@@ -2173,7 +2224,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '2.0.7';
+    Editor.version = '2.0.8';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;

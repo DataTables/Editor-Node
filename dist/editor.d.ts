@@ -107,6 +107,8 @@ export interface IDtResponse {
     recordsTotal?: number;
     /** DataTables SSP - number of records after filtering. */
     recordsFiltered?: number;
+    /** DataTables SSP - SearchBuilder Options */
+    searchBuilder?: any;
     /** DataTables SSP - SearchPanes Options */
     searchPanes?: any;
     searchPanes_null?: any;

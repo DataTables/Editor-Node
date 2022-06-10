@@ -55,6 +55,7 @@ exports.SetType = void 0;
 var nestedData_1 = require("./nestedData");
 var options_1 = require("./options");
 var searchPaneOptions_1 = require("./searchPaneOptions");
+var searchBuilderOptions_1 = require("./searchBuilderOptions");
 var validators_1 = require("./validators");
 var xss_1 = require("./xss");
 /**
@@ -172,6 +173,13 @@ var Field = /** @class */ (function (_super) {
         this._opts = opts;
         return this;
     };
+    Field.prototype.searchBuilderOptions = function (sbopts) {
+        if (sbopts === undefined) {
+            return this._sbopts;
+        }
+        this._sbopts = sbopts;
+        return this;
+    };
     Field.prototype.searchPaneOptions = function (spopts) {
         if (spopts === undefined) {
             return this._spopts;
@@ -278,6 +286,30 @@ var Field = /** @class */ (function (_super) {
                     return [2 /*return*/, this._opts(db)];
                 }
                 return [2 /*return*/, false];
+            });
+        });
+    };
+    /**
+     * @hidden
+     */
+    Field.prototype.searchBuilderOptionsExec = function (field, editor, http, fields, leftJoin, db) {
+        return __awaiter(this, void 0, void 0, function () {
+            var retVal;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(this._sbopts instanceof searchBuilderOptions_1.default)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._sbopts.exec(field, editor, http, fields, leftJoin)];
+                    case 1:
+                        retVal = _a.sent();
+                        return [2 /*return*/, retVal];
+                    case 2:
+                        if (this._sbopts) {
+                            return [2 /*return*/, this._sbopts(db, editor)];
+                        }
+                        _a.label = 3;
+                    case 3: return [2 /*return*/, false];
+                }
             });
         });
     };
