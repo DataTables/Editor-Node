@@ -15,7 +15,8 @@ let stat = promisify( fs.stat );
 let readFile = promisify( fs.readFile );
 let rename = promisify( mv );
 
-export type DbUpdate = (params: {[key: string]: any}, newId?: string | number | boolean) => Promise<void>;
+export type DbUpdate = (params: {[key: string]: any}, newId?: string | boolean) => Promise<void>;
+export type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
 
 export enum DbOpts {
 	Content,
@@ -83,7 +84,7 @@ export default class Upload {
 	public static Db = DbOpts; // legacy
 	public static DbOpts = DbOpts;
 
-	private _action: string|Function;
+	private _action: string|UploadAction;
 	private _dbCleanCallback; // async function
 	private _dbCleanTableField: string;
 	private _dbTable: string;
@@ -97,7 +98,7 @@ export default class Upload {
 	 * Constructor
 	 */
 
-	constructor( action: string|Function = null ) {
+	constructor( action: string|UploadAction = null ) {
 		if ( action ) {
 			this.action( action );
 		}
@@ -122,10 +123,10 @@ export default class Upload {
 	 *   typically involve writing it to the file system so it can be used
 	 *   later.
 	 *
-	 * @param {(string|Function)} action Upload action
+	 * @param {(string|UploadAction)} action Upload action
 	 * @returns {Upload} Self for chaining
 	 */
-	public action( action: string|Function ): Upload {
+	public action( action: string|UploadAction ): Upload {
 		this._action = action;
 
 		return this;

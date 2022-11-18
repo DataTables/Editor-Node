@@ -3,7 +3,8 @@ import Editor from './editor';
 import Field from './field';
 export declare type DbUpdate = (params: {
     [key: string]: any;
-}, newId?: string | number | boolean) => Promise<void>;
+}, newId?: string | boolean) => Promise<void>;
+export declare type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
 export declare enum DbOpts {
     Content = 0,
     ContentType = 1,
@@ -72,7 +73,7 @@ export default class Upload {
     private _error;
     private _validators;
     private _where;
-    constructor(action?: string | Function);
+    constructor(action?: string | UploadAction);
     /**
      * Set the action to take when a file is uploaded. This can be either of:
      *
@@ -88,10 +89,10 @@ export default class Upload {
      *   typically involve writing it to the file system so it can be used
      *   later.
      *
-     * @param {(string|Function)} action Upload action
+     * @param {(string|UploadAction)} action Upload action
      * @returns {Upload} Self for chaining
      */
-    action(action: string | Function): Upload;
+    action(action: string | UploadAction): Upload;
     /**
      * Database configuration method. When used, this method will tell Editor
      * what information you want written to a database on file upload, should

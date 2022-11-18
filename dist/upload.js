@@ -118,7 +118,7 @@ var Upload = /** @class */ (function () {
      *   typically involve writing it to the file system so it can be used
      *   later.
      *
-     * @param {(string|Function)} action Upload action
+     * @param {(string|UploadAction)} action Upload action
      * @returns {Upload} Self for chaining
      */
     Upload.prototype.action = function (action) {
