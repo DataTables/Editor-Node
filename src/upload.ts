@@ -15,6 +15,8 @@ let stat = promisify( fs.stat );
 let readFile = promisify( fs.readFile );
 let rename = promisify( mv );
 
+export type DbUpdate = (params: {[key: string]: any}, newId?: string | number | boolean) => Promise<void>;
+
 export enum DbOpts {
 	Content,
 	ContentType,
@@ -320,7 +322,40 @@ export default class Upload {
 			id = await this._dbExec( editor.db(), upload );
 		}
 
-		let res = await this._actionExec( id, upload );
+		let res = await this._actionExec( id, upload, async (params, newId) => {
+			// Update the database with these parameters, or insert if there was no id already present
+			let db = editor.db();
+			let res, innerId;
+
+			if (newId) {
+				// If you want an insert, specify a value. If you know the new id you want, that should
+				// be the value. If you want the db to generate it, then just pass in `true`.
+				if (newId !== true) {
+					params[ this._dbPkey ] = newId;
+				}
+
+				res = await db
+					.insert( params )
+					.from( this._dbTable )
+					.returning( this._dbPkey );
+
+				innerId = typeof res[0] === 'object'
+					? res[0][this._dbPkey] // Knex 1.0+
+					: res[0]; // Knex 0.95 and earlier
+			}
+			else {
+				// Otherwise, we update based on the id that was obtained from the db above.
+				await db
+					.update(params)
+					.table( this._dbTable )
+					.where(this._dbPkey, id);
+
+				innerId = id;
+			}
+
+			return innerId;
+		});
+
 		return res;
 	}
 
@@ -341,9 +376,9 @@ export default class Upload {
 	/*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
 	 * Private methods
 	 */
-	private async _actionExec( id: string, files: IUpload ): Promise<string> {
+	private async _actionExec( id: string, files: IUpload, dbUpdate: DbUpdate ): Promise<string> {
 		if ( typeof this._action === 'function' ) {
-			let res = await this._action( files.upload, id );
+			let res = await this._action( files.upload, id, dbUpdate );
 			return res;
 		}
 

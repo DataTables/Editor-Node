@@ -270,6 +270,7 @@ var Upload = /** @class */ (function () {
     Upload.prototype.exec = function (editor, upload) {
         return __awaiter(this, void 0, void 0, function () {
             var id, fileInfo, a, i, ien, result, fields, i, ien, prop, res;
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, stat(upload.upload.file)];
@@ -314,7 +315,43 @@ var Upload = /** @class */ (function () {
                         // Commit to the database
                         id = _a.sent();
                         _a.label = 7;
-                    case 7: return [4 /*yield*/, this._actionExec(id, upload)];
+                    case 7: return [4 /*yield*/, this._actionExec(id, upload, function (params, newId) { return __awaiter(_this, void 0, void 0, function () {
+                            var db, res, innerId;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        db = editor.db();
+                                        if (!newId) return [3 /*break*/, 2];
+                                        // If you want an insert, specify a value. If you know the new id you want, that should
+                                        // be the value. If you want the db to generate it, then just pass in `true`.
+                                        if (newId !== true) {
+                                            params[this._dbPkey] = newId;
+                                        }
+                                        return [4 /*yield*/, db
+                                                .insert(params)
+                                                .from(this._dbTable)
+                                                .returning(this._dbPkey)];
+                                    case 1:
+                                        res = _a.sent();
+                                        innerId = typeof res[0] === 'object'
+                                            ? res[0][this._dbPkey] // Knex 1.0+
+                                            : res[0]; // Knex 0.95 and earlier
+                                        return [3 /*break*/, 4];
+                                    case 2: 
+                                    // Otherwise, we update based on the id that was obtained from the db above.
+                                    return [4 /*yield*/, db
+                                            .update(params)
+                                            .table(this._dbTable)
+                                            .where(this._dbPkey, id)];
+                                    case 3:
+                                        // Otherwise, we update based on the id that was obtained from the db above.
+                                        _a.sent();
+                                        innerId = id;
+                                        _a.label = 4;
+                                    case 4: return [2 /*return*/, innerId];
+                                }
+                            });
+                        }); })];
                     case 8:
                         res = _a.sent();
                         return [2 /*return*/, res];
@@ -337,14 +374,14 @@ var Upload = /** @class */ (function () {
     /*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
      * Private methods
      */
-    Upload.prototype._actionExec = function (id, files) {
+    Upload.prototype._actionExec = function (id, files, dbUpdate) {
         return __awaiter(this, void 0, void 0, function () {
             var res, to, e_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!(typeof this._action === 'function')) return [3 /*break*/, 2];
-                        return [4 /*yield*/, this._action(files.upload, id)];
+                        return [4 /*yield*/, this._action(files.upload, id, dbUpdate)];
                     case 1:
                         res = _a.sent();
                         return [2 /*return*/, res];

@@ -1,6 +1,9 @@
 import { Knex } from 'knex';
 import Editor from './editor';
 import Field from './field';
+export declare type DbUpdate = (params: {
+    [key: string]: any;
+}, newId?: string | number | boolean) => Promise<void>;
 export declare enum DbOpts {
     Content = 0,
     ContentType = 1,
