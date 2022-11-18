@@ -3,7 +3,7 @@ import Editor from './editor';
 import Field from './field';
 export declare type DbUpdate = (params: {
     [key: string]: any;
-}, newId?: string | boolean) => Promise<void>;
+}, newId?: string | boolean) => Promise<string>;
 export declare type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
 export declare enum DbOpts {
     Content = 0,

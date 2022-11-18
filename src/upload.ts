@@ -15,7 +15,7 @@ let stat = promisify( fs.stat );
 let readFile = promisify( fs.readFile );
 let rename = promisify( mv );
 
-export type DbUpdate = (params: {[key: string]: any}, newId?: string | boolean) => Promise<void>;
+export type DbUpdate = (params: {[key: string]: any}, newId?: string | boolean) => Promise<string>;
 export type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
 
 export enum DbOpts {
