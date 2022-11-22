@@ -94,6 +94,7 @@ var Upload = /** @class */ (function () {
      */
     function Upload(action) {
         if (action === void 0) { action = null; }
+        this._dbFormat = null;
         this._validators = [];
         this._where = [];
         if (action) {
@@ -141,12 +142,15 @@ var Upload = /** @class */ (function () {
      *     defined by the constants of this class. The value can also be a
      *     string or a closure function if you wish to send custom information
      *     to the database.
+     * @param format Function that can post process the data fetched from the
+     *     database.
      * @returns {Upload} Self for chaining
      */
-    Upload.prototype.db = function (table, pkey, fields) {
+    Upload.prototype.db = function (table, pkey, fields, format) {
         this._dbTable = table;
         this._dbPkey = pkey;
         this._dbFields = fields;
+        this._dbFormat = format;
         return this;
     };
     /**
@@ -238,6 +242,9 @@ var Upload = /** @class */ (function () {
                         result = _a.sent();
                         out = {};
                         for (i = 0, ien = result.length; i < ien; i++) {
+                            if (this._dbFormat) {
+                                this._dbFormat(result[i]);
+                            }
                             out[result[i][this._dbPkey]] = result[i];
                         }
                         return [2 /*return*/, out];

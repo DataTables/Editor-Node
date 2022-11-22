@@ -17,6 +17,7 @@ let rename = promisify( mv );
 
 export type DbUpdate = (params: {[key: string]: any}, newId?: string | boolean) => Promise<string>;
 export type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
+export type DbFormat = (params: {[key: string]: any}) => void;
 
 export enum DbOpts {
 	Content,
@@ -87,6 +88,7 @@ export default class Upload {
 	private _action: string|UploadAction;
 	private _dbCleanCallback; // async function
 	private _dbCleanTableField: string;
+	private _dbFormat: DbFormat | null = null;
 	private _dbTable: string;
 	private _dbPkey: string;
 	private _dbFields;
@@ -148,12 +150,15 @@ export default class Upload {
 	 *     defined by the constants of this class. The value can also be a
 	 *     string or a closure function if you wish to send custom information
 	 *     to the database.
+	 * @param format Function that can post process the data fetched from the
+	 *     database.
 	 * @returns {Upload} Self for chaining
 	 */
-	public db( table: string, pkey: string, fields: object ): Upload {
+	public db( table: string, pkey: string, fields: object, format?: DbFormat): Upload {
 		this._dbTable = table;
 		this._dbPkey = pkey;
 		this._dbFields = fields;
+		this._dbFormat = format;
 
 		return this;
 	}
@@ -253,6 +258,10 @@ export default class Upload {
 		let out = {};
 
 		for ( let i = 0, ien = result.length ; i < ien ; i++ ) {
+			if (this._dbFormat) {
+				this._dbFormat( result[i] );
+			}
+
 			out[ result[i][ this._dbPkey] ] = result[i];
 		}
 

@@ -5,6 +5,9 @@ export declare type DbUpdate = (params: {
     [key: string]: any;
 }, newId?: string | boolean) => Promise<string>;
 export declare type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
+export declare type DbFormat = (params: {
+    [key: string]: any;
+}) => void;
 export declare enum DbOpts {
     Content = 0,
     ContentType = 1,
@@ -67,6 +70,7 @@ export default class Upload {
     private _action;
     private _dbCleanCallback;
     private _dbCleanTableField;
+    private _dbFormat;
     private _dbTable;
     private _dbPkey;
     private _dbFields;
@@ -109,9 +113,11 @@ export default class Upload {
      *     defined by the constants of this class. The value can also be a
      *     string or a closure function if you wish to send custom information
      *     to the database.
+     * @param format Function that can post process the data fetched from the
+     *     database.
      * @returns {Upload} Self for chaining
      */
-    db(table: string, pkey: string, fields: object): Upload;
+    db(table: string, pkey: string, fields: object, format?: DbFormat): Upload;
     /**
      * Set a callback function that is used to remove files which no longer have
      * a reference in a source table.
