@@ -1,5 +1,6 @@
 import Editor from './editor';
 import * as editor from './editor';
+import * as upload from './upload';
 export default Editor;
 export { Editor };
 export { default as Field } from './field';
@@ -14,3 +15,8 @@ export { default as SearchBuilderOptions } from './searchBuilderOptions';
 export declare type IDtRequest = editor.IDtRequest;
 export declare type IDtResponse = editor.IDtResponse;
 export declare type IDtError = editor.IDtError;
+export declare type IFile = upload.IFile;
+export declare type IUpload = upload.IUpload;
+export declare type DbUpdate = upload.DbUpdate;
+export declare type UploadAction = upload.UploadAction;
+export declare type DbFormat = upload.DbFormat;
