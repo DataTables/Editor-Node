@@ -18,6 +18,7 @@ let rename = promisify( mv );
 export type DbUpdate = (params: {[key: string]: any}, newId?: string | boolean) => Promise<string>;
 export type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
 export type DbFormat = (params: {[key: string]: any}) => void;
+export type DbValidate = (file: IFile, db: knex.Knex<any, any[]>) => Promise<string | true>;
 
 export enum DbOpts {
 	Content,
@@ -93,7 +94,7 @@ export default class Upload {
 	private _dbPkey: string;
 	private _dbFields;
 	private _error: string;
-	private _validators = [];
+	private _validators: DbValidate[] = [];
 	private _where = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -199,7 +200,7 @@ export default class Upload {
 	 *   (validation failed and error message), or `true` (validation passed).
 	 * @returns {Upload} Self for chaining
 	 */
-	public validator( fn ): Upload {
+	public validator( fn: DbValidate ): Upload {
 		this._validators.push( fn );
 
 		return this;
@@ -303,7 +304,7 @@ export default class Upload {
 
 		// Validation
 		for ( let i = 0, ien = this._validators.length ; i < ien ; i++ ) {
-			let result = await this._validators[i]( upload.upload );
+			let result = await this._validators[i]( upload.upload, editor.db() );
 
 			if ( typeof result === 'string' ) {
 				this._error = result;

@@ -293,7 +293,7 @@ var Upload = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         if (!(i < ien)) return [3 /*break*/, 5];
-                        return [4 /*yield*/, this._validators[i](upload.upload)];
+                        return [4 /*yield*/, this._validators[i](upload.upload, editor.db())];
                     case 3:
                         result = _a.sent();
                         if (typeof result === 'string') {

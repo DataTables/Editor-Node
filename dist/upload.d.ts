@@ -1,3 +1,4 @@
+import * as knex from 'knex';
 import { Knex } from 'knex';
 import Editor from './editor';
 import Field from './field';
@@ -8,6 +9,7 @@ export declare type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdat
 export declare type DbFormat = (params: {
     [key: string]: any;
 }) => void;
+export declare type DbValidate = (file: IFile, db: knex.Knex<any, any[]>) => Promise<string | true>;
 export declare enum DbOpts {
     Content = 0,
     ContentType = 1,
@@ -141,7 +143,7 @@ export default class Upload {
      *   (validation failed and error message), or `true` (validation passed).
      * @returns {Upload} Self for chaining
      */
-    validator(fn: any): Upload;
+    validator(fn: DbValidate): Upload;
     /**
      * Add a condition to the data to be retrieved from the database. This
      * must be given as a function to be executed (usually anonymous) and
