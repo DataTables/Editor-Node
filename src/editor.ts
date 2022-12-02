@@ -2483,6 +2483,8 @@ export default class Editor extends NestedData {
 			this._out.upload = {
 				id: res
 			};
+
+			await this._trigger('postUpload', res, files, http);
 		}
 	}
 }

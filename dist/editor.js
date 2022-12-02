@@ -2212,7 +2212,7 @@ var Editor = /** @class */ (function (_super) {
                             name: fieldName,
                             status: upload.error()
                         });
-                        return [3 /*break*/, 5];
+                        return [3 /*break*/, 6];
                     case 3: return [4 /*yield*/, this._fileData(upload.table(), [res])];
                     case 4:
                         files = _a.sent();
@@ -2220,8 +2220,11 @@ var Editor = /** @class */ (function (_super) {
                         this._out.upload = {
                             id: res
                         };
-                        _a.label = 5;
-                    case 5: return [2 /*return*/];
+                        return [4 /*yield*/, this._trigger('postUpload', res, files, http)];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });
