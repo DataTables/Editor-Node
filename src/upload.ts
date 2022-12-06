@@ -176,7 +176,7 @@ export default class Upload {
 	 *   will result in the records being retained.
 	 * @returns {Upload} Self for chaining
 	 */
-	public dbClean( tableField: string|Function, callback: Function = null ): Upload {
+	public dbClean( tableField: string|Function|false, callback: Function = null ): Upload {
 		// Argument swapping
 		if ( typeof tableField === 'function' ) {
 			this._dbCleanTableField = null;

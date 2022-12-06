@@ -132,7 +132,7 @@ export default class Upload {
      *   will result in the records being retained.
      * @returns {Upload} Self for chaining
      */
-    dbClean(tableField: string | Function, callback?: Function): Upload;
+    dbClean(tableField: string | Function | false, callback?: Function): Upload;
     /**
      * Add a validation method to check file uploads. Multiple validators can be
      * added by calling this method multiple times - they will be executed in
