@@ -424,6 +424,12 @@ var Upload = /** @class */ (function () {
                         if (!this._dbTable || !callback) {
                             return [2 /*return*/];
                         }
+                        if (!(this._dbCleanTableField === false)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this._dbCleanCallback(db)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                    case 2:
                         // If there is a table / field that we should use to check if the value
                         // is in use, then use that. Otherwise we'll try to use the information
                         // from the Editor / Field instance.
@@ -459,15 +465,15 @@ var Upload = /** @class */ (function () {
                             this.select(field).from(table).whereNotNull(field);
                         });
                         return [4 /*yield*/, query];
-                    case 1:
+                    case 3:
                         rows = _a.sent();
                         if (rows.length === 0) {
                             return [2 /*return*/];
                         }
                         return [4 /*yield*/, callback(rows)];
-                    case 2:
+                    case 4:
                         result = _a.sent();
-                        if (!(result === true)) return [3 /*break*/, 4];
+                        if (!(result === true)) return [3 /*break*/, 6];
                         queryDel = db
                             .from(this._dbTable)
                             .where(function () {
@@ -477,10 +483,10 @@ var Upload = /** @class */ (function () {
                             }
                         });
                         return [4 /*yield*/, queryDel.del()];
-                    case 3:
+                    case 5:
                         _a.sent();
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });

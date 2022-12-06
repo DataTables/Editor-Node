@@ -88,7 +88,7 @@ export default class Upload {
 
 	private _action: string|UploadAction;
 	private _dbCleanCallback; // async function
-	private _dbCleanTableField: string;
+	private _dbCleanTableField: string | false | null;
 	private _dbFormat: DbFormat | null = null;
 	private _dbTable: string;
 	private _dbPkey: string;
@@ -415,6 +415,13 @@ export default class Upload {
 		let that = this;
 
 		if ( ! this._dbTable || ! callback ) {
+			return;
+		}
+
+		// If specified as false for the field, then leave the db actions entirely
+		// to the dev using the library
+		if ( this._dbCleanTableField === false ) {
+			await this._dbCleanCallback(db);
 			return;
 		}
 
