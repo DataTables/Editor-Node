@@ -421,15 +421,15 @@ var Upload = /** @class */ (function () {
                     case 0:
                         callback = this._dbCleanCallback;
                         that = this;
-                        if (!this._dbTable || !callback) {
-                            return [2 /*return*/];
-                        }
                         if (!(this._dbCleanTableField === false)) return [3 /*break*/, 2];
                         return [4 /*yield*/, this._dbCleanCallback(db)];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
                     case 2:
+                        if (!this._dbTable || !callback) {
+                            return [2 /*return*/];
+                        }
                         // If there is a table / field that we should use to check if the value
                         // is in use, then use that. Otherwise we'll try to use the information
                         // from the Editor / Field instance.

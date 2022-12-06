@@ -414,14 +414,14 @@ export default class Upload {
 		let callback = this._dbCleanCallback;
 		let that = this;
 
-		if ( ! this._dbTable || ! callback ) {
-			return;
-		}
-
 		// If specified as false for the field, then leave the db actions entirely
 		// to the dev using the library
 		if ( this._dbCleanTableField === false ) {
 			await this._dbCleanCallback(db);
+			return;
+		}
+
+		if ( ! this._dbTable || ! callback ) {
 			return;
 		}
 
