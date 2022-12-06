@@ -259,9 +259,14 @@ var Upload = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             var tables;
             return __generator(this, function (_a) {
-                tables = editor.table();
-                this._dbClean(editor.db(), tables[0], field.dbField());
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0:
+                        tables = editor.table();
+                        return [4 /*yield*/, this._dbClean(editor.db(), tables[0], field.dbField())];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     };

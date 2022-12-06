@@ -276,7 +276,7 @@ export default class Upload {
 		// Database and file system clean up BEFORE adding the new file to
 		// the db, otherwise it will be removed immediately
 		let tables = editor.table();
-		this._dbClean( editor.db(), tables[0], field.dbField() );
+		await this._dbClean( editor.db(), tables[0], field.dbField() );
 	}
 
 	/**
