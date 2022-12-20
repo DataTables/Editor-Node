@@ -2220,7 +2220,7 @@ var Editor = /** @class */ (function (_super) {
                         this._out.upload = {
                             id: res
                         };
-                        return [4 /*yield*/, this._trigger('postUpload', res, files, http)];
+                        return [4 /*yield*/, this._trigger('postUpload', res, files, http, field)];
                     case 5:
                         _a.sent();
                         _a.label = 6;

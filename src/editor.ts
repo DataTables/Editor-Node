@@ -2484,7 +2484,7 @@ export default class Editor extends NestedData {
 				id: res
 			};
 
-			await this._trigger('postUpload', res, files, http);
+			await this._trigger('postUpload', res, files, http, field);
 		}
 	}
 }
