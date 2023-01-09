@@ -124,8 +124,8 @@ export interface IDtResponse {
  * delete request. The function can be useful for cases where fields must
  * be validates together, rather than individually.
  */
-export declare type IGlobalValidator = (editor: Editor, action: string, http: IDtRequest) => Promise<true | string>;
-declare type IGet = (id: string | string[], http: any) => Promise<IDtResponse>;
+export type IGlobalValidator = (editor: Editor, action: string, http: IDtRequest) => Promise<true | string>;
+type IGet = (id: string | string[], http: any) => Promise<IDtResponse>;
 /**
  * DataTables Editor base class for creating editable tables.
  *

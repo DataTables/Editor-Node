@@ -3,8 +3,8 @@ import { IMjoinValidator } from './mjoin';
 import { IFile } from './upload';
 import ValidationHost from './validationHost';
 import ValidationOptions from './validationOptions';
-export declare type IValidator = (val: any, data: object, host: ValidationHost) => Promise<true | string>;
-export declare type IFileValidator = (file: IFile) => Promise<true | string>;
+export type IValidator = (val: any, data: object, host: ValidationHost) => Promise<true | string>;
+export type IFileValidator = (file: IFile) => Promise<true | string>;
 /**
  * Validation methods for DataTables Editor fields. All of the methods
  * defined in this class return a function that can be used by

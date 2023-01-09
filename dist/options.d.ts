@@ -3,8 +3,8 @@ export interface IOption {
     label: string;
     value: string | number;
 }
-export declare type IRenderer = (row: object) => string;
-export declare type CustomOptions = (db: Knex) => Promise<IOption[]>;
+export type IRenderer = (row: object) => string;
+export type CustomOptions = (db: Knex) => Promise<IOption[]>;
 /**
  * The Options class provides a convenient method of specifying where Editor
  * should get the list of options for a `select`, `radio` or `checkbox` field.

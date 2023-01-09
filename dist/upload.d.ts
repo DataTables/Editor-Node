@@ -2,14 +2,14 @@ import * as knex from 'knex';
 import { Knex } from 'knex';
 import Editor from './editor';
 import Field from './field';
-export declare type DbUpdate = (params: {
+export type DbUpdate = (params: {
     [key: string]: any;
 }, newId?: string | boolean) => Promise<string>;
-export declare type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
-export declare type DbFormat = (params: {
+export type UploadAction = (upload: IFile, id: string, dbUpdate: DbUpdate) => Promise<string>;
+export type DbFormat = (params: {
     [key: string]: any;
 }) => void;
-export declare type DbValidate = (file: IFile, db: knex.Knex<any, any[]>) => Promise<string | true>;
+export type DbValidate = (file: IFile, db: knex.Knex<any, any[]>) => Promise<string | true>;
 export declare enum DbOpts {
     Content = 0,
     ContentType = 1,

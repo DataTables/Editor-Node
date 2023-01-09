@@ -4,7 +4,7 @@ import NestedData from './nestedData';
 /**
  * Grouped validation
  */
-export declare type IMjoinValidator = (editor: Editor, action: string, data: IDtRequest) => Promise<true | string>;
+export type IMjoinValidator = (editor: Editor, action: string, data: IDtRequest) => Promise<true | string>;
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
  * be useful in cases were an attribute can take multiple values at the

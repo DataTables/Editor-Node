@@ -1,5 +1,5 @@
 /** XSS formatter */
-export declare type Ixss = (str: string) => string;
+export type Ixss = (str: string) => string;
 /**
  * Editor's default XSS protection method
  *

@@ -1,4 +1,4 @@
-export declare type IFormatter = (val: any, data: object) => any;
+export type IFormatter = (val: any, data: object) => any;
 /**
  * Formatter methods which can be used with {@link Field.getFormatter} and
  * {@link Field.setFormatter}.
