@@ -8,6 +8,7 @@ import Mjoin from './mjoin';
 import NestedData from './nestedData';
 import {IUpload} from './upload';
 import Validate from './validators';
+import {leftJoin} from './helpers';
 
 /**
  * Action that has been requested by the client-side
@@ -181,10 +182,8 @@ interface ISSP {
 
 /**
  * Left join object structure
- * @interface ILeftJoin
- * @private
  */
-interface ILeftJoin {
+export interface ILeftJoin {
 	table: string;
 	fn?: Function;
 	field1?: string;
@@ -1450,7 +1449,7 @@ export default class Editor extends NestedData {
 			}
 
 			this._getWhere(query);
-			this._performLeftJoin(query);
+			leftJoin(query, this._leftJoin);
 
 			if (id !== null) {
 				// Allow multiple specific rows to be requested at a time
@@ -1475,8 +1474,8 @@ export default class Editor extends NestedData {
 						let q = this.db()
 						.table(this._readTable()[0])
 							.count({count: '*'})
-						
-						this._performLeftJoin(q);
+
+						leftJoin(q, this._leftJoin);
 
 						// ... where the selected option is present...
 						q.where(key, http.searchPanes[key][i]);
@@ -1895,21 +1894,6 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _performLeftJoin(query: Knex.QueryBuilder): void {
-		for (let i = 0, ien = this._leftJoin.length; i < ien; i++) {
-			let join = this._leftJoin[i];
-
-			if (join.fn) {
-				query.leftJoin(join.table, join.fn as any);
-			}
-			else {
-				query.leftJoin(join.table, function() {
-					this.on(join.field1, join.operator, join.field2);
-				});
-			}
-		}
-	}
-
 	private _pkeySeparator(): string {
 		let str = this.pkey().join(',');
 
@@ -2243,7 +2227,9 @@ export default class Editor extends NestedData {
 
 		this._getWhere(setCount);
 		this._sspFilter(setCount, http);
-		this._performLeftJoin(setCount);
+
+		leftJoin(setCount, this._leftJoin);
+
 		let res = await setCount;
 		let recordsFiltered = (res[0] as any).cnt;
 
@@ -2255,8 +2241,9 @@ export default class Editor extends NestedData {
 
 		this._getWhere(fullCount);
 		if (this._where.length) { // only needed if there is a where condition
-			this._performLeftJoin(fullCount);
+			leftJoin(fullCount, this._leftJoin);
 		}
+
 		res = await fullCount;
 		let recordsTotal = (res[0] as any).cnt;
 

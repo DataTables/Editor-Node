@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var helpers_1 = require("./helpers");
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -53,6 +54,7 @@ function isNumeric(n) {
  */
 var Options = /** @class */ (function () {
     function Options() {
+        this._leftJoin = [];
         this._manualOpts = [];
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -83,6 +85,28 @@ var Options = /** @class */ (function () {
         }
         else {
             this._label = [label];
+        }
+        return this;
+    };
+    Options.prototype.leftJoin = function (table, field1, operator, field2) {
+        if (operator === void 0) { operator = undefined; }
+        if (field2 === void 0) { field2 = undefined; }
+        if (typeof field1 === 'function') {
+            this._leftJoin.push({
+                field1: '',
+                field2: '',
+                fn: field1,
+                operator: '',
+                table: table,
+            });
+        }
+        else {
+            this._leftJoin.push({
+                field1: field1,
+                field2: field2,
+                operator: operator,
+                table: table,
+            });
         }
         return this;
     };
@@ -177,6 +201,7 @@ var Options = /** @class */ (function () {
                         if (this._limit) {
                             q.limit(this.limit());
                         }
+                        (0, helpers_1.leftJoin)(q, this._leftJoin);
                         return [4 /*yield*/, q];
                     case 1:
                         res = _a.sent();

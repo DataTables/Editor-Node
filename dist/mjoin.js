@@ -52,6 +52,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var field_1 = require("./field");
+var helpers_1 = require("./helpers");
 var nestedData_1 = require("./nestedData");
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
@@ -83,6 +84,7 @@ var Mjoin = /** @class */ (function (_super) {
     function Mjoin(table) {
         var _this = _super.call(this) || this;
         _this._get = true;
+        _this._leftJoin = [];
         _this._set = field_1.SetType.Both;
         _this._where = [];
         _this._fields = [];
@@ -124,6 +126,28 @@ var Mjoin = /** @class */ (function (_super) {
             return this._get;
         }
         this._get = flag;
+        return this;
+    };
+    Mjoin.prototype.leftJoin = function (table, field1, operator, field2) {
+        if (operator === void 0) { operator = undefined; }
+        if (field2 === void 0) { field2 = undefined; }
+        if (typeof field1 === 'function') {
+            this._leftJoin.push({
+                field1: '',
+                field2: '',
+                fn: field1,
+                operator: '',
+                table: table,
+            });
+        }
+        else {
+            this._leftJoin.push({
+                field1: field1,
+                field2: field2,
+                operator: operator,
+                table: table,
+            });
+        }
         return this;
     };
     /**
@@ -265,7 +289,6 @@ var Mjoin = /** @class */ (function (_super) {
                                 query.orderBy(a);
                             }
                         }
-                        this._applyWhere(query);
                         for (i = 0, ien = fields.length; i < ien; i++) {
                             field = fields[i];
                             if (field.apply('get') && field.getValue() === undefined) {
@@ -277,7 +300,7 @@ var Mjoin = /** @class */ (function (_super) {
                                     query.select(mJoinTableAlias + '.' + dbField + ' as ' + dbField);
                                 }
                                 else {
-                                    query.select(dbField);
+                                    query.select(dbField + ' as ' + dbField);
                                 }
                             }
                         }
@@ -289,6 +312,8 @@ var Mjoin = /** @class */ (function (_super) {
                         else {
                             query.innerJoin(mJoinTable + ' as ' + mJoinTableAlias, mJoinTableAlias + '.' + join.child, '=', dteTableAlias + '.' + join.parent);
                         }
+                        (0, helpers_1.leftJoin)(query, this._leftJoin);
+                        this._applyWhere(query);
                         readField = '';
                         if (this._propExists(dteTableAlias + '.' + joinField, response.data[0])) {
                             readField = dteTableAlias + '.' + joinField;

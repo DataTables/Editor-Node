@@ -2,7 +2,8 @@ import * as knex from 'knex';
 import {Knex} from 'knex';
 
 import Field from './field';
-import Editor from './editor';
+import Editor, {ILeftJoin} from './editor';
+import {leftJoin} from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -11,19 +12,6 @@ function isNumeric(n) {
 export interface IOption {
 	label: string;
 	value: string | number;
-}
-
-/**
- * Left join object structure
- * @interface ILeftJoin
- * @private
- */
- interface ILeftJoin {
-	table: string;
-	fn?: Function;
-	field1?: string;
-	field2?: string;
-	operator?: string;
 }
 
 export type IRenderer = (str: string) => string;
@@ -45,7 +33,7 @@ export default class SearchBuilderOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
-	private _leftJoin: ILeftJoin[];
+	private _leftJoin: ILeftJoin[] = [];
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
@@ -303,19 +291,7 @@ export default class SearchBuilderOptions {
 			.distinct()
 			.groupBy(value);
 
-		// If a left join needs to be done for the above queries we can just do it in the same place
-		if (join !== null && join !== undefined) {
-			for (let joiner of join) {
-				if(joiner.fn) {
-					query.leftJoin(joiner.table, joiner.fn as any);
-				}
-				else {
-					query.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
-				}
-			}
-		}
+		leftJoin(query, join);
 
 		let res = await query;
 		let out = [];

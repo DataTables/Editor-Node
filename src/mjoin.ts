@@ -1,8 +1,9 @@
 import * as knex from 'knex';
 import {Knex} from 'knex';
 
-import Editor, {IDtRequest, IDtResponse} from './editor';
+import Editor, {IDtRequest, IDtResponse, ILeftJoin} from './editor';
 import Field, {SetType} from './field';
+import {leftJoin} from './helpers';
 import NestedData from './nestedData';
 
 interface IJoinTable {
@@ -46,6 +47,7 @@ export default class Mjoin extends NestedData {
 	private _editor: Editor;
 	private _name: string;
 	private _get: boolean = true;
+	private _leftJoin: ILeftJoin[] = [];
 	private _set: SetType = SetType.Both;
 	private _where: any[] = [];
 	private _fields: Field[] = [];
@@ -144,6 +146,62 @@ export default class Mjoin extends NestedData {
 		}
 
 		this._get = flag;
+		return this;
+	}
+
+	/**
+	 * Add a left join condition to the Mjoin instance, allowing it to operate
+	 * over multiple tables.
+	 *
+	 * In this form the method will take a function as the second parameter which
+	 * is a Knex callback function allowing a complex join expression to be built.
+	 * @param {string} table Table name to do a join onto
+	 * @param {function} condition
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoin(
+		table: string,
+		condition: Function
+	): Mjoin;
+	/**
+	 * Add a left join condition to the Mjoin instance, allowing it to operate
+	 * over multiple tables.
+	 * @param {string} table Table name to do a join onto
+	 * @param {string} field1 Field from the parent table to use as the join link
+	 * @param {string} operator Join condition (`=`, '<`, etc)
+	 * @param {string} field2 Field from the child table to use as the join link
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoin(
+		table: string,
+		field1: string,
+		operator: string,
+		field2: string
+	): Mjoin;
+	public leftJoin(
+		table: string,
+		field1: string | Function,
+		operator: string | undefined = undefined,
+		field2: string | undefined = undefined
+	): Mjoin {
+		if (typeof field1 === 'function') {
+			this._leftJoin.push({
+				field1: '',
+				field2: '',
+				fn: field1,
+				operator: '',
+				table,
+			});
+		}
+		else {
+			this._leftJoin.push({
+				field1,
+				field2,
+				operator,
+				table,
+			});
+		}
+
 		return this;
 	}
 
@@ -392,8 +450,6 @@ export default class Mjoin extends NestedData {
 				}
 			}
 
-			this._applyWhere( query );
-
 			for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
 				let field = fields[i];
 
@@ -407,7 +463,7 @@ export default class Mjoin extends NestedData {
 						query.select( mJoinTableAlias + '.' + dbField + ' as ' + dbField );
 					}
 					else {
-						query.select( dbField );
+						query.select( dbField + ' as ' + dbField );
 					}
 				}
 			}
@@ -420,6 +476,9 @@ export default class Mjoin extends NestedData {
 			else {
 				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child, '=', dteTableAlias + '.' + join.parent );
 			}
+
+			leftJoin(query, this._leftJoin);
+			this._applyWhere( query );
 
 			let readField = '';
 			if ( this._propExists( dteTableAlias + '.' + joinField, response.data[0] ) ) {

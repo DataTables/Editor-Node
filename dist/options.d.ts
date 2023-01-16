@@ -21,6 +21,7 @@ export default class Options {
     private _table;
     private _value;
     private _label;
+    private _leftJoin;
     private _limit;
     private _renderer;
     private _where;
@@ -46,6 +47,27 @@ export default class Options {
      * @returns {Options} Self for chaining
      */
     label(label: string[]): Options;
+    /**
+     * Add a left join condition to the Options instance, allowing it to operate
+     * over multiple tables.
+     *
+     * In this form the method will take a function as the second parameter which
+     * is a Knex callback function allowing a complex join expression to be built.
+     * @param {string} table Table name to do a join onto
+     * @param {function} condition
+     * @returns {Editor} Self for chaining
+     */
+    leftJoin(table: string, condition: Function): Options;
+    /**
+     * Add a left join condition to the Options instance, allowing it to operate
+     * over multiple tables.
+     * @param {string} table Table name to do a join onto
+     * @param {string} field1 Field from the parent table to use as the join link
+     * @param {string} operator Join condition (`=`, '<`, etc)
+     * @param {string} field2 Field from the child table to use as the join link
+     * @returns {Editor} Self for chaining
+     */
+    leftJoin(table: string, field1: string, operator: string, field2: string): Options;
     /**
      * Get the currently applied LIMIT
      *

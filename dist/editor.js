@@ -66,6 +66,7 @@ exports.Action = void 0;
 var crc = require("crc");
 var field_1 = require("./field");
 var nestedData_1 = require("./nestedData");
+var helpers_1 = require("./helpers");
 /**
  * Action that has been requested by the client-side
  * (based on the `action` parameter).
@@ -1082,7 +1083,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         this._getWhere(query);
-                        this._performLeftJoin(query);
+                        (0, helpers_1.leftJoin)(query, this._leftJoin);
                         if (id !== null) {
                             // Allow multiple specific rows to be requested at a time
                             if (Array.isArray(id)) {
@@ -1111,7 +1112,7 @@ var Editor = /** @class */ (function (_super) {
                                         q = this_2.db()
                                             .table(this_2._readTable()[0])
                                             .count({ count: '*' });
-                                        this_2._performLeftJoin(q);
+                                        (0, helpers_1.leftJoin)(q, this_2._leftJoin);
                                         // ... where the selected option is present...
                                         q.where(key, http.searchPanes[key][i]);
                                         return [4 /*yield*/, q];
@@ -1559,23 +1560,6 @@ var Editor = /** @class */ (function (_super) {
             }
         }
     };
-    Editor.prototype._performLeftJoin = function (query) {
-        var _loop_3 = function (i, ien) {
-            var join = this_3._leftJoin[i];
-            if (join.fn) {
-                query.leftJoin(join.table, join.fn);
-            }
-            else {
-                query.leftJoin(join.table, function () {
-                    this.on(join.field1, join.operator, join.field2);
-                });
-            }
-        };
-        var this_3 = this;
-        for (var i = 0, ien = this._leftJoin.length; i < ien; i++) {
-            _loop_3(i, ien);
-        }
-    };
     Editor.prototype._pkeySeparator = function () {
         var str = this.pkey().join(',');
         return crc.crc32(str).toString(16);
@@ -1610,7 +1594,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_2, key, pkey, _f, submitedData_1, returnData, _loop_4, this_4, _g, pkeys_1, key;
+            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_2, key, pkey, _f, submitedData_1, returnData, _loop_3, this_3, _g, pkeys_1, key;
             return __generator(this, function (_h) {
                 switch (_h.label) {
                     case 0:
@@ -1751,23 +1735,23 @@ var Editor = /** @class */ (function (_super) {
                     case 28:
                         returnData = _h.sent();
                         this._out.data = returnData.data;
-                        _loop_4 = function (key) {
+                        _loop_3 = function (key) {
                             return __generator(this, function (_j) {
                                 switch (_j.label) {
-                                    case 0: return [4 /*yield*/, this_4._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 0: return [4 /*yield*/, this_3._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
                                         _j.sent();
                                         return [2 /*return*/];
                                 }
                             });
                         };
-                        this_4 = this;
+                        this_3 = this;
                         _g = 0, pkeys_1 = pkeys_2;
                         _h.label = 29;
                     case 29:
                         if (!(_g < pkeys_1.length)) return [3 /*break*/, 32];
                         key = pkeys_1[_g];
-                        return [5 /*yield**/, _loop_4(key)];
+                        return [5 /*yield**/, _loop_3(key)];
                     case 30:
                         _h.sent();
                         _h.label = 31;
@@ -1904,7 +1888,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_5, this_5, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_4, this_4, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1932,15 +1916,15 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
-                        _loop_5 = function (i, ien) {
-                            var cond = this_5.pkeyToObject(ids[i], true, pkey);
+                        _loop_4 = function (i, ien) {
+                            var cond = this_4.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
                             });
                         };
-                        this_5 = this;
+                        this_4 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
-                            _loop_5(i, ien);
+                            _loop_4(i, ien);
                         }
                         return [4 /*yield*/, q.del()];
                     case 1:
@@ -1970,7 +1954,7 @@ var Editor = /** @class */ (function (_super) {
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(setCount);
                         this._sspFilter(setCount, http);
-                        this._performLeftJoin(setCount);
+                        (0, helpers_1.leftJoin)(setCount, this._leftJoin);
                         return [4 /*yield*/, setCount];
                     case 1:
                         res = _a.sent();
@@ -1981,7 +1965,7 @@ var Editor = /** @class */ (function (_super) {
                             .count(this._pkey[0] + ' as cnt');
                         this._getWhere(fullCount);
                         if (this._where.length) { // only needed if there is a where condition
-                            this._performLeftJoin(fullCount);
+                            (0, helpers_1.leftJoin)(fullCount, this._leftJoin);
                         }
                         return [4 /*yield*/, fullCount];
                     case 2:
@@ -2032,7 +2016,7 @@ var Editor = /** @class */ (function (_super) {
             });
         }
         if (http.searchPanes !== null && http.searchPanes !== undefined) {
-            var _loop_6 = function (field) {
+            var _loop_5 = function (field) {
                 if (http.searchPanes[field.name()] !== undefined) {
                     query.where(function () {
                         for (var i = 0; i < http.searchPanes[field.name()].length; i++) {
@@ -2048,7 +2032,7 @@ var Editor = /** @class */ (function (_super) {
             };
             for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
                 var field = fields_1[_i];
-                _loop_6(field);
+                _loop_5(field);
             }
         }
         // If there is a searchBuilder condition present in the request data

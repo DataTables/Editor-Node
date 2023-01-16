@@ -2,7 +2,8 @@ import * as knex from 'knex';
 import {Knex} from 'knex';
 
 import Field from './field';
-import Editor from './editor';
+import Editor, {ILeftJoin} from './editor';
+import {leftJoin} from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -12,20 +13,6 @@ export interface IOption {
 	label: string;
 	value: string | number;
 }
-
-/**
- * Left join object structure
- * @interface ILeftJoin
- * @private
- */
- interface ILeftJoin {
-	table: string;
-	fn?: Function;
-	field1?: string;
-	field2?: string;
-	operator?: string;
-}
-
 export type IRenderer = (str: string) => string;
 export type CustomOptions = (db: Knex) => Promise<IOption[]>;
 
@@ -45,7 +32,7 @@ export default class SearchPaneOptions {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
-	private _leftJoin: ILeftJoin[];
+	private _leftJoin: ILeftJoin[] = [];
 	private _renderer: IRenderer;
 	private _where: any;
 	private _order: string;
@@ -304,19 +291,8 @@ export default class SearchPaneOptions {
 					let q = db
 						.count({count: '*'})
 						.from(table);
-					
-					if (join !== null && join !== undefined) {
-						for (let joiner of join) {
-							if(joiner.fn) {
-								q.leftJoin(joiner.table, joiner.fn as any);
-							}
-							else {
-								q.leftJoin(joiner.table, function() {
-									this.on(joiner.field1, joiner.operator, joiner.field2);
-								});
-							}
-						}
-					}
+
+					leftJoin(q, join);
 
 					// ... where the selected option is present...
 					q.where(key, http.searchPanes[key][i]);
@@ -402,26 +378,9 @@ export default class SearchPaneOptions {
 		}
 
 		// If a left join needs to be done for the above queries we can just do it in the same place
-		if (join !== null && join !== undefined) {
-			for (let joiner of join) {
-				if(joiner.fn) {
-					q.leftJoin(joiner.table, joiner.fn as any);
-					query.leftJoin(joiner.table, joiner.fn as any);
-					queryLast.leftJoin(joiner.table, joiner.fn as any);
-				}
-				else {
-					q.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
-					query.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
-					queryLast.leftJoin(joiner.table, function() {
-						this.on(joiner.field1, joiner.operator, joiner.field2);
-					});
-				}
-			}
-		}
+		leftJoin(q, join);
+		leftJoin(query, join);
+		leftJoin(queryLast, join);
 
 		if (this._order) {
 			// For cases where we are ordering by a field which isn't included in the list

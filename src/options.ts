@@ -1,5 +1,7 @@
 import * as knex from 'knex';
 import {Knex} from 'knex';
+import {ILeftJoin} from './editor';
+import {leftJoin} from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -29,6 +31,7 @@ export default class Options {
 	private _table: string;
 	private _value: string;
 	private _label: string[];
+	private _leftJoin: ILeftJoin[] = [];
 	private _limit: number;
 	private _renderer: IRenderer;
 	private _where: any;
@@ -81,6 +84,62 @@ export default class Options {
 		}
 		else {
 			this._label = [ label ];
+		}
+
+		return this;
+	}
+
+	/**
+	 * Add a left join condition to the Options instance, allowing it to operate
+	 * over multiple tables.
+	 *
+	 * In this form the method will take a function as the second parameter which
+	 * is a Knex callback function allowing a complex join expression to be built.
+	 * @param {string} table Table name to do a join onto
+	 * @param {function} condition
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoin(
+		table: string,
+		condition: Function
+	): Options;
+	/**
+	 * Add a left join condition to the Options instance, allowing it to operate
+	 * over multiple tables.
+	 * @param {string} table Table name to do a join onto
+	 * @param {string} field1 Field from the parent table to use as the join link
+	 * @param {string} operator Join condition (`=`, '<`, etc)
+	 * @param {string} field2 Field from the child table to use as the join link
+	 * @returns {Editor} Self for chaining
+	 */
+	public leftJoin(
+		table: string,
+		field1: string,
+		operator: string,
+		field2: string
+	): Options;
+	public leftJoin(
+		table: string,
+		field1: string | Function,
+		operator: string | undefined = undefined,
+		field2: string | undefined = undefined
+	): Options {
+		if (typeof field1 === 'function') {
+			this._leftJoin.push({
+				field1: '',
+				field2: '',
+				fn: field1,
+				operator: '',
+				table,
+			});
+		}
+		else {
+			this._leftJoin.push({
+				field1,
+				field2,
+				operator,
+				table,
+			});
 		}
 
 		return this;
@@ -281,6 +340,8 @@ export default class Options {
 		if (this._limit) {
 			q.limit(this.limit());
 		}
+
+		leftJoin(q, this._leftJoin);
 
 		let res = await q;
 		let out = [];

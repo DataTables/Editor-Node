@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var helpers_1 = require("./helpers");
 function isNumeric(n) {
     return !isNaN(parseFloat(n)) && isFinite(n);
 }
@@ -53,6 +54,7 @@ function isNumeric(n) {
  */
 var SearchBuilderOptions = /** @class */ (function () {
     function SearchBuilderOptions() {
+        this._leftJoin = [];
     }
     SearchBuilderOptions.prototype.label = function (label) {
         if (label === undefined) {
@@ -143,9 +145,9 @@ var SearchBuilderOptions = /** @class */ (function () {
      */
     SearchBuilderOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, sbopts, db, query, _loop_1, _i, join_1, joiner, res, out, _a, res_1, recordCou;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var label, value, table, formatter, join, fields, sbopts, db, query, res, out, _i, res_1, recordCou;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         formatter = this._renderer;
                         join = this._leftJoin;
@@ -193,30 +195,14 @@ var SearchBuilderOptions = /** @class */ (function () {
                             .from(table)
                             .distinct()
                             .groupBy(value);
-                        // If a left join needs to be done for the above queries we can just do it in the same place
-                        if (join !== null && join !== undefined) {
-                            _loop_1 = function (joiner) {
-                                if (joiner.fn) {
-                                    query.leftJoin(joiner.table, joiner.fn);
-                                }
-                                else {
-                                    query.leftJoin(joiner.table, function () {
-                                        this.on(joiner.field1, joiner.operator, joiner.field2);
-                                    });
-                                }
-                            };
-                            for (_i = 0, join_1 = join; _i < join_1.length; _i++) {
-                                joiner = join_1[_i];
-                                _loop_1(joiner);
-                            }
-                        }
+                        (0, helpers_1.leftJoin)(query, join);
                         return [4 /*yield*/, query];
                     case 1:
-                        res = _b.sent();
+                        res = _a.sent();
                         out = [];
                         // Create the output array and add the values of count, label, total and value for each unique entry
-                        for (_a = 0, res_1 = res; _a < res_1.length; _a++) {
-                            recordCou = res_1[_a];
+                        for (_i = 0, res_1 = res; _i < res_1.length; _i++) {
+                            recordCou = res_1[_i];
                             out.push({
                                 value: recordCou.value,
                                 label: recordCou.label,

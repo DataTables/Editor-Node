@@ -125,6 +125,16 @@ export interface IDtResponse {
  * be validates together, rather than individually.
  */
 export type IGlobalValidator = (editor: Editor, action: string, http: IDtRequest) => Promise<true | string>;
+/**
+ * Left join object structure
+ */
+export interface ILeftJoin {
+    table: string;
+    fn?: Function;
+    field1?: string;
+    field2?: string;
+    operator?: string;
+}
 type IGet = (id: string | string[], http: any) => Promise<IDtResponse>;
 /**
  * DataTables Editor base class for creating editable tables.
@@ -563,7 +573,6 @@ export default class Editor extends NestedData {
     private _alias;
     private _part;
     private _prepJoin;
-    private _performLeftJoin;
     private _pkeySeparator;
     private _pkeySubmitMerge;
     private _pkeyValidateInsert;

@@ -28,6 +28,7 @@ export default class Mjoin extends NestedData {
     private _editor;
     private _name;
     private _get;
+    private _leftJoin;
     private _set;
     private _where;
     private _fields;
@@ -74,6 +75,27 @@ export default class Mjoin extends NestedData {
      * @returns {Mjoin} Self for chaining
      */
     get(flag: boolean): Mjoin;
+    /**
+     * Add a left join condition to the Mjoin instance, allowing it to operate
+     * over multiple tables.
+     *
+     * In this form the method will take a function as the second parameter which
+     * is a Knex callback function allowing a complex join expression to be built.
+     * @param {string} table Table name to do a join onto
+     * @param {function} condition
+     * @returns {Editor} Self for chaining
+     */
+    leftJoin(table: string, condition: Function): Mjoin;
+    /**
+     * Add a left join condition to the Mjoin instance, allowing it to operate
+     * over multiple tables.
+     * @param {string} table Table name to do a join onto
+     * @param {string} field1 Field from the parent table to use as the join link
+     * @param {string} operator Join condition (`=`, '<`, etc)
+     * @param {string} field2 Field from the child table to use as the join link
+     * @returns {Editor} Self for chaining
+     */
+    leftJoin(table: string, field1: string, operator: string, field2: string): Mjoin;
     /**
      * Create a join link between two tables. The order of the fields does not
      * matter, but each field must contain the table name as well as the field
