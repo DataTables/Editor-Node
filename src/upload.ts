@@ -499,6 +499,7 @@ export default class Upload {
 		let columns = Object.keys( fields );
 		let set = {};
 		let upload = files.upload;
+		let insertId = null;
 
 		for ( let i = 0, ien = columns.length ; i < ien ; i++ ) {
 			let column = columns[i];
@@ -543,6 +544,11 @@ export default class Upload {
 						prop( db, upload ) :
 						prop;
 
+					// If the primary key value was set - use that
+					if (column === this._dbPkey) {
+						insertId = val;
+					}
+
 					if ( typeof val === 'string' && val.match(/\{.*\}/) ) {
 						pathFields[ column ] = val;
 						set[ column ] = '-';
@@ -559,9 +565,13 @@ export default class Upload {
 			.from( this._dbTable )
 			.returning( this._dbPkey );
 
-		let id = typeof res[0] === 'object'
-			? res[0][this._dbPkey] // Knex 1.0+
-			: res[0]; // Knex 0.95 and earlier
+		let id = insertId;
+
+		if (insertId === null) {
+			id = typeof res[0] === 'object'
+				? res[0][this._dbPkey] // Knex 1.0+
+				: res[0]; // Knex 0.95 and earlier
+		}
 
 		// Update the newly inserted row with the path information. We have to
 		// use a second statement here as we don't know in advance what the

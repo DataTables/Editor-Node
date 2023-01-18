@@ -498,7 +498,7 @@ var Upload = /** @class */ (function () {
     };
     Upload.prototype._dbExec = function (db, files) {
         return __awaiter(this, void 0, void 0, function () {
-            var pathFields, fields, columns, set, upload, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, toSet, i, ien, key;
+            var pathFields, fields, columns, set, upload, insertId, i, ien, column, prop, _a, _b, _c, val, res, id, pathKeys, toSet, i, ien, key;
             var _d;
             return __generator(this, function (_e) {
                 switch (_e.label) {
@@ -508,6 +508,7 @@ var Upload = /** @class */ (function () {
                         columns = Object.keys(fields);
                         set = {};
                         upload = files.upload;
+                        insertId = null;
                         i = 0, ien = columns.length;
                         _e.label = 1;
                     case 1:
@@ -558,6 +559,10 @@ var Upload = /** @class */ (function () {
                         val = typeof prop === 'function' ?
                             prop(db, upload) :
                             prop;
+                        // If the primary key value was set - use that
+                        if (column === this._dbPkey) {
+                            insertId = val;
+                        }
                         if (typeof val === 'string' && val.match(/\{.*\}/)) {
                             pathFields[column] = val;
                             set[column] = '-';
@@ -575,9 +580,12 @@ var Upload = /** @class */ (function () {
                             .returning(this._dbPkey)];
                     case 14:
                         res = _e.sent();
-                        id = typeof res[0] === 'object'
-                            ? res[0][this._dbPkey] // Knex 1.0+
-                            : res[0];
+                        id = insertId;
+                        if (insertId === null) {
+                            id = typeof res[0] === 'object'
+                                ? res[0][this._dbPkey] // Knex 1.0+
+                                : res[0]; // Knex 0.95 and earlier
+                        }
                         pathKeys = Object.keys(pathFields);
                         if (!pathKeys.length) return [3 /*break*/, 16];
                         toSet = {};
