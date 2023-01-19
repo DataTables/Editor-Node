@@ -680,6 +680,9 @@ var Editor = /** @class */ (function (_super) {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (this.debug()) {
+                            this._debugInfo.push('Editor Node.js libraries - version ' + Editor.version);
+                        }
                         if (!this._transaction) return [3 /*break*/, 5];
                         _a.label = 1;
                     case 1:

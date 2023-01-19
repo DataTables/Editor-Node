@@ -1086,6 +1086,10 @@ export default class Editor extends NestedData {
 	 *   has completed its processing - result is the Editor instance.
 	 */
 	public async process(data: IDtRequest, files: IUpload = null): Promise<Editor> {
+		if (this.debug()) {
+			this._debugInfo.push('Editor Node.js libraries - version ' + Editor.version);
+		}
+
 		if (this._transaction) {
 			let processError;
 
