@@ -180,6 +180,7 @@ var Options = /** @class */ (function () {
                         }
                         q = db
                             .select(fields)
+                            .distinct()
                             .from(this._table);
                         if (this._where) {
                             q.where(this._where);
