@@ -110,9 +110,6 @@ var SearchPaneOptions = /** @class */ (function () {
      * @param field2 the second field
      */
     SearchPaneOptions.prototype.leftJoin = function (table, field1, operator, field2) {
-        if (this._leftJoin === undefined || this._leftJoin === null) {
-            this._leftJoin = [];
-        }
         if (typeof field1 === 'function') {
             this._leftJoin.push({
                 field1: '',
@@ -180,7 +177,7 @@ var SearchPaneOptions = /** @class */ (function () {
                             : function (d) { return d; };
                         join = this._leftJoin.slice();
                         if (leftJoinIn) {
-                            for (i = 0; i < leftJoinIn; i++) {
+                            for (i = 0; i < leftJoinIn.length; i++) {
                                 found = false;
                                 for (j = 0; j < join.length; j++) {
                                     if (join[j].table === leftJoinIn[i].table) {
@@ -203,6 +200,9 @@ var SearchPaneOptions = /** @class */ (function () {
                         if (viewTotal) {
                             q.count({ total: '*' });
                         }
+                        console.log('JHOIN', leftJoinIn, join);
+                        // ALLAN For the search this join array is empty
+                        // And I've NFI why. It should be 
                         (0, helpers_1.leftJoin)(q, join);
                         if (this._order) {
                             // For cases where we are ordering by a field which isn't included in the list

@@ -192,10 +192,6 @@ export default class SearchPaneOptions {
 	 * @param field2 the second field
 	 */
 	public leftJoin(table: string, field1: string | Function, operator: string, field2: string): this {
-		if(this._leftJoin === undefined || this._leftJoin === null) {
-			this._leftJoin = [];
-		}
-
 		if (typeof field1 === 'function') {
 			this._leftJoin.push({
 				field1: '',
@@ -213,6 +209,7 @@ export default class SearchPaneOptions {
 				table,
 			});
 		}
+
 		return this;
 	}
 
@@ -274,7 +271,7 @@ export default class SearchPaneOptions {
 		let join = this._leftJoin.slice();
 
 		if (leftJoinIn) {
-			for (let i=0 ; i<leftJoinIn ; i++) {
+			for (let i=0 ; i<leftJoinIn.length ; i++) {
 				let found = false;
 
 				for (let j=0 ; j<join.length ; j++) {
@@ -419,9 +416,6 @@ export default class SearchPaneOptions {
 				entries[r.value] = r;
 			});
 		}
-
-		console.log(entries);
-		console.log(rows);
 
 		let out = [];
 		
