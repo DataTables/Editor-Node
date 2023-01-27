@@ -231,156 +231,80 @@ export default class SearchPaneOptions {
 	public async exec(
 		field: Field, editor: Editor, http: any, fieldsIn: any, leftJoinIn: any
 	): Promise<IOption[]> {
-		let label;
-		let value;
-		let table;
-		let formatter = this._renderer;
-		let join = this._leftJoin;
 		let fields = fieldsIn;
-
-		// First get a value for `value`. This can be retrieved from either the
-		//  SearchPaneOptions or the fieldName if it has not been declared
-		if (this._value === undefined) {
-			let spopts = field.searchPaneOptions();
-			value = spopts.label() !== undefined ?
-				spopts.label()[0] :
-			 	value = field.name();
-		}
-		// Otherwise we can just get it from the value that has been defined
-		else {
-			value = this._value;
-		}
-
-		// If label is undefined then just assume the same value as `value`
-		if (this._label === undefined) {
-			label = value;
-		}
-		// Otherwise work it out from what has been defined
-		else {
-			label = this._label;
-		}
-
-		// If the table has not been defined then get it from the editor instance
-		table = this._table !== undefined ?
-			this._table :
-			editor.readTable().length > 0 ?
-				editor.readTable()[0] :
-				editor.table()[0];
-
-		if (leftJoinIn !== undefined && leftJoinIn !== null && this._leftJoin === undefined) {
-			join = leftJoinIn;
-		}
-
 		let db = editor.db();
+		let viewCount = http.searchPanes_options
+			? http.searchPanes_options.viewCount === 'true'
+			: true;
+		let viewTotal = http.searchPanes_options
+			? http.searchPanes_options.viewTotal === 'true'
+			: false;
+		let cascade = http.searchPanes_options
+			? http.searchPanes_options.cascade === 'true'
+			: false;
+		let entries = null;
 
-		// Create a list of the fields that we need to get from the db
-		// let fields = [ value ].concat(label);
+		// If the value is not yet set then set the variable to be the field name
+		let value = this._value
+			? this._value
+			: field.dbField();
 
-		// We need a default formatter if one isn't provided
-		if (! formatter) {
-			formatter = function(str) {
-				return str;
-			};
+		// If the table is not yet set then set the table variable to be the same as editor
+		// This is not taking a value from the SearchPaneOptions instance as the table should be defined in value/label. This throws up errors if not.
+		let table = editor.table()[0];
+		let readTable = editor.readTable();
+
+		if (this._table) {
+			table = this._table;
+		}
+		else if(readTable.length) {
+			table = readTable[0];
 		}
 
-		if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
-			let keys = Object.keys(http.searchPanes);
-			for (let key of keys) {
-				for(let i = 0; i < http.searchPanes[key].length; i++) {
-					// Check the number of rows...
-					let q = db
-						.count({count: '*'})
-						.from(table);
+		// If the label value has not yet been set then just set it to be the same as value
+		let label = this._label
+			? this._label
+			: value;
 
-					leftJoin(q, join);
+		let formatter = this._renderer
+			? this._renderer
+			: d => d;
 
-					// ... where the selected option is present...
-					q.where(key, http.searchPanes[key][i]);
-					
-					let r = await q;
+		// Use Editor's left joins and merge in any additional from this instance
+		let join = this._leftJoin.slice();
 
-					// ... If there are none then don't bother with this selection
-					if(r[0].count == 0) {
-						http.searchPanes[key].splice(i, 1);
-						i--;
+		if (leftJoinIn) {
+			for (let i=0 ; i<leftJoinIn ; i++) {
+				let found = false;
+
+				for (let j=0 ; j<join.length ; j++) {
+					if (join[j].table === leftJoinIn[i].table) {
+						found = true;
 					}
 				}
-			}
-		}
 
-		// This query will get the count's according to any selections made in the SearchPanes
-		let query = db
-			.select(label + ' as label', value + ' as value')
-			.count({count: '*'})
-			.from(table)
-			.distinct()
-			.groupBy(value);
-
-		// The last pane to have a selection runs a slightly different query
-		let queryLast = db
-			.select(label + ' as label', value + ' as value')
-			.count({count: '*'})
-			.from(table)
-			.distinct()
-			.groupBy(value);
-
-		// This block applies all of the where conditions across the fields
-		// Each field gets it's own where condition which must be satisfied
-		// Each where condition can have multiple orWhere()s so that the or
-		//  searching within the fields works.
-		if (http.searchPanes !== undefined) {
-			for (let fie of fields) {
-				if (http.searchPanes[fie.name()] !== undefined) {
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-								this.orWhereNull(fie.name());
-							}
-							else {
-								this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-							}
-						}
-					});
+				if (! found) {
+					join.push(leftJoinIn[i]);
 				}
 			}
 		}
 
-		// If there is a last value set then a slightly different set of results is required for cascade
-		// That panes results are based off of the results when only considering the selections of all of the others
-		if (http.searchPanes !== undefined && http.searchPanesLast) {
-			for (let fie of fields) {
-				if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
-					queryLast.where(function() {
-						for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-								this.orWhereNull(fie.name());
-							}
-							else {
-								this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-							}
-						}
-					});
-				}
-			}
-		}
-
-		// This query will get the total count for the field, assuming no filtering.
-		// This is necessary for viewTotal and cascadePanes functionality
+		// Get the data for the pane options
 		let q = db
-			.select(label + ' as label', value + ' as value')
-			.count({total: '*'})
-			.from(table)
 			.distinct()
+			.select(label + ' as label', value + ' as value')
+			.from(table)
 			.groupBy(value);
 
 		if (this._where) {
 			q.where(this._where);
 		}
 
-		// If a left join needs to be done for the above queries we can just do it in the same place
+		if (viewTotal) {
+			q.count({total: '*'});
+		}
+
 		leftJoin(q, join);
-		leftJoin(query, join);
-		leftJoin(queryLast, join);
 
 		if (this._order) {
 			// For cases where we are ordering by a field which isn't included in the list
@@ -400,54 +324,129 @@ export default class SearchPaneOptions {
 			q.orderBy(this._order);
 		}
 
-		let res = await q;
-		let cts = await query;
-		let ctsLast = await queryLast;
+		let rows = await q;
+
+		// Remove any filtering entries that don't exist in the database (values might have changed)
+		if (http.searchPanes && http.searchPanes[field.name()]) {
+			let values = rows.map(r => r.value);
+			let selected = http.searchPanes[field.name()];
+
+			for (let i=selected.length-1 ; i>=0 ; i--) {
+				if (! values.includes(selected[i])) {
+					http.searchPanes[field.name()].splice(i, 1);
+				}
+			}
+		}
+
+		// Set the query to get the current counts for viewCount
+		if (viewCount || cascade) {
+			let query = db.table(table);
+			let queryLast = db.table(table);
+
+			leftJoin(query, join);
+			leftJoin(queryLast, join);
+
+			if (field.apply('get') && ! field.getValue()) {
+				query
+					.distinct()
+					.select(value + ' as value')
+					.groupBy(value);
+
+				queryLast
+					.distinct()
+					.select(value + ' as value')
+					.groupBy(value);
+
+				// We viewTotal is enabled, we need to do a count to get the number of records,
+				// If it isn't we still need to know it exists, but don't care about the cardinality
+				if (viewCount) {
+					query.count({count: '*'});
+					queryLast.count({count: '*'});
+				}
+				else {
+					query.select('(1) as count');
+					queryLast.select('(1) as count');
+				}
+			}
+
+			// Construct the where queries based upon the options selected by the user
+			// THIS IS TO GET THE SP OPTIONS, NOT THE TABLE ENTRIES
+			if (http.searchPanes) {
+				for (let fie of fields) {
+					if (http.searchPanes[fie.name()] !== undefined) {
+						query.where(function() {
+							for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
+								if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+									this.orWhereNull(fie.name());
+								}
+								else {
+									this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+								}
+							}
+						});
+					}
+				}
+			}
+
+			// If there is a last value set then a slightly different set of results is required for cascade
+			// That panes results are based off of the results when only considering the selections of all of the others
+			if (http.searchPanes && http.searchPanesLast) {
+				for (let fie of fields) {
+					if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
+						queryLast.where(function() {
+							for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
+								if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+									this.orWhereNull(fie.name());
+								}
+								else {
+									this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+								}
+							}
+						});
+					}
+				}
+			}
+
+			let entriesQuery = http.searchPanesLast && field.name() === http.searchPanesLast
+				? queryLast
+				: query;
+
+			let entriesRows = await entriesQuery;
+
+			// Key by value for fast lookup
+			entries = {};
+			entriesRows.forEach(r => {
+				entries[r.value] = r;
+			});
+		}
+
+		console.log(entries);
+		console.log(rows);
+
 		let out = [];
+		
+		for (let i=0 ; i<rows.length ; i++) {
+			let row = rows[i];
+			let value = row.value;
+			let total = viewTotal ? row.total : null;
+			let count = total;
 
-		// Create the output array and add the values of count, label, total and value for each unique entry
-		for (let recordCou of res) {
-			let set = false;
+			if (entries) {
+				count = entries[value] && entries[value].count
+					? entries[value].count
+					: 0;
 
-			// Send slightly different results if this is the last pane
-			if(http.searchPanesLast && field.name() === http.searchPanesLast) {
-				for (let recordTot of ctsLast) {
-					if (recordTot.value === recordCou.value) {
-						out.push({
-							count: recordTot.count,
-							label: formatter(recordCou.label),
-							total: recordCou.total,
-							value: recordCou.value
-						});
-						set = true;
-						break;
-					}
-				}
-			}
-			else {
-				for (let recordTot of cts) {
-					if (recordTot.value === recordCou.value) {
-						out.push({
-							count: recordTot.count,
-							label: formatter(recordCou.label),
-							total: recordCou.total,
-							value: recordCou.value
-						});
-						set = true;
-						break;
-					}
+				if (! viewTotal) {
+					total = count;
 				}
 			}
 
-			// If the values are not found then the count is 0 according to `query` so add it anyway but with that value
-			if (!set) {
-				out.push({
-					count: 0,
-					label: formatter(recordCou.label),
-					total: recordCou.total,
-					value: recordCou.value
-				});
-			}
+			out.push({
+				label: formatter(row.label),
+				total: total,
+				value: value,
+				count: count
+			});
 		}
 
 		// Only sort if there was no SQL order field
@@ -462,6 +461,7 @@ export default class SearchPaneOptions {
 						0;
 			});
 		}
+
 		return out;
 	}
 }

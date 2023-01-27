@@ -145,155 +145,65 @@ var SearchPaneOptions = /** @class */ (function () {
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, table, formatter, join, fields, spopts, db, keys, _i, keys_1, key, i, q_1, r, query, queryLast, _loop_1, _a, fields_1, fie, _loop_2, _b, fields_2, fie, q, res, cts, ctsLast, out, _c, res_1, recordCou, set, _d, ctsLast_1, recordTot, _e, cts_1, recordTot;
-            return __generator(this, function (_f) {
-                switch (_f.label) {
+            var fields, db, viewCount, viewTotal, cascade, entries, value, table, readTable, label, formatter, join, i, found, j, q, rows, values, selected, i, query, queryLast, _loop_1, _i, fields_1, fie, _loop_2, _a, fields_2, fie, entriesQuery, entriesRows, out, i, row, value_1, total, count;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
-                        formatter = this._renderer;
-                        join = this._leftJoin;
                         fields = fieldsIn;
-                        // First get a value for `value`. This can be retrieved from either the
-                        //  SearchPaneOptions or the fieldName if it has not been declared
-                        if (this._value === undefined) {
-                            spopts = field.searchPaneOptions();
-                            value = spopts.label() !== undefined ?
-                                spopts.label()[0] :
-                                value = field.name();
-                        }
-                        // Otherwise we can just get it from the value that has been defined
-                        else {
-                            value = this._value;
-                        }
-                        // If label is undefined then just assume the same value as `value`
-                        if (this._label === undefined) {
-                            label = value;
-                        }
-                        // Otherwise work it out from what has been defined
-                        else {
-                            label = this._label;
-                        }
-                        // If the table has not been defined then get it from the editor instance
-                        table = this._table !== undefined ?
-                            this._table :
-                            editor.readTable().length > 0 ?
-                                editor.readTable()[0] :
-                                editor.table()[0];
-                        if (leftJoinIn !== undefined && leftJoinIn !== null && this._leftJoin === undefined) {
-                            join = leftJoinIn;
-                        }
                         db = editor.db();
-                        // Create a list of the fields that we need to get from the db
-                        // let fields = [ value ].concat(label);
-                        // We need a default formatter if one isn't provided
-                        if (!formatter) {
-                            formatter = function (str) {
-                                return str;
-                            };
+                        viewCount = http.searchPanes_options
+                            ? http.searchPanes_options.viewCount === 'true'
+                            : true;
+                        viewTotal = http.searchPanes_options
+                            ? http.searchPanes_options.viewTotal === 'true'
+                            : false;
+                        cascade = http.searchPanes_options
+                            ? http.searchPanes_options.cascade === 'true'
+                            : false;
+                        entries = null;
+                        value = this._value
+                            ? this._value
+                            : field.dbField();
+                        table = editor.table()[0];
+                        readTable = editor.readTable();
+                        if (this._table) {
+                            table = this._table;
                         }
-                        if (!(http !== null && http.searchPanes !== undefined && http.searchPanes !== null)) return [3 /*break*/, 6];
-                        keys = Object.keys(http.searchPanes);
-                        _i = 0, keys_1 = keys;
-                        _f.label = 1;
-                    case 1:
-                        if (!(_i < keys_1.length)) return [3 /*break*/, 6];
-                        key = keys_1[_i];
-                        i = 0;
-                        _f.label = 2;
-                    case 2:
-                        if (!(i < http.searchPanes[key].length)) return [3 /*break*/, 5];
-                        q_1 = db
-                            .count({ count: '*' })
-                            .from(table);
-                        (0, helpers_1.leftJoin)(q_1, join);
-                        // ... where the selected option is present...
-                        q_1.where(key, http.searchPanes[key][i]);
-                        return [4 /*yield*/, q_1];
-                    case 3:
-                        r = _f.sent();
-                        // ... If there are none then don't bother with this selection
-                        if (r[0].count == 0) {
-                            http.searchPanes[key].splice(i, 1);
-                            i--;
+                        else if (readTable.length) {
+                            table = readTable[0];
                         }
-                        _f.label = 4;
-                    case 4:
-                        i++;
-                        return [3 /*break*/, 2];
-                    case 5:
-                        _i++;
-                        return [3 /*break*/, 1];
-                    case 6:
-                        query = db
-                            .select(label + ' as label', value + ' as value')
-                            .count({ count: '*' })
-                            .from(table)
-                            .distinct()
-                            .groupBy(value);
-                        queryLast = db
-                            .select(label + ' as label', value + ' as value')
-                            .count({ count: '*' })
-                            .from(table)
-                            .distinct()
-                            .groupBy(value);
-                        // This block applies all of the where conditions across the fields
-                        // Each field gets it's own where condition which must be satisfied
-                        // Each where condition can have multiple orWhere()s so that the or
-                        //  searching within the fields works.
-                        if (http.searchPanes !== undefined) {
-                            _loop_1 = function (fie) {
-                                if (http.searchPanes[fie.name()] !== undefined) {
-                                    query.where(function () {
-                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
-                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-                                                this.orWhereNull(fie.name());
-                                            }
-                                            else {
-                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-                                            }
-                                        }
-                                    });
+                        label = this._label
+                            ? this._label
+                            : value;
+                        formatter = this._renderer
+                            ? this._renderer
+                            : function (d) { return d; };
+                        join = this._leftJoin.slice();
+                        if (leftJoinIn) {
+                            for (i = 0; i < leftJoinIn; i++) {
+                                found = false;
+                                for (j = 0; j < join.length; j++) {
+                                    if (join[j].table === leftJoinIn[i].table) {
+                                        found = true;
+                                    }
                                 }
-                            };
-                            for (_a = 0, fields_1 = fields; _a < fields_1.length; _a++) {
-                                fie = fields_1[_a];
-                                _loop_1(fie);
-                            }
-                        }
-                        // If there is a last value set then a slightly different set of results is required for cascade
-                        // That panes results are based off of the results when only considering the selections of all of the others
-                        if (http.searchPanes !== undefined && http.searchPanesLast) {
-                            _loop_2 = function (fie) {
-                                if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
-                                    queryLast.where(function () {
-                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
-                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-                                                this.orWhereNull(fie.name());
-                                            }
-                                            else {
-                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-                                            }
-                                        }
-                                    });
+                                if (!found) {
+                                    join.push(leftJoinIn[i]);
                                 }
-                            };
-                            for (_b = 0, fields_2 = fields; _b < fields_2.length; _b++) {
-                                fie = fields_2[_b];
-                                _loop_2(fie);
                             }
                         }
                         q = db
-                            .select(label + ' as label', value + ' as value')
-                            .count({ total: '*' })
-                            .from(table)
                             .distinct()
+                            .select(label + ' as label', value + ' as value')
+                            .from(table)
                             .groupBy(value);
                         if (this._where) {
                             q.where(this._where);
                         }
-                        // If a left join needs to be done for the above queries we can just do it in the same place
+                        if (viewTotal) {
+                            q.count({ total: '*' });
+                        }
                         (0, helpers_1.leftJoin)(q, join);
-                        (0, helpers_1.leftJoin)(query, join);
-                        (0, helpers_1.leftJoin)(queryLast, join);
                         if (this._order) {
                             // For cases where we are ordering by a field which isn't included in the list
                             // of fields to display, we need to add the ordering field, due to the
@@ -310,59 +220,122 @@ var SearchPaneOptions = /** @class */ (function () {
                             q.orderBy(this._order);
                         }
                         return [4 /*yield*/, q];
-                    case 7:
-                        res = _f.sent();
-                        return [4 /*yield*/, query];
-                    case 8:
-                        cts = _f.sent();
-                        return [4 /*yield*/, queryLast];
-                    case 9:
-                        ctsLast = _f.sent();
-                        out = [];
-                        // Create the output array and add the values of count, label, total and value for each unique entry
-                        for (_c = 0, res_1 = res; _c < res_1.length; _c++) {
-                            recordCou = res_1[_c];
-                            set = false;
-                            // Send slightly different results if this is the last pane
-                            if (http.searchPanesLast && field.name() === http.searchPanesLast) {
-                                for (_d = 0, ctsLast_1 = ctsLast; _d < ctsLast_1.length; _d++) {
-                                    recordTot = ctsLast_1[_d];
-                                    if (recordTot.value === recordCou.value) {
-                                        out.push({
-                                            count: recordTot.count,
-                                            label: formatter(recordCou.label),
-                                            total: recordCou.total,
-                                            value: recordCou.value
-                                        });
-                                        set = true;
-                                        break;
-                                    }
+                    case 1:
+                        rows = _b.sent();
+                        // Remove any filtering entries that don't exist in the database (values might have changed)
+                        if (http.searchPanes && http.searchPanes[field.name()]) {
+                            values = rows.map(function (r) { return r.value; });
+                            selected = http.searchPanes[field.name()];
+                            for (i = selected.length - 1; i >= 0; i--) {
+                                if (!values.includes(selected[i])) {
+                                    http.searchPanes[field.name()].splice(i, 1);
                                 }
+                            }
+                        }
+                        if (!(viewCount || cascade)) return [3 /*break*/, 3];
+                        query = db.table(table);
+                        queryLast = db.table(table);
+                        (0, helpers_1.leftJoin)(query, join);
+                        (0, helpers_1.leftJoin)(queryLast, join);
+                        if (field.apply('get') && !field.getValue()) {
+                            query
+                                .distinct()
+                                .select(value + ' as value')
+                                .groupBy(value);
+                            queryLast
+                                .distinct()
+                                .select(value + ' as value')
+                                .groupBy(value);
+                            // We viewTotal is enabled, we need to do a count to get the number of records,
+                            // If it isn't we still need to know it exists, but don't care about the cardinality
+                            if (viewCount) {
+                                query.count({ count: '*' });
+                                queryLast.count({ count: '*' });
                             }
                             else {
-                                for (_e = 0, cts_1 = cts; _e < cts_1.length; _e++) {
-                                    recordTot = cts_1[_e];
-                                    if (recordTot.value === recordCou.value) {
-                                        out.push({
-                                            count: recordTot.count,
-                                            label: formatter(recordCou.label),
-                                            total: recordCou.total,
-                                            value: recordCou.value
-                                        });
-                                        set = true;
-                                        break;
-                                    }
+                                query.select('(1) as count');
+                                queryLast.select('(1) as count');
+                            }
+                        }
+                        // Construct the where queries based upon the options selected by the user
+                        // THIS IS TO GET THE SP OPTIONS, NOT THE TABLE ENTRIES
+                        if (http.searchPanes) {
+                            _loop_1 = function (fie) {
+                                if (http.searchPanes[fie.name()] !== undefined) {
+                                    query.where(function () {
+                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
+                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+                                                this.orWhereNull(fie.name());
+                                            }
+                                            else {
+                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+                                            }
+                                        }
+                                    });
+                                }
+                            };
+                            for (_i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
+                                fie = fields_1[_i];
+                                _loop_1(fie);
+                            }
+                        }
+                        // If there is a last value set then a slightly different set of results is required for cascade
+                        // That panes results are based off of the results when only considering the selections of all of the others
+                        if (http.searchPanes && http.searchPanesLast) {
+                            _loop_2 = function (fie) {
+                                if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
+                                    queryLast.where(function () {
+                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
+                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
+                                                this.orWhereNull(fie.name());
+                                            }
+                                            else {
+                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
+                                            }
+                                        }
+                                    });
+                                }
+                            };
+                            for (_a = 0, fields_2 = fields; _a < fields_2.length; _a++) {
+                                fie = fields_2[_a];
+                                _loop_2(fie);
+                            }
+                        }
+                        entriesQuery = http.searchPanesLast && field.name() === http.searchPanesLast
+                            ? queryLast
+                            : query;
+                        return [4 /*yield*/, entriesQuery];
+                    case 2:
+                        entriesRows = _b.sent();
+                        // Key by value for fast lookup
+                        entries = {};
+                        entriesRows.forEach(function (r) {
+                            entries[r.value] = r;
+                        });
+                        _b.label = 3;
+                    case 3:
+                        console.log(entries);
+                        console.log(rows);
+                        out = [];
+                        for (i = 0; i < rows.length; i++) {
+                            row = rows[i];
+                            value_1 = row.value;
+                            total = viewTotal ? row.total : null;
+                            count = total;
+                            if (entries) {
+                                count = entries[value_1] && entries[value_1].count
+                                    ? entries[value_1].count
+                                    : 0;
+                                if (!viewTotal) {
+                                    total = count;
                                 }
                             }
-                            // If the values are not found then the count is 0 according to `query` so add it anyway but with that value
-                            if (!set) {
-                                out.push({
-                                    count: 0,
-                                    label: formatter(recordCou.label),
-                                    total: recordCou.total,
-                                    value: recordCou.value
-                                });
-                            }
+                            out.push({
+                                label: formatter(row.label),
+                                total: total,
+                                value: value_1,
+                                count: count
+                            });
                         }
                         // Only sort if there was no SQL order field
                         if (!this._order) {
