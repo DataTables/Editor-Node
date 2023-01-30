@@ -297,7 +297,8 @@ export default class SearchPaneOptions {
 			q.where(this._where);
 		}
 
-		if (viewTotal) {
+		// If not cascading, then the total and count must be the same
+		if (viewTotal || (viewCount && ! cascade)) {
 			q.count({total: '*'});
 		}
 
@@ -335,8 +336,8 @@ export default class SearchPaneOptions {
 			}
 		}
 
-		// Set the query to get the current counts for viewCount
-		if (viewCount || cascade) {
+		// Apply filters to cascade tables
+		if (cascade) {
 			let query = db.table(table);
 			let queryLast = db.table(table);
 
@@ -422,17 +423,13 @@ export default class SearchPaneOptions {
 		for (let i=0 ; i<rows.length ; i++) {
 			let row = rows[i];
 			let value = row.value;
-			let total = viewTotal ? row.total : null;
+			let total = row.total !== undefined ? row.total : null;
 			let count = total;
 
 			if (entries) {
 				count = entries[value] && entries[value].count
 					? entries[value].count
 					: 0;
-
-				if (! viewTotal) {
-					total = count;
-				}
 			}
 
 			out.push({

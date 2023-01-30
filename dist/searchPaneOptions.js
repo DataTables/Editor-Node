@@ -197,12 +197,10 @@ var SearchPaneOptions = /** @class */ (function () {
                         if (this._where) {
                             q.where(this._where);
                         }
-                        if (viewTotal) {
+                        // If not cascading, then the total and count must be the same
+                        if (viewTotal || (viewCount && !cascade)) {
                             q.count({ total: '*' });
                         }
-                        console.log('JHOIN', leftJoinIn, join);
-                        // ALLAN For the search this join array is empty
-                        // And I've NFI why. It should be 
                         (0, helpers_1.leftJoin)(q, join);
                         if (this._order) {
                             // For cases where we are ordering by a field which isn't included in the list
@@ -232,7 +230,7 @@ var SearchPaneOptions = /** @class */ (function () {
                                 }
                             }
                         }
-                        if (!(viewCount || cascade)) return [3 /*break*/, 3];
+                        if (!cascade) return [3 /*break*/, 3];
                         query = db.table(table);
                         queryLast = db.table(table);
                         (0, helpers_1.leftJoin)(query, join);
@@ -314,21 +312,16 @@ var SearchPaneOptions = /** @class */ (function () {
                         });
                         _b.label = 3;
                     case 3:
-                        console.log(entries);
-                        console.log(rows);
                         out = [];
                         for (i = 0; i < rows.length; i++) {
                             row = rows[i];
                             value_1 = row.value;
-                            total = viewTotal ? row.total : null;
+                            total = row.total !== undefined ? row.total : null;
                             count = total;
                             if (entries) {
                                 count = entries[value_1] && entries[value_1].count
                                     ? entries[value_1].count
                                     : 0;
-                                if (!viewTotal) {
-                                    total = count;
-                                }
                             }
                             out.push({
                                 label: formatter(row.label),
