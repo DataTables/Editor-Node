@@ -298,7 +298,7 @@ export default class SearchPaneOptions {
 		}
 
 		// If not cascading, then the total and count must be the same
-		if (viewTotal || (viewCount && ! cascade)) {
+		if (viewTotal) {
 			q.count({total: '*'});
 		}
 
@@ -337,7 +337,7 @@ export default class SearchPaneOptions {
 		}
 
 		// Apply filters to cascade tables
-		if (cascade) {
+		if (viewCount || cascade) {
 			let query = db.table(table);
 
 			leftJoin(query, join);
@@ -409,6 +409,12 @@ export default class SearchPaneOptions {
 				count = entries[value] && entries[value].count
 					? entries[value].count
 					: 0;
+
+				// For when viewCount is enabled and viewTotal is not
+				// the total needs to be the same as the count!
+				if (total === null) {
+					total = count;
+				}
 			}
 
 			out.push({

@@ -198,7 +198,7 @@ var SearchPaneOptions = /** @class */ (function () {
                             q.where(this._where);
                         }
                         // If not cascading, then the total and count must be the same
-                        if (viewTotal || (viewCount && !cascade)) {
+                        if (viewTotal) {
                             q.count({ total: '*' });
                         }
                         (0, helpers_1.leftJoin)(q, join);
@@ -230,7 +230,7 @@ var SearchPaneOptions = /** @class */ (function () {
                                 }
                             }
                         }
-                        if (!cascade) return [3 /*break*/, 3];
+                        if (!(viewCount || cascade)) return [3 /*break*/, 3];
                         query = db.table(table);
                         (0, helpers_1.leftJoin)(query, join);
                         if (field.apply('get') && !field.getValue()) {
@@ -298,6 +298,11 @@ var SearchPaneOptions = /** @class */ (function () {
                                 count = entries[value_1] && entries[value_1].count
                                     ? entries[value_1].count
                                     : 0;
+                                // For when viewCount is enabled and viewTotal is not
+                                // the total needs to be the same as the count!
+                                if (total === null) {
+                                    total = count;
+                                }
                             }
                             out.push({
                                 label: formatter(row.label),
