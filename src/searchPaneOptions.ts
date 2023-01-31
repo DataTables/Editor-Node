@@ -339,18 +339,11 @@ export default class SearchPaneOptions {
 		// Apply filters to cascade tables
 		if (cascade) {
 			let query = db.table(table);
-			let queryLast = db.table(table);
 
 			leftJoin(query, join);
-			leftJoin(queryLast, join);
 
 			if (field.apply('get') && ! field.getValue()) {
 				query
-					.distinct()
-					.select(value + ' as value')
-					.groupBy(value);
-
-				queryLast
 					.distinct()
 					.select(value + ' as value')
 					.groupBy(value);
@@ -359,57 +352,43 @@ export default class SearchPaneOptions {
 				// If it isn't we still need to know it exists, but don't care about the cardinality
 				if (viewCount) {
 					query.count({count: '*'});
-					queryLast.count({count: '*'});
 				}
 				else {
 					query.select('(1) as count');
-					queryLast.select('(1) as count');
 				}
 			}
 
 			// Construct the where queries based upon the options selected by the user
-			// THIS IS TO GET THE SP OPTIONS, NOT THE TABLE ENTRIES
-			if (http.searchPanes) {
-				for (let fie of fields) {
-					if (http.searchPanes[fie.name()] !== undefined) {
-						query.where(function() {
-							for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-								if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-									this.orWhereNull(fie.name());
-								}
-								else {
-									this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-								}
-							}
-						});
+			for (let fie of fields) {
+				let add = false;
+				let fieName = fie.name();
+
+				// If there is a last value set then a slightly different set of results is required for cascade
+				// That panes results are based off of the results when only considering the selections of all of the others
+				if (http.searchPanesLast && field.name() === http.searchPanesLast) {
+					if (http.searchPanes[fieName] !== undefined && fieName !== http.searchPanesLast) {
+						add = true;
 					}
+				}
+				else if (http.searchPanes && http.searchPanes[fieName] !== undefined) {
+					add = true;
+				}
+
+				if (add) {
+					query.where(function() {
+						for (let i = 0; i < http.searchPanes[fieName].length; i++) {
+							if(http.searchPanes_null !== undefined && http.searchPanes_null[fieName][i]) {
+								this.orWhereNull(fieName);
+							}
+							else {
+								this.orWhere(fieName, http.searchPanes[fieName][i]);
+							}
+						}
+					});
 				}
 			}
 
-			// If there is a last value set then a slightly different set of results is required for cascade
-			// That panes results are based off of the results when only considering the selections of all of the others
-			if (http.searchPanes && http.searchPanesLast) {
-				for (let fie of fields) {
-					if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
-						queryLast.where(function() {
-							for (let i = 0; i < http.searchPanes[fie.name()].length; i++) {
-								if(http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-									this.orWhereNull(fie.name());
-								}
-								else {
-									this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-								}
-							}
-						});
-					}
-				}
-			}
-
-			let entriesQuery = http.searchPanesLast && field.name() === http.searchPanesLast
-				? queryLast
-				: query;
-
-			let entriesRows = await entriesQuery;
+			let entriesRows = await query;
 
 			// Key by value for fast lookup
 			entries = {};

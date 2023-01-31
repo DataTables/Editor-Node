@@ -142,9 +142,9 @@ var SearchPaneOptions = /** @class */ (function () {
      */
     SearchPaneOptions.prototype.exec = function (field, editor, http, fieldsIn, leftJoinIn) {
         return __awaiter(this, void 0, void 0, function () {
-            var fields, db, viewCount, viewTotal, cascade, entries, value, table, readTable, label, formatter, join, i, found, j, q, rows, values, selected, i, query, queryLast, _loop_1, _i, fields_1, fie, _loop_2, _a, fields_2, fie, entriesQuery, entriesRows, out, i, row, value_1, total, count;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var fields, db, viewCount, viewTotal, cascade, entries, value, table, readTable, label, formatter, join, i, found, j, q, rows, values, selected, i, query, _loop_1, _i, fields_1, fie, entriesRows, out, i, row, value_1, total, count;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
                         fields = fieldsIn;
                         db = editor.db();
@@ -219,7 +219,7 @@ var SearchPaneOptions = /** @class */ (function () {
                         }
                         return [4 /*yield*/, q];
                     case 1:
-                        rows = _b.sent();
+                        rows = _a.sent();
                         // Remove any filtering entries that don't exist in the database (values might have changed)
                         if (http.searchPanes && http.searchPanes[field.name()]) {
                             values = rows.map(function (r) { return r.value; });
@@ -232,15 +232,9 @@ var SearchPaneOptions = /** @class */ (function () {
                         }
                         if (!cascade) return [3 /*break*/, 3];
                         query = db.table(table);
-                        queryLast = db.table(table);
                         (0, helpers_1.leftJoin)(query, join);
-                        (0, helpers_1.leftJoin)(queryLast, join);
                         if (field.apply('get') && !field.getValue()) {
                             query
-                                .distinct()
-                                .select(value + ' as value')
-                                .groupBy(value);
-                            queryLast
                                 .distinct()
                                 .select(value + ' as value')
                                 .groupBy(value);
@@ -248,69 +242,51 @@ var SearchPaneOptions = /** @class */ (function () {
                             // If it isn't we still need to know it exists, but don't care about the cardinality
                             if (viewCount) {
                                 query.count({ count: '*' });
-                                queryLast.count({ count: '*' });
                             }
                             else {
                                 query.select('(1) as count');
-                                queryLast.select('(1) as count');
                             }
                         }
+                        _loop_1 = function (fie) {
+                            var add = false;
+                            var fieName = fie.name();
+                            // If there is a last value set then a slightly different set of results is required for cascade
+                            // That panes results are based off of the results when only considering the selections of all of the others
+                            if (http.searchPanesLast && field.name() === http.searchPanesLast) {
+                                if (http.searchPanes[fieName] !== undefined && fieName !== http.searchPanesLast) {
+                                    add = true;
+                                }
+                            }
+                            else if (http.searchPanes && http.searchPanes[fieName] !== undefined) {
+                                add = true;
+                            }
+                            if (add) {
+                                query.where(function () {
+                                    for (var i = 0; i < http.searchPanes[fieName].length; i++) {
+                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[fieName][i]) {
+                                            this.orWhereNull(fieName);
+                                        }
+                                        else {
+                                            this.orWhere(fieName, http.searchPanes[fieName][i]);
+                                        }
+                                    }
+                                });
+                            }
+                        };
                         // Construct the where queries based upon the options selected by the user
-                        // THIS IS TO GET THE SP OPTIONS, NOT THE TABLE ENTRIES
-                        if (http.searchPanes) {
-                            _loop_1 = function (fie) {
-                                if (http.searchPanes[fie.name()] !== undefined) {
-                                    query.where(function () {
-                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
-                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-                                                this.orWhereNull(fie.name());
-                                            }
-                                            else {
-                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-                                            }
-                                        }
-                                    });
-                                }
-                            };
-                            for (_i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
-                                fie = fields_1[_i];
-                                _loop_1(fie);
-                            }
+                        for (_i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
+                            fie = fields_1[_i];
+                            _loop_1(fie);
                         }
-                        // If there is a last value set then a slightly different set of results is required for cascade
-                        // That panes results are based off of the results when only considering the selections of all of the others
-                        if (http.searchPanes && http.searchPanesLast) {
-                            _loop_2 = function (fie) {
-                                if (http.searchPanes[fie.name()] !== undefined && fie.name() !== http.searchPanesLast) {
-                                    queryLast.where(function () {
-                                        for (var i = 0; i < http.searchPanes[fie.name()].length; i++) {
-                                            if (http.searchPanes_null !== undefined && http.searchPanes_null[fie.name()][i]) {
-                                                this.orWhereNull(fie.name());
-                                            }
-                                            else {
-                                                this.orWhere(fie.name(), http.searchPanes[fie.name()][i]);
-                                            }
-                                        }
-                                    });
-                                }
-                            };
-                            for (_a = 0, fields_2 = fields; _a < fields_2.length; _a++) {
-                                fie = fields_2[_a];
-                                _loop_2(fie);
-                            }
-                        }
-                        entriesQuery = http.searchPanesLast && field.name() === http.searchPanesLast
-                            ? queryLast
-                            : query;
-                        return [4 /*yield*/, entriesQuery];
+                        return [4 /*yield*/, query];
                     case 2:
-                        entriesRows = _b.sent();
+                        entriesRows = _a.sent();
                         // Key by value for fast lookup
                         entries = {};
                         entriesRows.forEach(function (r) {
                             entries[r.value] = r;
                         });
-                        _b.label = 3;
+                        _a.label = 3;
                     case 3:
                         out = [];
                         for (i = 0; i < rows.length; i++) {
