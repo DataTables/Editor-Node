@@ -118,7 +118,7 @@ var _constructSearchBuilderQuery = function (sbData) {
             if ((val1_1 === undefined || val1_1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
                 return "continue";
             }
-            if ((val2_1 === undefined || val2_1.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
+            if ((val2_1 === undefined || val2_1.length === 0) && (crit.condition === "between" || crit.condition === "!between")) {
                 return "continue";
             }
             // Switch on the condition that has been passed in

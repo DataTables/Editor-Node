@@ -229,10 +229,10 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 			if ((val1 === undefined || val1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
 				continue;
 			}
-			if((val2 === undefined || val2.length === 0) && (crit.conditon === "between" || crit.condition === "!between")) {
+			if((val2 === undefined || val2.length === 0) && (crit.condition === "between" || crit.condition === "!between")) {
 				continue;
 			}
-			
+
 			// Switch on the condition that has been passed in
 			switch(crit.condition) {
 				case '=':
