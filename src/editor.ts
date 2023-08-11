@@ -1482,7 +1482,12 @@ export default class Editor extends NestedData {
 						leftJoin(q, this._leftJoin);
 
 						// ... where the selected option is present...
-						q.where(key, http.searchPanes[key][i]);
+						if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
+							q.whereNull(key);
+						}
+						else {
+							q.where(key, http.searchPanes[key][i]);
+						}
 						
 						let r = await q;
 
@@ -1492,6 +1497,7 @@ export default class Editor extends NestedData {
 							i--;
 						}
 					}
+
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[key].length; i++) {
 							if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){

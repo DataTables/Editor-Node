@@ -1117,7 +1117,12 @@ var Editor = /** @class */ (function (_super) {
                                             .count({ count: '*' });
                                         (0, helpers_1.leftJoin)(q, this_2._leftJoin);
                                         // ... where the selected option is present...
-                                        q.where(key, http.searchPanes[key][i]);
+                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
+                                            q.whereNull(key);
+                                        }
+                                        else {
+                                            q.where(key, http.searchPanes[key][i]);
+                                        }
                                         return [4 /*yield*/, q];
                                     case 2:
                                         r = _c.sent();
