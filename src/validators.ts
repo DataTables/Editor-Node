@@ -138,9 +138,9 @@ export default class Validator {
 
 			if (
 				val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
-				val === 'on' || val === 'yes' || val === '✓' || val === 'x' || val === 'X' ||
+				val === 'on' || val === 'yes' || val === '✓' || val === 'x' ||
 				val === false || val === 0 || val === '0' || val === 'false' || val === 'f' ||
-				val === 'off' || val === 'no' || val === '×'
+				val === 'off' || val === 'no' 
 			) {
 				return true;
 			}
