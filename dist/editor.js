@@ -1050,7 +1050,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._get = function (id, http) {
         if (http === void 0) { http = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, keys, _loop_2, this_2, _i, keys_1, key, ssp, result, out, i, ien, inner, j, jen, spOptions, sbOptions, i, ien, opts, spopts, sbopts, searchPanes, searchBuilder, i, ien, _a;
+            var response, cancel, fields, pkeys, query, options, i, ien, i, ien, dbField, ssp, result, out, i, ien, inner, j, jen, spOptions, sbOptions, i, ien, opts, spopts, sbopts, searchPanes, searchBuilder, i, ien, _a;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -1062,7 +1062,7 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!this._customGet) return [3 /*break*/, 2];
                         response = this._customGet(id, http);
-                        return [3 /*break*/, 18];
+                        return [3 /*break*/, 14];
                     case 2:
                         fields = this.fields();
                         pkeys = this.pkey();
@@ -1101,69 +1101,6 @@ var Editor = /** @class */ (function (_super) {
                                 query.where(this.pkeyToObject(id, true));
                             }
                         }
-                        if (!(http !== null && http.searchPanes !== undefined && http.searchPanes !== null)) return [3 /*break*/, 6];
-                        keys = Object.keys(http.searchPanes);
-                        _loop_2 = function (key) {
-                            var i, q, r;
-                            return __generator(this, function (_c) {
-                                switch (_c.label) {
-                                    case 0:
-                                        i = 0;
-                                        _c.label = 1;
-                                    case 1:
-                                        if (!(i < http.searchPanes[key].length)) return [3 /*break*/, 4];
-                                        q = this_2.db()
-                                            .table(this_2._readTable()[0])
-                                            .count({ count: '*' });
-                                        (0, helpers_1.leftJoin)(q, this_2._leftJoin);
-                                        // ... where the selected option is present...
-                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
-                                            q.whereNull(key);
-                                        }
-                                        else {
-                                            q.where(key, http.searchPanes[key][i]);
-                                        }
-                                        return [4 /*yield*/, q];
-                                    case 2:
-                                        r = _c.sent();
-                                        // ... If there are none then don't bother with this selection
-                                        if (r[0].count == 0) {
-                                            http.searchPanes[key].splice(i, 1);
-                                            i--;
-                                        }
-                                        _c.label = 3;
-                                    case 3:
-                                        i++;
-                                        return [3 /*break*/, 1];
-                                    case 4:
-                                        query.where(function () {
-                                            for (var i = 0; i < http.searchPanes[key].length; i++) {
-                                                if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]) {
-                                                    this.orWhereNull(key);
-                                                }
-                                                else {
-                                                    this.orWhere(key, http.searchPanes[key][i]);
-                                                }
-                                            }
-                                        });
-                                        return [2 /*return*/];
-                                }
-                            });
-                        };
-                        this_2 = this;
-                        _i = 0, keys_1 = keys;
-                        _b.label = 3;
-                    case 3:
-                        if (!(_i < keys_1.length)) return [3 /*break*/, 6];
-                        key = keys_1[_i];
-                        return [5 /*yield**/, _loop_2(key)];
-                    case 4:
-                        _b.sent();
-                        _b.label = 5;
-                    case 5:
-                        _i++;
-                        return [3 /*break*/, 3];
-                    case 6:
                         // If there is a searchBuilder condition present in the request data
                         if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
                             // Run the above function for the first level of the searchBuilder data
@@ -1172,10 +1109,10 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         return [4 /*yield*/, this._ssp(query, http)];
-                    case 7:
+                    case 3:
                         ssp = _b.sent();
                         return [4 /*yield*/, query];
-                    case 8:
+                    case 4:
                         result = _b.sent();
                         if (!result) {
                             throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
@@ -1195,34 +1132,34 @@ var Editor = /** @class */ (function (_super) {
                         }
                         spOptions = {};
                         sbOptions = {};
-                        if (!(id === null)) return [3 /*break*/, 14];
+                        if (!(id === null)) return [3 /*break*/, 10];
                         i = 0, ien = fields.length;
-                        _b.label = 9;
-                    case 9:
-                        if (!(i < ien)) return [3 /*break*/, 14];
+                        _b.label = 5;
+                    case 5:
+                        if (!(i < ien)) return [3 /*break*/, 10];
                         return [4 /*yield*/, fields[i].optionsExec(this.db())];
-                    case 10:
+                    case 6:
                         opts = _b.sent();
                         if (opts) {
                             options[fields[i].name()] = opts;
                         }
                         return [4 /*yield*/, fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
-                    case 11:
+                    case 7:
                         spopts = _b.sent();
                         if (spopts) {
                             spOptions[fields[i].name()] = spopts;
                         }
                         return [4 /*yield*/, fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db())];
-                    case 12:
+                    case 8:
                         sbopts = _b.sent();
                         if (sbopts) {
                             sbOptions[fields[i].name()] = sbopts;
                         }
-                        _b.label = 13;
-                    case 13:
+                        _b.label = 9;
+                    case 9:
                         i++;
-                        return [3 /*break*/, 9];
-                    case 14:
+                        return [3 /*break*/, 5];
+                    case 10:
                         searchPanes = { options: spOptions };
                         searchBuilder = { options: sbOptions };
                         // Build a DtResponse object
@@ -1243,23 +1180,23 @@ var Editor = /** @class */ (function (_super) {
                             response.searchBuilder = searchBuilder;
                         }
                         i = 0, ien = this._join.length;
-                        _b.label = 15;
-                    case 15:
-                        if (!(i < ien)) return [3 /*break*/, 18];
+                        _b.label = 11;
+                    case 11:
+                        if (!(i < ien)) return [3 /*break*/, 14];
                         return [4 /*yield*/, this._join[i].data(this, response)];
-                    case 16:
+                    case 12:
                         _b.sent();
-                        _b.label = 17;
-                    case 17:
+                        _b.label = 13;
+                    case 13:
                         i++;
-                        return [3 /*break*/, 15];
-                    case 18:
+                        return [3 /*break*/, 11];
+                    case 14:
                         _a = response;
                         return [4 /*yield*/, this._fileData(null, null, response.data)];
-                    case 19:
+                    case 15:
                         _a.files = _b.sent();
                         return [4 /*yield*/, this._trigger('postGet', id, response.data)];
-                    case 20:
+                    case 16:
                         _b.sent();
                         return [2 /*return*/, response];
                 }
@@ -1602,7 +1539,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._process = function (data, upload) {
         return __awaiter(this, void 0, void 0, function () {
-            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_2, key, pkey, _f, submitedData_1, returnData, _loop_3, this_3, _g, pkeys_1, key;
+            var _i, _a, validator, ret, action, outData, _b, _c, _d, key, val, keys, i, ien, cancel, idSrc, values, id, valid, pkeys_2, eventName, _e, keys_1, key, pkey, _f, submitedData_1, returnData, _loop_2, this_2, _g, pkeys_1, key;
             return __generator(this, function (_h) {
                 switch (_h.label) {
                     case 0:
@@ -1703,11 +1640,11 @@ var Editor = /** @class */ (function (_super) {
                             'Edit';
                         if (!valid) return [3 /*break*/, 35];
                         keys = Object.keys(data.data);
-                        _e = 0, keys_2 = keys;
+                        _e = 0, keys_1 = keys;
                         _h.label = 20;
                     case 20:
-                        if (!(_e < keys_2.length)) return [3 /*break*/, 26];
-                        key = keys_2[_e];
+                        if (!(_e < keys_1.length)) return [3 /*break*/, 26];
+                        key = keys_1[_e];
                         if (!(action === Action.Create)) return [3 /*break*/, 22];
                         return [4 /*yield*/, this._insert(data.data[key])];
                     case 21:
@@ -1743,23 +1680,23 @@ var Editor = /** @class */ (function (_super) {
                     case 28:
                         returnData = _h.sent();
                         this._out.data = returnData.data;
-                        _loop_3 = function (key) {
+                        _loop_2 = function (key) {
                             return __generator(this, function (_j) {
                                 switch (_j.label) {
-                                    case 0: return [4 /*yield*/, this_3._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
+                                    case 0: return [4 /*yield*/, this_2._trigger("post".concat(eventName), key.pkey, data.data[key.submitKey], returnData.data.find(function (row) { return row['DT_RowId'] === key.dataKey; }))];
                                     case 1:
                                         _j.sent();
                                         return [2 /*return*/];
                                 }
                             });
                         };
-                        this_3 = this;
+                        this_2 = this;
                         _g = 0, pkeys_1 = pkeys_2;
                         _h.label = 29;
                     case 29:
                         if (!(_g < pkeys_1.length)) return [3 /*break*/, 32];
                         key = pkeys_1[_g];
-                        return [5 /*yield**/, _loop_3(key)];
+                        return [5 /*yield**/, _loop_2(key)];
                     case 30:
                         _h.sent();
                         _h.label = 31;
@@ -1896,7 +1833,7 @@ var Editor = /** @class */ (function (_super) {
     Editor.prototype._removeTable = function (table, ids, pkey) {
         if (pkey === void 0) { pkey = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_4, this_4, i, ien;
+            var count, fields, tableAlias, tableOrig, i, ien, i, ien, dbField, q, _loop_3, this_3, i, ien;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1924,15 +1861,15 @@ var Editor = /** @class */ (function (_super) {
                         }
                         if (!(count > 0)) return [3 /*break*/, 2];
                         q = this.db().from(tableOrig);
-                        _loop_4 = function (i, ien) {
-                            var cond = this_4.pkeyToObject(ids[i], true, pkey);
+                        _loop_3 = function (i, ien) {
+                            var cond = this_3.pkeyToObject(ids[i], true, pkey);
                             q.orWhere(function () {
                                 this.where(cond);
                             });
                         };
-                        this_4 = this;
+                        this_3 = this;
                         for (i = 0, ien = ids.length; i < ien; i++) {
-                            _loop_4(i, ien);
+                            _loop_3(i, ien);
                         }
                         return [4 /*yield*/, q.del()];
                     case 1:
@@ -2024,11 +1961,11 @@ var Editor = /** @class */ (function (_super) {
             });
         }
         if (http.searchPanes !== null && http.searchPanes !== undefined) {
-            var _loop_5 = function (field) {
+            var _loop_4 = function (field) {
                 if (http.searchPanes[field.name()] !== undefined) {
                     query.where(function () {
                         for (var i = 0; i < http.searchPanes[field.name()].length; i++) {
-                            if (http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i]) {
+                            if (http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
                                 this.orWhereNull(field.name());
                             }
                             else {
@@ -2040,7 +1977,7 @@ var Editor = /** @class */ (function (_super) {
             };
             for (var _i = 0, fields_1 = fields; _i < fields_1.length; _i++) {
                 var field = fields_1[_i];
-                _loop_5(field);
+                _loop_4(field);
             }
         }
         // If there is a searchBuilder condition present in the request data

@@ -1469,48 +1469,6 @@ export default class Editor extends NestedData {
 				}
 			}
 
-			// If searchPanes is in use then add the options selected there to the where condition
-			if (http !== null && http.searchPanes !== undefined && http.searchPanes !== null) {
-				let keys = Object.keys(http.searchPanes);
-				for (let key of keys) {
-					for(let i = 0; i < http.searchPanes[key].length; i++) {
-						// Check the number of rows...
-						let q = this.db()
-						.table(this._readTable()[0])
-							.count({count: '*'})
-
-						leftJoin(q, this._leftJoin);
-
-						// ... where the selected option is present...
-						if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
-							q.whereNull(key);
-						}
-						else {
-							q.where(key, http.searchPanes[key][i]);
-						}
-						
-						let r = await q;
-
-						// ... If there are none then don't bother with this selection
-						if(r[0].count == 0) {
-							http.searchPanes[key].splice(i, 1);
-							i--;
-						}
-					}
-
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[key].length; i++) {
-							if (http.searchPanes_null !== undefined && http.searchPanes_null[key] !== undefined && http.searchPanes_null[key][i]){
-								this.orWhereNull(key);
-							}
-							else {
-								this.orWhere(key, http.searchPanes[key][i]);
-							}
-						}
-					});
-				}
-			}
-
 			// If there is a searchBuilder condition present in the request data
 			if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
 				// Run the above function for the first level of the searchBuilder data
@@ -2310,7 +2268,7 @@ export default class Editor extends NestedData {
 				if (http.searchPanes[field.name()] !== undefined) {
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i]) {
+							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
 								this.orWhereNull(field.name());
 							}
 							else {
