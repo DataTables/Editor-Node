@@ -263,7 +263,7 @@ var SearchPaneOptions = /** @class */ (function () {
                             if (add) {
                                 query.where(function () {
                                     for (var i = 0; i < http.searchPanes[fieName].length; i++) {
-                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[fieName][i]) {
+                                        if (http.searchPanes_null !== undefined && http.searchPanes_null[fieName][i] && http.searchPanes_null[fieName][i] !== 'false') {
                                             this.orWhereNull(fieName);
                                         }
                                         else {
