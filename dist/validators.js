@@ -248,8 +248,8 @@ var Validator = /** @class */ (function () {
                         case 0: return [4 /*yield*/, Validator.numeric(decimal, opts)(val, data, host)];
                         case 1:
                             numeric = _a.sent();
-                            if (numeric !== true) {
-                                return [2 /*return*/, opts.message];
+                            if (numeric !== null) {
+                                return [2 /*return*/, numeric];
                             }
                             // val.toString() for '' is 0, which would mean it would always fail, even if empty values
                             // are allowed.
@@ -288,8 +288,8 @@ var Validator = /** @class */ (function () {
                         case 0: return [4 /*yield*/, Validator.numeric(decimal, opts)(val, data, host)];
                         case 1:
                             numeric = _a.sent();
-                            if (numeric !== true) {
-                                return [2 /*return*/, opts.message];
+                            if (numeric !== null) {
+                                return [2 /*return*/, numeric];
                             }
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
@@ -324,8 +324,8 @@ var Validator = /** @class */ (function () {
                         case 0: return [4 /*yield*/, Validator.numeric(decimal, opts)(val, data, host)];
                         case 1:
                             numeric = _a.sent();
-                            if (numeric !== true) {
-                                return [2 /*return*/, opts.message];
+                            if (numeric !== null) {
+                                return [2 /*return*/, numeric];
                             }
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');

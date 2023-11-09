@@ -205,8 +205,8 @@ export default class Validator {
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
 			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== true ) {
-				return opts.message;
+			if ( numeric !== null ) {
+				return numeric;
 			}
 
 			// val.toString() for '' is 0, which would mean it would always fail, even if empty values
@@ -239,8 +239,8 @@ export default class Validator {
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
 			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== true ) {
-				return opts.message;
+			if ( numeric !== null ) {
+				return numeric;
 			}
 
 			if ( decimal !== '.' ) {
@@ -273,8 +273,8 @@ export default class Validator {
 
 		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
 			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== true ) {
-				return opts.message;
+			if ( numeric !== null ) {
+				return numeric;
 			}
 
 			if ( decimal !== '.' ) {
