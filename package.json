@@ -1,6 +1,6 @@
 {
   "name": "datatables.net-editor-server",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "NodeJS server-side support for the DataTables Editor library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
