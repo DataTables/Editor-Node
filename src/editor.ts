@@ -2331,6 +2331,10 @@ export default class Editor extends NestedData {
 				);
 			}
 		}
+
+		if (! http.order || http.order.length === 0) {
+			query.orderBy(this._pkey[0], 'asc');
+		}
 	}
 
 	private async _trigger(name: string, ...args): Promise<boolean> {

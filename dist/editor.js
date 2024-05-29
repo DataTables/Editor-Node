@@ -2016,6 +2016,9 @@ var Editor = /** @class */ (function (_super) {
                 query.orderBy(this._sspField(http, order.column), order.dir === 'asc' ? 'asc' : 'desc');
             }
         }
+        if (!http.order || http.order.length === 0) {
+            query.orderBy(this._pkey[0], 'asc');
+        }
     };
     Editor.prototype._trigger = function (name) {
         var args = [];
