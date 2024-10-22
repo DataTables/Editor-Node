@@ -356,6 +356,7 @@ var Editor = /** @class */ (function (_super) {
         _this._out = {};
         _this._events = [];
         _this._validators = [];
+        _this._validatorsAfterFields = [];
         _this._tryCatch = false;
         _this._debug = false;
         _this._debugInfo = [];
@@ -773,9 +774,9 @@ var Editor = /** @class */ (function (_super) {
      */
     Editor.prototype.validate = function (errors, http) {
         return __awaiter(this, void 0, void 0, function () {
-            var keys, fields, idPrefix, i, ien, values, j, jen, field, id, validation, j, jen;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var keys, fields, idPrefix, i, ien, values, j, jen, field, id, validation, j, jen, _i, _a, validator, ret;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         if (this._doValidate === false) {
                             return [2 /*return*/, true];
@@ -787,19 +788,19 @@ var Editor = /** @class */ (function (_super) {
                         fields = this.fields();
                         idPrefix = this.idPrefix();
                         i = 0, ien = keys.length;
-                        _a.label = 1;
+                        _b.label = 1;
                     case 1:
                         if (!(i < ien)) return [3 /*break*/, 10];
                         values = http.data[keys[i]];
                         j = 0, jen = fields.length;
-                        _a.label = 2;
+                        _b.label = 2;
                     case 2:
                         if (!(j < jen)) return [3 /*break*/, 5];
                         field = fields[j];
                         id = keys[i].replace(idPrefix, '');
                         return [4 /*yield*/, field.validate(values, this, id, http.action)];
                     case 3:
-                        validation = _a.sent();
+                        validation = _b.sent();
                         if (validation !== true) {
                             errors.push({
                                 id: id,
@@ -807,37 +808,74 @@ var Editor = /** @class */ (function (_super) {
                                 status: validation,
                             });
                         }
-                        _a.label = 4;
+                        _b.label = 4;
                     case 4:
                         j++;
                         return [3 /*break*/, 2];
                     case 5:
                         j = 0, jen = this._join.length;
-                        _a.label = 6;
+                        _b.label = 6;
                     case 6:
                         if (!(j < jen)) return [3 /*break*/, 9];
                         return [4 /*yield*/, this._join[j].validate(errors, this, values, http.action)];
                     case 7:
-                        _a.sent();
-                        _a.label = 8;
+                        _b.sent();
+                        _b.label = 8;
                     case 8:
                         j++;
                         return [3 /*break*/, 6];
                     case 9:
                         i++;
                         return [3 /*break*/, 1];
-                    case 10: return [2 /*return*/, errors.length > 0 ?
+                    case 10:
+                        _i = 0, _a = this._validatorsAfterFields;
+                        _b.label = 11;
+                    case 11:
+                        if (!(_i < _a.length)) return [3 /*break*/, 14];
+                        validator = _a[_i];
+                        return [4 /*yield*/, validator(this, http.action, http)];
+                    case 12:
+                        ret = _b.sent();
+                        if (typeof ret === 'string') {
+                            this._out.error = ret;
+                            return [2 /*return*/, false];
+                        }
+                        _b.label = 13;
+                    case 13:
+                        _i++;
+                        return [3 /*break*/, 11];
+                    case 14: return [2 /*return*/, errors.length > 0 ?
                             false :
                             true];
                 }
             });
         });
     };
-    Editor.prototype.validator = function (fn) {
-        if (fn === undefined) {
-            return this._validators;
+    Editor.prototype.validator = function (afterFields, fn) {
+        // Argument shifting
+        if (afterFields === undefined) {
+            // No args
+            afterFields = false;
         }
-        this._validators.push(fn);
+        else if (typeof afterFields === 'function') {
+            // Single arg, function
+            fn = afterFields;
+            afterFields = false;
+        }
+        // Else two args are inherently handled
+        // Getter
+        if (fn === undefined) {
+            return afterFields
+                ? this._validatorsAfterFields
+                : this._validators;
+        }
+        // Setter
+        if (afterFields) {
+            this._validatorsAfterFields.push(fn);
+        }
+        else {
+            this._validators.push(fn);
+        }
         return this;
     };
     Editor.prototype.where = function () {

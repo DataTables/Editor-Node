@@ -487,6 +487,7 @@ export default class Editor extends NestedData {
 	private _out: IDtResponse = {};
 	private _events = [];
 	private _validators: IGlobalValidator[] = [];
+	private _validatorsAfterFields: IGlobalValidator[] = [];
 	private _tryCatch: boolean = false;
 	private _knexTransaction: Knex;
 	private _uploadData: IUpload;
@@ -1209,29 +1210,77 @@ export default class Editor extends NestedData {
 			}
 		}
 
+		for (let validator of this._validatorsAfterFields) {
+			let ret = await validator(this, http.action, http);
+
+			if (typeof ret === 'string') {
+				this._out.error = ret;
+				
+				return false;
+			}
+		}
+
 		return errors.length > 0 ?
 			false :
 			true;
 	}
 
 	/**
-	 * Get any global validator that has been set.
+	 * Get any global validator for running before the field validation that has been set.
 	 * @returns {IGlobalValidator[]} Global validator
 	 */
 	public validator(): IGlobalValidator[];
 	/**
-	 * Set a global validator. This will be triggered for the create, edit
-	 * and remove actions performed from the client-side.
+	 * Get any global validator for running before the field validation that has been set.
+	 * @param afterFields Get validators for before (`false`) or after (`true`) field validation.
+	 * @returns {IGlobalValidator[]} Global validator
+	 */
+	public validator(afterFields: boolean): IGlobalValidator[];
+	/**
+	 * Set a global validator to run before field validation happens. This will be triggered
+	 * for the create, edit and remove actions performed from the client-side.
 	 * @param {IGlobalValidator} fn Function to execute when validating the input data.
 	 * @returns {Editor} Self for chaining
 	 */
 	public validator(fn: IGlobalValidator): Editor;
-	public validator(fn?: IGlobalValidator): any {
+	/**
+	 * Set a global validator to run before field validation happens. This will be triggered
+	 * for the create, edit and remove actions performed from the client-side.
+	 * @param afterFields Set if the validator is to run before (`false`) or after (`true`)
+	 *   field validation happens.
+	 * @param {IGlobalValidator} fn Function to execute when validating the input data.
+	 * @returns {Editor} Self for chaining
+	 */
+	public validator(afterFields: boolean, fn: IGlobalValidator): Editor;
+
+	public validator(afterFields?: boolean | IGlobalValidator, fn?: IGlobalValidator): any {
+		// Argument shifting
+		if (afterFields === undefined) {
+			// No args
+			afterFields = false;
+		}
+		else if (typeof afterFields === 'function') {
+			// Single arg, function
+			fn = afterFields;
+			afterFields = false;
+		}
+		// Else two args are inherently handled
+
+		// Getter
 		if (fn === undefined) {
-			return this._validators;
+			return afterFields
+				? this._validatorsAfterFields
+				: this._validators;
 		}
 
-		this._validators.push(fn);
+		// Setter
+		if (afterFields) {
+			this._validatorsAfterFields.push(fn);
+		}
+		else {
+			this._validators.push(fn);
+		}
+
 		return this;
 	}
 

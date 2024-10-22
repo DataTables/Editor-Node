@@ -188,6 +188,7 @@ export default class Editor extends NestedData {
     private _out;
     private _events;
     private _validators;
+    private _validatorsAfterFields;
     private _tryCatch;
     private _knexTransaction;
     private _uploadData;
@@ -527,17 +528,32 @@ export default class Editor extends NestedData {
      */
     validate(errors: IDtError[], http: IDtRequest): Promise<boolean>;
     /**
-     * Get any global validator that has been set.
+     * Get any global validator for running before the field validation that has been set.
      * @returns {IGlobalValidator[]} Global validator
      */
     validator(): IGlobalValidator[];
     /**
-     * Set a global validator. This will be triggered for the create, edit
-     * and remove actions performed from the client-side.
+     * Get any global validator for running before the field validation that has been set.
+     * @param afterFields Get validators for before (`false`) or after (`true`) field validation.
+     * @returns {IGlobalValidator[]} Global validator
+     */
+    validator(afterFields: boolean): IGlobalValidator[];
+    /**
+     * Set a global validator to run before field validation happens. This will be triggered
+     * for the create, edit and remove actions performed from the client-side.
      * @param {IGlobalValidator} fn Function to execute when validating the input data.
      * @returns {Editor} Self for chaining
      */
     validator(fn: IGlobalValidator): Editor;
+    /**
+     * Set a global validator to run before field validation happens. This will be triggered
+     * for the create, edit and remove actions performed from the client-side.
+     * @param afterFields Set if the validator is to run before (`false`) or after (`true`)
+     *   field validation happens.
+     * @param {IGlobalValidator} fn Function to execute when validating the input data.
+     * @returns {Editor} Self for chaining
+     */
+    validator(afterFields: boolean, fn: IGlobalValidator): Editor;
     /**
      * Get the array of conditions applied to the method.
      * @returns {any[]} Knex where conditions.
