@@ -35,7 +35,7 @@ export default class Options {
 	private _limit: number;
 	private _renderer: IRenderer;
 	private _where: any;
-	private _order: string;
+	private _order: string | boolean = true;
 	private _manualOpts: IOption[] = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -174,15 +174,17 @@ export default class Options {
 	 */
 	public order(): string;
 	/**
-	 * Set the ORDER BY clause to use in the SQL. If this option is not
-	 * provided the ordering will be based on the rendered output, either
-	 * numerically or alphabetically based on the data returned by the renderer.
+	 * Set the ORDER BY clause to use in the SQL. If this option is `true`
+	 * (which it is by default) the ordering will be based on the rendered output,
+	 * either numerically or alphabetically based on the data returned by the
+	 * renderer. If `false` no ordering will be performed and whatever is returned
+	 * from the database will be used.
 	 *
-	 * @param {string} order ORDER BY statement
+	 * @param {string|boolean} order ORDER BY statement
 	 * @returns {Options} Self for chaining
 	 */
-	public order(order: string): Options;
-	public order(order?: string): any {
+	public order(order: string|boolean): Options;
+	public order(order?: string|boolean): any {
 		if (order === undefined) {
 			return this._order;
 		}
@@ -321,7 +323,7 @@ export default class Options {
 			q.where(this._where);
 		}
 
-		if (this._order) {
+		if (typeof this._order === 'string') {
 			// For cases where we are ordering by a field which isn't included in the list
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
@@ -360,8 +362,8 @@ export default class Options {
 			out = out.concat(this._manualOpts);
 		}
 
-		// Only sort if there was no SQL order field
-		if (! this._order) {
+		// Local sorting
+		if (this._order === true) {
 			out.sort(function(a, b) {
 				if (isNumeric(a) && isNumeric(b)) {
 					return (a.label * 1) - (b.label * 1);

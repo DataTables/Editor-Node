@@ -88,14 +88,16 @@ export default class Options {
      */
     order(): string;
     /**
-     * Set the ORDER BY clause to use in the SQL. If this option is not
-     * provided the ordering will be based on the rendered output, either
-     * numerically or alphabetically based on the data returned by the renderer.
+     * Set the ORDER BY clause to use in the SQL. If this option is `true`
+     * (which it is by default) the ordering will be based on the rendered output,
+     * either numerically or alphabetically based on the data returned by the
+     * renderer. If `false` no ordering will be performed and whatever is returned
+     * from the database will be used.
      *
-     * @param {string} order ORDER BY statement
+     * @param {string|boolean} order ORDER BY statement
      * @returns {Options} Self for chaining
      */
-    order(order: string): Options;
+    order(order: string | boolean): Options;
     /**
      * Get the configured label renderer
      *

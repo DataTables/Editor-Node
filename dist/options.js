@@ -55,6 +55,7 @@ function isNumeric(n) {
 var Options = /** @class */ (function () {
     function Options() {
         this._leftJoin = [];
+        this._order = true;
         this._manualOpts = [];
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -185,7 +186,7 @@ var Options = /** @class */ (function () {
                         if (this._where) {
                             q.where(this._where);
                         }
-                        if (this._order) {
+                        if (typeof this._order === 'string') {
                             // For cases where we are ordering by a field which isn't included in the list
                             // of fields to display, we need to add the ordering field, due to the
                             // select distinct.
@@ -218,8 +219,8 @@ var Options = /** @class */ (function () {
                         if (this._manualOpts.length) {
                             out = out.concat(this._manualOpts);
                         }
-                        // Only sort if there was no SQL order field
-                        if (!this._order) {
+                        // Local sorting
+                        if (this._order === true) {
                             out.sort(function (a, b) {
                                 if (isNumeric(a) && isNumeric(b)) {
                                     return (a.label * 1) - (b.label * 1);
