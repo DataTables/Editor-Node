@@ -13,7 +13,7 @@ export interface IOption {
 }
 
 export type IRenderer = (row: object) => string;
-export type CustomOptions = (db: Knex) => Promise<IOption[]>;
+export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
 
 /**
  * The Options class provides a convenient method of specifying where Editor
@@ -28,6 +28,10 @@ export type CustomOptions = (db: Knex) => Promise<IOption[]>;
  * @class Options
  */
 export default class Options {
+	private _alwaysRefresh: boolean = true;
+	private _customFn: CustomOptions;
+	private _includes: string[] = [];
+	private _searchOnly: boolean = false;
 	private _table: string;
 	private _value: string;
 	private _label: string[];
@@ -62,6 +66,73 @@ export default class Options {
 	}
 
 	/**
+	 * Get the current alwaysRefresh flag
+	 */
+	public alwaysRefresh(): boolean;
+	/**
+	 * Set the flag to indicate that the options should always be refreshed (i.e. on get, create
+	 * and edit) or only on the initial data load (false).
+	 *
+	 * @param set Flag to set the always refresh to
+	 */
+	public alwaysRefresh(set: boolean): Options;
+	public alwaysRefresh(set?: boolean): any {
+		if (set === undefined) {
+			return this._alwaysRefresh;
+		}
+
+		this._alwaysRefresh = set;
+
+		return this;
+	}
+
+	/**
+	 * Get the function (if set) to get the options
+	 */
+	public fn(): CustomOptions;
+	/**
+	 * Set the function used to get the options, rather than using the built in DB configuration.
+	 *
+	 * @param set Function to use for the custom options function
+	 */
+	public fn(set: CustomOptions): Options;
+	public fn(set?: CustomOptions): any {
+		if (set === undefined) {
+			return this._customFn;
+		}
+
+		this._customFn = set;
+
+		return this;
+	}
+
+	/**
+	 * Get the list of field names to include in the option objects
+	 */
+	public include(): string[];
+	/**
+	 * Column names from `value()` and `label()` that should be included in the output object for
+	 * each option, in addition to the value and label.
+	 *
+	 * @param set The list of columns to include in the output
+	 */
+	public include(set: string[] | string): Options;
+	public include(set?: string[] | string): any {
+		if (set === undefined) {
+			return this._includes;
+		}
+
+		if (Array.isArray(set)) {
+			this._includes.push.apply(this._includes, set);
+		}
+		else {
+			this._includes.push(set);
+		}
+
+		return this;
+	}
+
+	/**
 	 * Get the column(s) to be used for the label
 	 *
 	 * @returns {string[]} Label columns
@@ -73,8 +144,8 @@ export default class Options {
 	 * @param {string[]} label Database column names
 	 * @returns {Options} Self for chaining
 	 */
-	public label(label: string[]): Options;
-	public label(label?: string[]): any {
+	public label(label: string | string[]): Options;
+	public label(label?: string | string[]): any {
 		if (label === undefined) {
 			return this._label;
 		}
@@ -83,7 +154,7 @@ export default class Options {
 			this._label = label;
 		}
 		else {
-			this._label = [ label ];
+			this._label = [label];
 		}
 
 		return this;
@@ -99,10 +170,7 @@ export default class Options {
 	 * @param {function} condition
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(
-		table: string,
-		condition: Function
-	): Options;
+	public leftJoin(table: string, condition: Function): Options;
 	/**
 	 * Add a left join condition to the Options instance, allowing it to operate
 	 * over multiple tables.
@@ -112,12 +180,7 @@ export default class Options {
 	 * @param {string} field2 Field from the child table to use as the join link
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(
-		table: string,
-		field1: string,
-		operator: string,
-		field2: string
-	): Options;
+	public leftJoin(table: string, field1: string, operator: string, field2: string): Options;
 	public leftJoin(
 		table: string,
 		field1: string | Function,
@@ -130,7 +193,7 @@ export default class Options {
 				field2: '',
 				fn: field1,
 				operator: '',
-				table,
+				table
 			});
 		}
 		else {
@@ -138,7 +201,7 @@ export default class Options {
 				field1,
 				field2,
 				operator,
-				table,
+				table
 			});
 		}
 
@@ -183,8 +246,8 @@ export default class Options {
 	 * @param {string|boolean} order ORDER BY statement
 	 * @returns {Options} Self for chaining
 	 */
-	public order(order: string|boolean): Options;
-	public order(order?: string|boolean): any {
+	public order(order: string | boolean): Options;
+	public order(order?: string | boolean): any {
 		if (order === undefined) {
 			return this._order;
 		}
@@ -214,6 +277,27 @@ export default class Options {
 		}
 
 		this._renderer = fn;
+		return this;
+	}
+
+	/**
+	 * Get the current search only flag
+	 */
+	public searchOnly(): boolean;
+	/**
+	 * Set the flag to indicate if the options should always be refreshed (i.e. on get, create
+	 * and edit) or only on the initial data load (false).
+	 *
+	 * @param set Flag to set the search only option to
+	 */
+	public searchOnly(set: boolean): Options;
+	public searchOnly(set?: boolean): any {
+		if (set === undefined) {
+			return this._searchOnly;
+		}
+
+		this._searchOnly = set;
+
 		return this;
 	}
 
@@ -292,21 +376,35 @@ export default class Options {
 	/**
 	 * @ignore
 	 */
-	public async exec(db: Knex): Promise<IOption[]> {
+	public async exec(db: Knex, refresh, search = null, find = null): Promise<IOption[] | false> {
+		// If search only, and not a search action, then just return false
+		if (this.searchOnly() && search === null && find === null) {
+			return false;
+		}
+
+		// Only get the options if doing a full load, or always is set
+		if (refresh === true && !this.alwaysRefresh()) {
+			return false;
+		}
+
+		if (this._customFn) {
+			return this._customFn(db, search);
+		}
+
 		let label = this._label;
 		let value = this._value;
 		let formatter = this._renderer;
 
 		// Create a list of the fields that we need to get from the db
-		let fields = [ value ].concat(label);
+		let fields = [value].concat(label);
 
 		// We need a default formatter if one isn't provided
-		if (! formatter) {
-			formatter = function(row) {
+		if (!formatter) {
+			formatter = function (row) {
 				let a = [];
 
-				for (let i = 0, ien = label.length ; i < ien ; i++) {
-					a.push(row[ label[i] ]);
+				for (let i = 0, ien = label.length; i < ien; i++) {
+					a.push(row[label[i]]);
 				}
 
 				return a.join(' ');
@@ -323,38 +421,67 @@ export default class Options {
 			q.where(this._where);
 		}
 
+		if (Array.isArray(find)) {
+			q.whereIn(value, find);
+		}
+
 		if (typeof this._order === 'string') {
 			// For cases where we are ordering by a field which isn't included in the list
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
 			this._order.split(',').forEach((val) => {
 				val = val.toLocaleLowerCase();
-				const direction = val.match(/( desc$| asc$)/g);
-				const field = val.replace(/( desc$| asc$)/, '').trim();
+				const direction = val.match(/( desc| asc)/g);
+				const field = val.replace(/( desc| asc$)/, '').trim();
 
-				if (! fields.includes(field)) {
+				if (!fields.includes(field)) {
 					q.select(field);
 				}
 
 				q.orderBy(field, direction ? direction[0].trim() : 'asc');
 			});
 		}
-
-		if (this._limit) {
-			q.limit(this.limit());
+		else if (this._order === true) {
+			// Attempt to do a database order, needed for `limit()`ed results
+			q.orderBy(this._label[0], 'asc');
 		}
 
 		leftJoin(q, this._leftJoin);
 
 		let res = await q;
 		let out = [];
+		let max = this._limit;
 
 		// Create the output array
-		for (let i = 0, ien = res.length ; i < ien ; i++) {
-			out.push({
-				label: formatter(res[i]),
-				value: res[i][ value ]
-			});
+		for (let i = 0, ien = res.length; i < ien; i++) {
+			let rowLabel = formatter(res[i]);
+			let rowValue = res[i][value];
+
+			// Apply the search to the rendered label. Need to do it here rather than in SQL since
+			// the label is rendered in script.
+			if (search === null || search === '' || rowLabel.indexOf(search) === 0) {
+				let option = {
+					label: rowLabel,
+					value: rowValue
+				};
+
+				// Add in any columns that are needed for extra data (includes)
+				for (let j = 0; j < this._includes.length; j++) {
+					let inc = this._includes[j];
+
+					if (res[i][inc] !== undefined) {
+						option[inc] = res[i][inc];
+					}
+				}
+
+				out.push(option);
+			}
+
+			// Limit needs to be done in script space, rather than SQL, to allow for the script
+			// based filtering above, and also for when using a custom function
+			if (max !== null && out.length >= max) {
+				break;
+			}
 		}
 
 		// Stick on any extra manually added options
@@ -364,14 +491,23 @@ export default class Options {
 
 		// Local sorting
 		if (this._order === true) {
-			out.sort(function(a, b) {
-				if (isNumeric(a) && isNumeric(b)) {
-					return (a.label * 1) - (b.label * 1);
+			out.sort(function (a, b) {
+				let aLabel = a.label;
+				let bLabel = b.label;
+
+				if (aLabel === null) {
+					aLabel = '';
 				}
-				return a.label < b.label ?
-					-1 : a.label > b.label ?
-						1 :
-						0;
+
+				if (bLabel === null) {
+					bLabel = '';
+				}
+
+				if (isNumeric(aLabel) && isNumeric(bLabel)) {
+					return aLabel * 1 - bLabel * 1;
+				}
+
+				return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
 			});
 		}
 

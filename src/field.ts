@@ -53,7 +53,7 @@ export default class Field extends NestedData {
 	private _getFormatter: IFormatter;
 	private _getValue: any;
 	private _http: boolean = true;
-	private _opts: Options & CustomOptions;
+	private _opts: Options;
 	private _name: string;
 	private _spopts: SearchPaneOptions;
 	private _sbopts: SearchBuilderOptions;
@@ -241,29 +241,64 @@ export default class Field extends NestedData {
 	/**
 	 * Get the currently configured options for the field.
 	 *
-	 * @returns {(Options & CustomOptions)} Options configuration
+	 * @returns Options object configured for this field
 	 */
-	public options(): Options & CustomOptions;
+	public options(): Options;
 	/**
-	 * Set how a list of options (values and labels) will be retrieved for the field.
+	 * Set an `Options` class instance for the options to get for this field
 	 *
-	 * Gets a list of values that can be used for the options list in radio,
-	 * select and checkbox inputs from the database for this field.
-	 *
-	 * Note that this is for simple 'label / value' pairs only. For more complex
-	 * data, including pairs that require joins and where conditions, use a
-	 * closure to provide a query
-	 *
-	 * @param {(Options & CustomOptions)} opts Options configuration
-	 * @returns {Field} Self for chaining
+	 * @param opts Options instance
+	 * @returns Self for chaining
 	 */
-	public options(opts: Options & CustomOptions): Field;
-	public options(opts?: Options & CustomOptions): any {
-		if (opts === undefined) {
+	public options(opts: Options): Field;
+	/**
+	 * Set a custom option that will be used to get the options for this field
+	 *
+	 * @param opts Options instance
+	 * @returns Self for chaining
+	 */
+	public options(opts: CustomOptions): Field;
+	/**
+	 * Create an options instance based on the parameters passed in
+	 *
+	 * @param table DB table name
+	 * @param value DB column name for the value field
+	 * @param label DB column name for the label field
+	 * @param condition SQL condition
+	 * @param format Formatting function to transform the text
+	 * @param order Order to apply
+	 * @returns Self for chaining
+	 */
+	public options(table: string, value: string, label: string, condition, format, order): Field;
+	public options(table?: any, value: string = null, label: string = null, condition = null, format = null, order = null):any {
+		if (table === undefined) {
 			return this._opts;
 		}
+		else if (typeof table === 'object') { // Options object
+			this._opts = table;
+		}
+		else if (typeof table === 'function') {
+			this._opts = new Options().fn(table);
+		}
+		else {
+			this._opts = new Options()
+				.table(table)
+				.value(value)
+				.label(label);
 
-		this._opts = opts;
+			if (condition) {
+				this._opts.where(condition);
+			}
+
+			if (format) {
+				this._opts.render(format);
+			}
+
+			if (order) {
+				this._opts.order(order);
+			}
+		}
+
 		return this;
 	}
 
@@ -524,19 +559,6 @@ export default class Field extends NestedData {
 
 		// In the data set, so use it
 		return true;
-	}
-
-	/**
-	 * @hidden
-	 */
-	public async optionsExec(db: Knex): Promise<false | IOption[]> {
-		if (this._opts instanceof Options) {
-			return this._opts.exec(db);
-		}
-		else if (this._opts) {
-			return (this._opts as any)(db);
-		}
-		return false;
 	}
 
 	/**

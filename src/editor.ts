@@ -29,7 +29,10 @@ export enum Action {
 	Delete,
 
 	/** Upload a file. */
-	Upload
+	Upload,
+
+	/** Search for an option */
+	Search
 }
 
 /**
@@ -466,6 +469,9 @@ export default class Editor extends NestedData {
 
 			case 'upload':
 				return Action.Upload;
+
+			case 'search':
+				return Action.Search;
 
 			default:
 				throw new Error('Unknown Editor action: ' + http.action);
@@ -1989,6 +1995,12 @@ export default class Editor extends NestedData {
 				for (let [key, val] of Object.entries(outData)) {
 					this._out[key] = val;
 				}
+
+				this._options(false);
+			}
+			else if (action == Action.Search) {
+				/* Options search */
+				this._optionsSearch(data);
 			}
 			else if (action === Action.Upload && this._write) {
 				await this._upload(data);
@@ -2089,6 +2101,8 @@ export default class Editor extends NestedData {
 					// File tidy up
 					await this._fileClean();
 				}
+
+				this._options(true);
 			}
 		}
 
