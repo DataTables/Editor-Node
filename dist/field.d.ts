@@ -155,23 +155,35 @@ export default class Field extends NestedData {
     /**
      * Get the currently configured options for the field.
      *
-     * @returns {(Options & CustomOptions)} Options configuration
+     * @returns Options object configured for this field
      */
-    options(): Options & CustomOptions;
+    options(): Options;
     /**
-     * Set how a list of options (values and labels) will be retrieved for the field.
+     * Set an `Options` class instance for the options to get for this field
      *
-     * Gets a list of values that can be used for the options list in radio,
-     * select and checkbox inputs from the database for this field.
-     *
-     * Note that this is for simple 'label / value' pairs only. For more complex
-     * data, including pairs that require joins and where conditions, use a
-     * closure to provide a query
-     *
-     * @param {(Options & CustomOptions)} opts Options configuration
-     * @returns {Field} Self for chaining
+     * @param opts Options instance
+     * @returns Self for chaining
      */
-    options(opts: Options & CustomOptions): Field;
+    options(opts: Options): Field;
+    /**
+     * Set a custom option that will be used to get the options for this field
+     *
+     * @param opts Options instance
+     * @returns Self for chaining
+     */
+    options(opts: CustomOptions): Field;
+    /**
+     * Create an options instance based on the parameters passed in
+     *
+     * @param table DB table name
+     * @param value DB column name for the value field
+     * @param label DB column name for the label field
+     * @param condition SQL condition
+     * @param format Formatting function to transform the text
+     * @param order Order to apply
+     * @returns Self for chaining
+     */
+    options(table: string, value: string, label: string, condition: any, format: any, order: any): Field;
     /**
      * Set how a list iof options (values and labels) will be retrieved for the fields SearchBuilder.
      *
@@ -312,10 +324,6 @@ export default class Field extends NestedData {
      * @hidden
      */
     apply(action: 'get' | 'create' | 'edit', data?: object): boolean;
-    /**
-     * @hidden
-     */
-    optionsExec(db: Knex): Promise<false | IOption[]>;
     /**
      * @hidden
      */

@@ -54,6 +54,9 @@ function isNumeric(n) {
  */
 var Options = /** @class */ (function () {
     function Options() {
+        this._alwaysRefresh = true;
+        this._includes = [];
+        this._searchOnly = false;
         this._leftJoin = [];
         this._order = true;
         this._manualOpts = [];
@@ -77,6 +80,32 @@ var Options = /** @class */ (function () {
         });
         return this;
     };
+    Options.prototype.alwaysRefresh = function (set) {
+        if (set === undefined) {
+            return this._alwaysRefresh;
+        }
+        this._alwaysRefresh = set;
+        return this;
+    };
+    Options.prototype.fn = function (set) {
+        if (set === undefined) {
+            return this._customFn;
+        }
+        this._customFn = set;
+        return this;
+    };
+    Options.prototype.include = function (set) {
+        if (set === undefined) {
+            return this._includes;
+        }
+        if (Array.isArray(set)) {
+            this._includes.push.apply(this._includes, set);
+        }
+        else {
+            this._includes.push(set);
+        }
+        return this;
+    };
     Options.prototype.label = function (label) {
         if (label === undefined) {
             return this._label;
@@ -98,7 +127,7 @@ var Options = /** @class */ (function () {
                 field2: '',
                 fn: field1,
                 operator: '',
-                table: table,
+                table: table
             });
         }
         else {
@@ -106,7 +135,7 @@ var Options = /** @class */ (function () {
                 field1: field1,
                 field2: field2,
                 operator: operator,
-                table: table,
+                table: table
             });
         }
         return this;
@@ -130,6 +159,13 @@ var Options = /** @class */ (function () {
             return this._renderer;
         }
         this._renderer = fn;
+        return this;
+    };
+    Options.prototype.searchOnly = function (set) {
+        if (set === undefined) {
+            return this._searchOnly;
+        }
+        this._searchOnly = set;
         return this;
     };
     Options.prototype.table = function (table) {
@@ -159,12 +195,25 @@ var Options = /** @class */ (function () {
     /**
      * @ignore
      */
-    Options.prototype.exec = function (db) {
+    Options.prototype.exec = function (db, refresh, search, find) {
+        if (search === void 0) { search = null; }
+        if (find === void 0) { find = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, formatter, fields, q, res, out, i, ien;
+            var label, value, formatter, fields, q, res, out, max, i, ien, rowLabel, rowValue, option, j, inc;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        // If search only, and not a search action, then just return false
+                        if (this.searchOnly() && search === null && find === null) {
+                            return [2 /*return*/, false];
+                        }
+                        // Only get the options if doing a full load, or always is set
+                        if (refresh === true && !this.alwaysRefresh()) {
+                            return [2 /*return*/, false];
+                        }
+                        if (this._customFn) {
+                            return [2 /*return*/, this._customFn(db, search)];
+                        }
                         label = this._label;
                         value = this._value;
                         formatter = this._renderer;
@@ -186,34 +235,59 @@ var Options = /** @class */ (function () {
                         if (this._where) {
                             q.where(this._where);
                         }
+                        if (Array.isArray(find)) {
+                            q.whereIn(value, find);
+                        }
                         if (typeof this._order === 'string') {
                             // For cases where we are ordering by a field which isn't included in the list
                             // of fields to display, we need to add the ordering field, due to the
                             // select distinct.
                             this._order.split(',').forEach(function (val) {
                                 val = val.toLocaleLowerCase();
-                                var direction = val.match(/( desc$| asc$)/g);
-                                var field = val.replace(/( desc$| asc$)/, '').trim();
+                                var direction = val.match(/( desc| asc)/g);
+                                var field = val.replace(/( desc| asc$)/, '').trim();
                                 if (!fields.includes(field)) {
                                     q.select(field);
                                 }
                                 q.orderBy(field, direction ? direction[0].trim() : 'asc');
                             });
                         }
-                        if (this._limit) {
-                            q.limit(this.limit());
+                        else if (this._order === true) {
+                            // Attempt to do a database order, needed for `limit()`ed results
+                            q.orderBy(this._label[0], 'asc');
                         }
                         (0, helpers_1.leftJoin)(q, this._leftJoin);
                         return [4 /*yield*/, q];
                     case 1:
                         res = _a.sent();
                         out = [];
+                        max = this._limit;
                         // Create the output array
                         for (i = 0, ien = res.length; i < ien; i++) {
-                            out.push({
-                                label: formatter(res[i]),
-                                value: res[i][value]
-                            });
+                            rowLabel = formatter(res[i]);
+                            rowValue = res[i][value];
+                            // Apply the search to the rendered label. Need to do it here rather than in SQL since
+                            // the label is rendered in script.
+                            console.log('label', rowLabel, search);
+                            if (search === null || search === '' || rowLabel.indexOf(search) === 0) {
+                                option = {
+                                    label: rowLabel,
+                                    value: rowValue
+                                };
+                                // Add in any columns that are needed for extra data (includes)
+                                for (j = 0; j < this._includes.length; j++) {
+                                    inc = this._includes[j];
+                                    if (res[i][inc] !== undefined) {
+                                        option[inc] = res[i][inc];
+                                    }
+                                }
+                                out.push(option);
+                            }
+                            // Limit needs to be done in script space, rather than SQL, to allow for the script
+                            // based filtering above, and also for when using a custom function
+                            if (max !== null && out.length >= max) {
+                                break;
+                            }
                         }
                         // Stick on any extra manually added options
                         if (this._manualOpts.length) {
@@ -222,17 +296,52 @@ var Options = /** @class */ (function () {
                         // Local sorting
                         if (this._order === true) {
                             out.sort(function (a, b) {
-                                if (isNumeric(a) && isNumeric(b)) {
-                                    return (a.label * 1) - (b.label * 1);
+                                var aLabel = a.label;
+                                var bLabel = b.label;
+                                if (aLabel === null) {
+                                    aLabel = '';
                                 }
-                                return a.label < b.label ?
-                                    -1 : a.label > b.label ?
-                                    1 :
-                                    0;
+                                if (bLabel === null) {
+                                    bLabel = '';
+                                }
+                                if (isNumeric(aLabel) && isNumeric(bLabel)) {
+                                    return aLabel * 1 - bLabel * 1;
+                                }
+                                return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
                             });
                         }
                         return [2 /*return*/, out];
                 }
+            });
+        });
+    };
+    /**
+     * Get the objects for a set of values.
+     *
+     * @param db  Database connection
+     * @param ids IDs to get
+     *
+     * @return array|bool
+     */
+    Options.prototype.find = function (db, ids) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.exec(db, false, null, ids)];
+            });
+        });
+    };
+    /**
+     * Do a search for data on the source.
+     *
+     * @param db   Database connection
+     * @param term Search term
+     *
+     * @return array|bool
+     */
+    Options.prototype.search = function (db, term) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.exec(db, false, term)];
             });
         });
     };

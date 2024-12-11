@@ -18,7 +18,9 @@ export declare enum Action {
     /** Delete one or more rows. */
     Delete = 3,
     /** Upload a file. */
-    Upload = 4
+    Upload = 4,
+    /** Search for an option */
+    Search = 5
 }
 /**
  * Field error object.
@@ -587,6 +589,18 @@ export default class Editor extends NestedData {
     private _insertOrUpdate;
     private _insertOrUpdateTable;
     private _alias;
+    /**
+     * Get option lists for select, radio, autocomplete, etc.
+     *
+     * @param refresh false for initial load, true if after insert, update
+     */
+    private _options;
+    /**
+     * Perform a search action on a specific field for label/value pairs.
+     *
+     * @param array $http Submitted HTTP request for search
+     */
+    private _optionsSearch;
     private _part;
     private _prepJoin;
     private _pkeySeparator;

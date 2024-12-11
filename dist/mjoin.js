@@ -137,7 +137,7 @@ var Mjoin = /** @class */ (function (_super) {
                 field2: '',
                 fn: field1,
                 operator: '',
-                table: table,
+                table: table
             });
         }
         else {
@@ -145,7 +145,7 @@ var Mjoin = /** @class */ (function (_super) {
                 field1: field1,
                 field2: field2,
                 operator: operator,
-                table: table,
+                table: table
             });
         }
         return this;
@@ -245,7 +245,7 @@ var Mjoin = /** @class */ (function (_super) {
      */
     Mjoin.prototype.data = function (editor, response) {
         return __awaiter(this, void 0, void 0, function () {
-            var fields, join, dteTable, joinField, dteTableAlias, mJoinTable, mJoinTableAlias, pkeyIsJoin, query, order, a, i, ien, field, dbField, readField, whereIn, data, i, ien, linkValue, res, joinMap, i, ien, inner, j, jen, lookup, i, ien, data, linkField, i, ien, opts, name_1;
+            var fields, join, dteTable, joinField, dteTableAlias, mJoinTable, mJoinTableAlias, pkeyIsJoin, query, order, a, i, ien, field, dbField, readField, whereIn, data, i, ien, linkValue, res, joinMap, i, ien, inner, j, jen, lookup, i, ien, data, linkField;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -263,21 +263,15 @@ var Mjoin = /** @class */ (function (_super) {
                         }
                         if (!response.data.length) return [3 /*break*/, 2];
                         dteTable = editor.table()[0];
-                        joinField = join.table ?
-                            join.parent[0] :
-                            join.parent;
-                        dteTableAlias = dteTable.indexOf(' ') !== -1
-                            ? dteTable.split(/ (as )?/i)[2]
-                            : dteTable;
-                        mJoinTable = this._table.indexOf(' ') !== -1
-                            ? this._table.split(/ (as )?/i)[0]
-                            : this._table;
-                        mJoinTableAlias = this._table.indexOf(' ') !== -1
-                            ? this._table.split(/ (as )?/i)[2]
-                            : this._table;
+                        joinField = join.table ? join.parent[0] : join.parent;
+                        dteTableAlias = dteTable.indexOf(' ') !== -1 ? dteTable.split(/ (as )?/i)[2] : dteTable;
+                        mJoinTable = this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[0] : this._table;
+                        mJoinTableAlias = this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[2] : this._table;
                         pkeyIsJoin = joinField === editor.pkey()[0] ||
                             dteTableAlias + '.' + joinField === editor.pkey()[0];
-                        query = editor.db().table(dteTable)
+                        query = editor
+                            .db()
+                            .table(dteTable)
                             .select(dteTableAlias + '.' + joinField + ' as dteditor_pkey');
                         order = this.order();
                         if (order) {
@@ -322,7 +316,9 @@ var Mjoin = /** @class */ (function (_super) {
                             readField = joinField.toString();
                         }
                         else if (!pkeyIsJoin) {
-                            throw new Error('Join was performed on the field "' + readField + '" which was not ' +
+                            throw new Error('Join was performed on the field "' +
+                                readField +
+                                '" which was not ' +
                                 'included in the Editor field list. The join field must be ' +
                                 'included as a regular field in the Editor instance.');
                         }
@@ -336,9 +332,9 @@ var Mjoin = /** @class */ (function (_super) {
                             whereIn = [];
                             data = response.data;
                             for (i = 0, ien = data.length; i < ien; i++) {
-                                linkValue = pkeyIsJoin ?
-                                    data[i].DT_RowId.replace(editor.idPrefix(), '') :
-                                    this._readProp(readField, data[i]);
+                                linkValue = pkeyIsJoin
+                                    ? data[i].DT_RowId.replace(editor.idPrefix(), '')
+                                    : this._readProp(readField, data[i]);
                                 whereIn.push(linkValue);
                             }
                             query.whereIn(dteTableAlias + '.' + joinField, whereIn);
@@ -362,9 +358,9 @@ var Mjoin = /** @class */ (function (_super) {
                         // the mapped data
                         for (i = 0, ien = response.data.length; i < ien; i++) {
                             data = response.data[i];
-                            linkField = pkeyIsJoin ?
-                                data.DT_RowId.replace(editor.idPrefix(), '') :
-                                this._readProp(readField, data);
+                            linkField = pkeyIsJoin
+                                ? data.DT_RowId.replace(editor.idPrefix(), '')
+                                : this._readProp(readField, data);
                             if (joinMap[linkField]) {
                                 data[this._name] = joinMap[linkField];
                             }
@@ -373,23 +369,46 @@ var Mjoin = /** @class */ (function (_super) {
                             }
                         }
                         _a.label = 2;
-                    case 2:
+                    case 2: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * Get options for the fields in this join.
+     *
+     * @param options Options object
+     * @param db      Database connection object
+     * @param refresh Refresh indication flag
+     *
+     * @internal
+     */
+    Mjoin.prototype.options = function (options, db, refresh) {
+        return __awaiter(this, void 0, void 0, function () {
+            var fields, i, ien, field, optsInst, opts, name_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        fields = this.fields();
                         i = 0, ien = fields.length;
-                        _a.label = 3;
-                    case 3:
-                        if (!(i < ien)) return [3 /*break*/, 6];
-                        return [4 /*yield*/, fields[i].optionsExec(editor.db())];
-                    case 4:
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < ien)) return [3 /*break*/, 4];
+                        field = fields[i];
+                        optsInst = field.options();
+                        if (!optsInst) return [3 /*break*/, 3];
+                        return [4 /*yield*/, optsInst.exec(db, refresh)];
+                    case 2:
                         opts = _a.sent();
                         if (opts) {
                             name_1 = this.name() + '[].' + fields[i].name();
-                            response.options[name_1] = opts;
+                            options[name_1] = opts;
                         }
-                        _a.label = 5;
-                    case 5:
+                        _a.label = 3;
+                    case 3:
                         i++;
-                        return [3 /*break*/, 3];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 1];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
@@ -408,8 +427,7 @@ var Mjoin = /** @class */ (function (_super) {
                             return [2 /*return*/];
                         }
                         // The many count for the join was not submitted then we do nothing
-                        if (!data[this._name] ||
-                            !data[this._name + '-many-count']) {
+                        if (!data[this._name] || !data[this._name + '-many-count']) {
                             return [2 /*return*/];
                         }
                         this._prepare(editor);
@@ -478,9 +496,7 @@ var Mjoin = /** @class */ (function (_super) {
                         db = editor.db();
                         join = this._join;
                         if (!join.table) return [3 /*break*/, 2];
-                        query = db
-                            .del()
-                            .from(join.table);
+                        query = db.del().from(join.table);
                         for (i = 0, ien = ids.length; i < ien; i++) {
                             query.orWhere((_a = {}, _a[join.parent[1]] = ids[i], _a));
                         }
@@ -489,9 +505,7 @@ var Mjoin = /** @class */ (function (_super) {
                         _b.sent();
                         return [3 /*break*/, 4];
                     case 2:
-                        query_1 = db
-                            .del()
-                            .from(this._table);
+                        query_1 = db.del().from(this._table);
                         query_1.where(function () {
                             var _a;
                             for (var i = 0, ien = ids.length; i < ien; i++) {
@@ -602,9 +616,7 @@ var Mjoin = /** @class */ (function (_super) {
                                 set[field.dbField()] = field.val('set', data);
                             }
                         }
-                        return [4 /*yield*/, db
-                                .insert(set)
-                                .from(this._table)];
+                        return [4 /*yield*/, db.insert(set).from(this._table)];
                     case 3:
                         _c.sent();
                         _c.label = 4;
@@ -618,9 +630,7 @@ var Mjoin = /** @class */ (function (_super) {
         var links = this._links;
         var editorTable = editor.table()[0];
         var joinTable = this.table();
-        var dteTableAlias = editorTable.indexOf(' ') !== -1
-            ? editorTable.split(/ (as )?/i)[2]
-            : editorTable;
+        var dteTableAlias = editorTable.indexOf(' ') !== -1 ? editorTable.split(/ (as )?/i)[2] : editorTable;
         if (links.length === 2) {
             // No link table
             var f1 = links[0].split('.');

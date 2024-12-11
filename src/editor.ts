@@ -1556,54 +1556,15 @@ export default class Editor extends NestedData {
 				out.push(inner);
 			}
 
-			let spOptions = {};
-			let sbOptions = {};
-
-			// Field options and SearchPane Options
-			if (id === null) {
-				for (let i = 0, ien = fields.length; i < ien; i++) {
-					let opts = await fields[i].optionsExec(this.db());
-
-					if (opts) {
-						options[ fields[i].name() ] = opts;
-					}
-
-					let spopts = await fields[i].searchPaneOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
-
-					if (spopts) {
-						spOptions[fields[i].name()] = spopts;
-					}
-
-					let sbopts = await fields[i].searchBuilderOptionsExec(fields[i], this, http, fields, this._leftJoin, this.db());
-
-					if (sbopts) {
-						sbOptions[fields[i].name()] = sbopts;
-					}
-				}
-			}
-
-			let searchPanes = {options: spOptions};
-			let searchBuilder = {options: sbOptions};
-
 			// Build a DtResponse object
 			response = {
 				data: out,
 				draw: ssp.draw,
 				files: {},
-				options,
+				options: {},
 				recordsFiltered: ssp.recordsFiltered,
-				recordsTotal: ssp.recordsTotal,
-				searchPanes: undefined,
-				searchBuilder: undefined
+				recordsTotal: ssp.recordsTotal
 			};
-
-			if(Object.keys(searchPanes.options).length > 0) {
-				response.searchPanes = searchPanes;
-			}
-
-			if(Object.keys(searchBuilder.options).length > 0) {
-				response.searchBuilder = searchBuilder;
-			}
 
 			// Row based joins
 			for (let i = 0, ien = this._join.length; i < ien; i++) {
@@ -1856,6 +1817,88 @@ export default class Editor extends NestedData {
 		return name;
 	}
 
+	/**
+	 * Get option lists for select, radio, autocomplete, etc.
+	 *
+	 * @param refresh false for initial load, true if after insert, update
+	 */
+	private async _options(refresh: boolean)
+	{
+		let fields = this.fields();
+
+		for (let i = 0, ien = fields.length; i < ien; i++) {
+			// Basic options class
+			let field = fields[i];
+			let options = field.options();
+
+			if (options) {
+				let opts = await options.exec(this._db, refresh);
+
+				if (opts !== false) {
+					this._out.options[field.name()] = opts;
+				}
+			}
+
+			let spOpts = await fields[i].searchPaneOptionsExec(field, this, this._processData, fields, this._leftJoin, this.db());
+
+			if (spOpts) {
+				if (! this._out.searchPanes) {
+					this._out.searchPanes.options = {};
+				}
+
+				this._out.searchPanes.options[field.name()] = spOpts;
+			}
+
+			let sbOpts = await fields[i].searchBuilderOptionsExec(field, this, this._processData, fields, this._leftJoin, this.db());
+
+			if (sbOpts) {
+				if (! this._out.searchBuilder) {
+					this._out.searchBuilder.options = {};
+				}
+
+				this._out.searchBuilder.options[field.name()] = sbOpts;
+			}
+		}
+
+		// Check the join's for a list of options
+		for (let i = 0; i < this._join.length ; i++) {
+			await this._join[i].options(this._out.options, this._db, refresh);
+		}
+	}
+
+	/**
+	 * Perform a search action on a specific field for label/value pairs.
+	 *
+	 * @param array $http Submitted HTTP request for search
+	 */
+	private async _optionsSearch(http)
+	{
+		let values = null;
+		let field = this._findField(http.field, 'name');
+
+		if (!field) {
+			return;
+		}
+
+		let options = field.options();
+
+		if (!options) {
+			return;
+		}
+
+		if (http.search) {
+			values = await options.search(this.db(), http.search);
+		}
+		else if (http.values) {
+			values = await options.find(this.db(), http.values);
+		}
+
+		if (values) {
+			this._out.data = values;
+		}
+	}
+
+
 	private _part(name: string, type: 'table' | 'db' | 'column' = 'table'): string {
 		let db;
 		let table;
@@ -1965,7 +2008,8 @@ export default class Editor extends NestedData {
 		this._out = {
 			cancelled: [],
 			data: [],
-			fieldErrors: []
+			fieldErrors: [],
+			options: []
 		};
 
 		this._processData = data;
@@ -1982,7 +2026,7 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		if (data.action && data.action !== 'upload' && ! data.data) {
+		if (data.action && data.action !== 'upload' && ! data.data && ! data.search) {
 			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 
@@ -1996,11 +2040,11 @@ export default class Editor extends NestedData {
 					this._out[key] = val;
 				}
 
-				this._options(false);
+				await this._options(false);
 			}
-			else if (action == Action.Search) {
+			else if (action === Action.Search) {
 				/* Options search */
-				this._optionsSearch(data);
+				await this._optionsSearch(data);
 			}
 			else if (action === Action.Upload && this._write) {
 				await this._upload(data);
@@ -2102,7 +2146,7 @@ export default class Editor extends NestedData {
 					await this._fileClean();
 				}
 
-				this._options(true);
+				await this._options(true);
 			}
 		}
 

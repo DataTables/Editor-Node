@@ -8,16 +8,18 @@ import NestedData from './nestedData';
 
 interface IJoinTable {
 	table?: string;
-	parent: string|string[];
-	child: string|string[];
+	parent: string | string[];
+	child: string | string[];
 }
 
 /**
  * Grouped validation
  */
-export type IMjoinValidator =
-	( editor: Editor, action: string, data: IDtRequest ) => Promise<true|string>;
-
+export type IMjoinValidator = (
+	editor: Editor,
+	action: string,
+	data: IDtRequest
+) => Promise<true | string>;
 
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
@@ -40,8 +42,8 @@ export default class Mjoin extends NestedData {
 	public static SetType = SetType;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* Private parameters
-	*/
+	 * Private parameters
+	 */
 
 	private _table: string;
 	private _editor: Editor;
@@ -58,8 +60,8 @@ export default class Mjoin extends NestedData {
 		parent: ''
 	};
 	private _validators: Array<{
-		fieldName: string,
-		fn: IMjoinValidator
+		fieldName: string;
+		fn: IMjoinValidator;
 	}> = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -71,11 +73,11 @@ export default class Mjoin extends NestedData {
 	 *
 	 * @param {string} table Table name being joined to
 	 */
-	constructor( table: string ) {
+	constructor(table: string) {
 		super();
 
-		this.table( table );
-		this.name( table );
+		this.table(table);
+		this.name(table);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -88,20 +90,20 @@ export default class Mjoin extends NestedData {
 	 * @param {(Field|string)} nameOrField Field instance to add, or field name to get
 	 * @returns Mjoin instance if adding a field, Field instance if getting a field.
 	 */
-	public field( nameOrField: string );
-	public field( nameOrField: Field );
-	public field( nameOrField: Field|string ) {
-		if ( typeof nameOrField === 'string' ) {
-			for ( let i = 0, ien = this._fields.length ; i < ien ; i++ ) {
-				if ( this._fields[i].name() === nameOrField ) {
+	public field(nameOrField: string);
+	public field(nameOrField: Field);
+	public field(nameOrField: Field | string) {
+		if (typeof nameOrField === 'string') {
+			for (let i = 0, ien = this._fields.length; i < ien; i++) {
+				if (this._fields[i].name() === nameOrField) {
 					return this._fields[i];
 				}
 			}
 
-			throw new Error( 'Unknown field: ' + nameOrField );
+			throw new Error('Unknown field: ' + nameOrField);
 		}
 
-		this._fields.push( nameOrField );
+		this._fields.push(nameOrField);
 		return this;
 	}
 
@@ -117,11 +119,11 @@ export default class Mjoin extends NestedData {
 	 */
 	public fields(...fields: Field[]): Mjoin;
 	public fields(...fields: Field[]): any {
-		if ( fields === undefined || fields.length === 0 ) {
+		if (fields === undefined || fields.length === 0) {
 			return this._fields;
 		}
 
-		this._fields.push.apply( this._fields, fields );
+		this._fields.push.apply(this._fields, fields);
 
 		return this;
 	}
@@ -141,7 +143,7 @@ export default class Mjoin extends NestedData {
 	 */
 	public get(flag: boolean): Mjoin;
 	public get(flag?: boolean): any {
-		if ( flag === undefined ) {
+		if (flag === undefined) {
 			return this._get;
 		}
 
@@ -159,10 +161,7 @@ export default class Mjoin extends NestedData {
 	 * @param {function} condition
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(
-		table: string,
-		condition: Function
-	): Mjoin;
+	public leftJoin(table: string, condition: Function): Mjoin;
 	/**
 	 * Add a left join condition to the Mjoin instance, allowing it to operate
 	 * over multiple tables.
@@ -172,12 +171,7 @@ export default class Mjoin extends NestedData {
 	 * @param {string} field2 Field from the child table to use as the join link
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(
-		table: string,
-		field1: string,
-		operator: string,
-		field2: string
-	): Mjoin;
+	public leftJoin(table: string, field1: string, operator: string, field2: string): Mjoin;
 	public leftJoin(
 		table: string,
 		field1: string | Function,
@@ -190,7 +184,7 @@ export default class Mjoin extends NestedData {
 				field2: '',
 				fn: field1,
 				operator: '',
-				table,
+				table
 			});
 		}
 		else {
@@ -198,7 +192,7 @@ export default class Mjoin extends NestedData {
 				field1,
 				field2,
 				operator,
-				table,
+				table
 			});
 		}
 
@@ -223,18 +217,20 @@ export default class Mjoin extends NestedData {
 	 * @param {string} field2 Table and field name
 	 * @returns {Mjoin} Self for chaining
 	 */
-	public link( field1: string, field2: string ): Mjoin {
-		if ( field1.indexOf('.') === -1 || field2.indexOf('.') === -1 ) {
-			throw new Error( 'Mjoin fields must contain both the table name and the column name' );
+	public link(field1: string, field2: string): Mjoin {
+		if (field1.indexOf('.') === -1 || field2.indexOf('.') === -1) {
+			throw new Error('Mjoin fields must contain both the table name and the column name');
 		}
 
-		if ( this._links.length === 4 ) {
-			throw new Error( 'Mjoin link method cannot be called more than twice for a single instance' );
+		if (this._links.length === 4) {
+			throw new Error(
+				'Mjoin link method cannot be called more than twice for a single instance'
+			);
 		}
 
 		// Add to list - it is resolved later on
-		this._links.push( field1 );
-		this._links.push( field2 );
+		this._links.push(field1);
+		this._links.push(field2);
 
 		return this;
 	}
@@ -258,7 +254,7 @@ export default class Mjoin extends NestedData {
 	 */
 	public name(name: string): Mjoin;
 	public name(name?: string): any {
-		if ( name === undefined ) {
+		if (name === undefined) {
 			return this._name;
 		}
 
@@ -280,7 +276,7 @@ export default class Mjoin extends NestedData {
 	 */
 	public order(order: string): Mjoin;
 	public order(order?: string): any {
-		if ( order === undefined ) {
+		if (order === undefined) {
 			return this._order;
 		}
 
@@ -305,16 +301,16 @@ export default class Mjoin extends NestedData {
 	 * @param {(boolean|SetType)} flag Set flag.
 	 * @returns {Field} Self for chaining.
 	 */
-	public set(flag: boolean|SetType): Field;
+	public set(flag: boolean | SetType): Field;
 	public set(flag?: boolean): any {
-		if ( flag === undefined ) {
+		if (flag === undefined) {
 			return this._set;
 		}
 
-		if ( flag === true ) {
+		if (flag === true) {
 			this._set = SetType.Both;
 		}
-		else if ( flag === false ) {
+		else if (flag === false) {
 			this._set = SetType.None;
 		}
 		else {
@@ -343,7 +339,7 @@ export default class Mjoin extends NestedData {
 	 */
 	public table(table: string): Mjoin;
 	public table(table?: string): any {
-		if ( table === undefined ) {
+		if (table === undefined) {
 			return this._table;
 		}
 
@@ -358,11 +354,11 @@ export default class Mjoin extends NestedData {
 	 *   against on the client-side
 	 * @param fn Callback function for validation
 	 */
-	public validator( fieldName: string, fn: IMjoinValidator ): this {
-		this._validators.push( {
+	public validator(fieldName: string, fn: IMjoinValidator): this {
+		this._validators.push({
 			fieldName,
 			fn
-		} );
+		});
 
 		return this;
 	}
@@ -382,11 +378,11 @@ export default class Mjoin extends NestedData {
 	 */
 	public where(cond: any): Mjoin;
 	public where(cond?: any): any {
-		if ( cond === undefined ) {
+		if (cond === undefined) {
 			return this._where;
 		}
 
-		this._where.push( cond );
+		this._where.push(cond);
 
 		return this;
 	}
@@ -398,100 +394,117 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async data( editor: Editor, response: IDtResponse ): Promise<void> {
-		if ( ! this._get ) {
+	public async data(editor: Editor, response: IDtResponse): Promise<void> {
+		if (!this._get) {
 			return;
 		}
 
-		this._prepare( editor );
+		this._prepare(editor);
 		let fields = this.fields();
 		let join = this._join;
 
 		// This is something that will likely come in a future version, but it
 		// is a relatively low use feature. Please get in touch if this is
 		// something you require.
-		if ( editor.pkey().length > 1 ) {
-			throw new Error( 'Mjoin is not currently supported with a compound primary key for the main table' );
+		if (editor.pkey().length > 1) {
+			throw new Error(
+				'Mjoin is not currently supported with a compound primary key for the main table'
+			);
 		}
 
-		if ( response.data.length ) {
+		if (response.data.length) {
 			// If the Editor primary key is join key, then it is read automatically
 			// and into Editor's primary key store
 			let dteTable = editor.table()[0];
-			let joinField = join.table ?
-				join.parent[0] :
-				join.parent;
-			let dteTableAlias = dteTable.indexOf(' ') !== -1
-				? dteTable.split(/ (as )?/i)[2]
-				: dteTable;
-			let mJoinTable = this._table.indexOf(' ') !== -1
-				? this._table.split(/ (as )?/i)[0]
-				: this._table;
-			let mJoinTableAlias = this._table.indexOf(' ') !== -1
-				? this._table.split(/ (as )?/i)[2]
-				: this._table;
+			let joinField = join.table ? join.parent[0] : join.parent;
+			let dteTableAlias =
+				dteTable.indexOf(' ') !== -1 ? dteTable.split(/ (as )?/i)[2] : dteTable;
+			let mJoinTable =
+				this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[0] : this._table;
+			let mJoinTableAlias =
+				this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[2] : this._table;
 
-			let pkeyIsJoin = joinField === editor.pkey()[0] ||
-			dteTableAlias + '.' + joinField === editor.pkey()[0];
+			let pkeyIsJoin =
+				joinField === editor.pkey()[0] ||
+				dteTableAlias + '.' + joinField === editor.pkey()[0];
 
 			// Build the basic query
-			let query = editor.db().table( dteTable )
-				.select( dteTableAlias + '.' + joinField + ' as dteditor_pkey' );
+			let query = editor
+				.db()
+				.table(dteTable)
+				.select(dteTableAlias + '.' + joinField + ' as dteditor_pkey');
 
 			let order = this.order();
-			if ( order ) {
-				let a = order.split( ' ' );
+			if (order) {
+				let a = order.split(' ');
 
-				if ( a.length > 1 ) {
-					query.orderBy( a[0], a[1] );
+				if (a.length > 1) {
+					query.orderBy(a[0], a[1]);
 				}
 				else {
-					query.orderBy( a );
+					query.orderBy(a);
 				}
 			}
 
-			for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
+			for (let i = 0, ien = fields.length; i < ien; i++) {
 				let field = fields[i];
 
-				if ( field.apply('get') && field.getValue() === undefined ) {
+				if (field.apply('get') && field.getValue() === undefined) {
 					let dbField = field.dbField();
 
-					if (dbField.indexOf('(') !== -1 ) {
-						query.select( editor.db().raw( dbField + ' as "' + dbField + '"' ) );
+					if (dbField.indexOf('(') !== -1) {
+						query.select(editor.db().raw(dbField + ' as "' + dbField + '"'));
 					}
-					else if ( dbField.indexOf('.') === -1 ) {
-						query.select( mJoinTableAlias + '.' + dbField + ' as ' + dbField );
+					else if (dbField.indexOf('.') === -1) {
+						query.select(mJoinTableAlias + '.' + dbField + ' as ' + dbField);
 					}
 					else {
-						query.select( dbField + ' as ' + dbField );
+						query.select(dbField + ' as ' + dbField);
 					}
 				}
 			}
 
 			// Create the joins
-			if ( join.table ) {
-				query.innerJoin( join.table, dteTableAlias + '.' + join.parent[0], '=', join.table + '.' + join.parent[1] );
-				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child[0], '=', join.table + '.' + join.child[1] );
+			if (join.table) {
+				query.innerJoin(
+					join.table,
+					dteTableAlias + '.' + join.parent[0],
+					'=',
+					join.table + '.' + join.parent[1]
+				);
+				query.innerJoin(
+					mJoinTable + ' as ' + mJoinTableAlias,
+					mJoinTableAlias + '.' + join.child[0],
+					'=',
+					join.table + '.' + join.child[1]
+				);
 			}
 			else {
-				query.innerJoin( mJoinTable+' as '+mJoinTableAlias, mJoinTableAlias + '.' + join.child, '=', dteTableAlias + '.' + join.parent );
+				query.innerJoin(
+					mJoinTable + ' as ' + mJoinTableAlias,
+					mJoinTableAlias + '.' + join.child,
+					'=',
+					dteTableAlias + '.' + join.parent
+				);
 			}
 
 			leftJoin(query, this._leftJoin);
-			this._applyWhere( query );
+			this._applyWhere(query);
 
 			let readField = '';
-			if ( this._propExists( dteTableAlias + '.' + joinField, response.data[0] ) ) {
+			if (this._propExists(dteTableAlias + '.' + joinField, response.data[0])) {
 				readField = dteTableAlias + '.' + joinField;
 			}
-			else if ( this._propExists( joinField.toString(), response.data[0] ) ) {
+			else if (this._propExists(joinField.toString(), response.data[0])) {
 				readField = joinField.toString();
 			}
-			else if ( !pkeyIsJoin ) {
+			else if (!pkeyIsJoin) {
 				throw new Error(
-					'Join was performed on the field "' + readField + '" which was not ' +
-					'included in the Editor field list. The join field must be ' +
-					'included as a regular field in the Editor instance.'
+					'Join was performed on the field "' +
+						readField +
+						'" which was not ' +
+						'included in the Editor field list. The join field must be ' +
+						'included as a regular field in the Editor instance.'
 				);
 			}
 
@@ -501,19 +514,19 @@ export default class Mjoin extends NestedData {
 			// This is only applied for "sensible" data sets.172 It will just complicate
 			// matters for really large data sets:
 			// https://stackoverflow.com/questions/21178390/in-clause-limitation-in-sql-server
-			if ( response.data.length < 1000 ) {
+			if (response.data.length < 1000) {
 				let whereIn = [];
 				let data = response.data;
 
-				for ( let i = 0, ien = data.length; i < ien; i++ ) {
-					let linkValue = pkeyIsJoin ?
-						(data[i] as any).DT_RowId.replace( editor.idPrefix(), '' ) :
-						this._readProp( readField, data[i] );
+				for (let i = 0, ien = data.length; i < ien; i++) {
+					let linkValue = pkeyIsJoin
+						? (data[i] as any).DT_RowId.replace(editor.idPrefix(), '')
+						: this._readProp(readField, data[i]);
 
-					whereIn.push( linkValue );
+					whereIn.push(linkValue);
 				}
 
-				query.whereIn( dteTableAlias + '.' + joinField, whereIn );
+				query.whereIn(dteTableAlias + '.' + joinField, whereIn);
 			}
 
 			let res = await query;
@@ -521,47 +534,65 @@ export default class Mjoin extends NestedData {
 			// Map the data to the primary key for fast loop up
 			let joinMap = {};
 
-			for ( let i = 0, ien = res.length ; i < ien ; i++ ) {
+			for (let i = 0, ien = res.length; i < ien; i++) {
 				let inner = {};
 
-				for ( let j = 0, jen = fields.length ; j < jen ; j++ ) {
-					fields[j].write( inner, res[i] );
+				for (let j = 0, jen = fields.length; j < jen; j++) {
+					fields[j].write(inner, res[i]);
 				}
 
 				let lookup = res[i].dteditor_pkey;
 
-				if ( ! joinMap[ lookup ] ) {
-					joinMap[ lookup ] = [];
+				if (!joinMap[lookup]) {
+					joinMap[lookup] = [];
 				}
 
-				joinMap[ lookup ].push( inner );
+				joinMap[lookup].push(inner);
 			}
 
 			// Loop over the data in the original response and do a join based on
 			// the mapped data
-			for ( let i = 0, ien = response.data.length ; i < ien ; i++ ) {
+			for (let i = 0, ien = response.data.length; i < ien; i++) {
 				let data = response.data[i];
-				let linkField = pkeyIsJoin ?
-					(data as any).DT_RowId.replace( editor.idPrefix(), '' ) :
-					this._readProp( readField, data );
+				let linkField = pkeyIsJoin
+					? (data as any).DT_RowId.replace(editor.idPrefix(), '')
+					: this._readProp(readField, data);
 
-				if ( joinMap[ linkField ] ) {
-					data[ this._name ] = joinMap[ linkField ];
+				if (joinMap[linkField]) {
+					data[this._name] = joinMap[linkField];
 				}
 				else {
-					data[ this._name ] = [];
+					data[this._name] = [];
 				}
 			}
 		}
+	}
+
+	/**
+	 * Get options for the fields in this join.
+	 *
+	 * @param options Options object
+	 * @param db      Database connection object
+	 * @param refresh Refresh indication flag
+	 *
+	 * @internal
+	 */
+	public async options(options, db, refresh) {
+		let fields = this.fields();
 
 		// Field options
-		for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
-			let opts = await fields[i].optionsExec( editor.db() );
+		for (let i = 0, ien = fields.length; i < ien; i++) {
+			let field = fields[i];
+			let optsInst = field.options();
 
-			if ( opts ) {
-				let name = this.name() + '[].' + fields[i].name();
+			if (optsInst) {
+				let opts = await optsInst.exec(db, refresh);
 
-				response.options[ name ] = opts;
+				if (opts) {
+					let name = this.name() + '[].' + fields[i].name();
+
+					options[name] = opts;
+				}
 			}
 		}
 	}
@@ -569,83 +600,76 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async create( editor: Editor, parentId: string, data: object ): Promise<void> {
+	public async create(editor: Editor, parentId: string, data: object): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Create && this._set !== SetType.Both) {
 			return;
 		}
 
 		// The many count for the join was not submitted then we do nothing
-		if (
-			! data[ this._name ] ||
-			! data[ this._name + '-many-count']
-		) {
+		if (!data[this._name] || !data[this._name + '-many-count']) {
 			return;
 		}
 
-		this._prepare( editor );
+		this._prepare(editor);
 		let db = editor.db();
 
-		for ( let i = 0, ien = data[ this._name ].length ; i < ien ; i++ ) {
-			await this._insert( db, parentId, data[ this._name ][i] );
+		for (let i = 0, ien = data[this._name].length; i < ien; i++) {
+			await this._insert(db, parentId, data[this._name][i]);
 		}
 	}
 
 	/**
 	 * @ignore
 	 */
-	public async update( editor: Editor, parentId: string, data: object ): Promise<void> {
+	public async update(editor: Editor, parentId: string, data: object): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Edit && this._set !== SetType.Both) {
 			return;
 		}
 
 		// The many count for the join was not submitted then we do nothing
-		if (data[ this._name + '-many-count'] === undefined) {
+		if (data[this._name + '-many-count'] === undefined) {
 			return;
 		}
 
 		// WARNING - this will remove rows and then readd them. Any
 		// data not in the field list WILL BE LOST
-		await this.remove( editor, [parentId] );
-		await this.create( editor, parentId, data );
+		await this.remove(editor, [parentId]);
+		await this.create(editor, parentId, data);
 	}
 
 	/**
 	 * @ignore
 	 */
-	public async remove( editor: Editor, ids: string[] ): Promise<void> {
-		if ( ! this._set ) {
+	public async remove(editor: Editor, ids: string[]): Promise<void> {
+		if (!this._set) {
 			return;
 		}
 
-		this._prepare( editor );
+		this._prepare(editor);
 		let db = editor.db();
 		let join = this._join;
 
-		if ( join.table ) {
-			let query = db
-				.del()
-				.from( join.table );
+		if (join.table) {
+			let query = db.del().from(join.table);
 
-			for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
-				query.orWhere( { [join.parent[1]]: ids[i] } );
+			for (let i = 0, ien = ids.length; i < ien; i++) {
+				query.orWhere({[join.parent[1]]: ids[i]});
 			}
 
 			await query;
 		}
 		else {
-			let query = db
-				.del()
-				.from( this._table );
+			let query = db.del().from(this._table);
 
-			query.where( function() {
-				for ( let i = 0, ien = ids.length ; i < ien ; i++ ) {
-					query.orWhere( { [join.child.toString()]: ids[i] } );
+			query.where(function () {
+				for (let i = 0, ien = ids.length; i < ien; i++) {
+					query.orWhere({[join.child.toString()]: ids[i]});
 				}
-			} );
+			});
 
-			this._applyWhere( query );
+			this._applyWhere(query);
 
 			await query;
 		}
@@ -654,60 +678,60 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async validate( errors, editor: Editor, data: object, action: string ): Promise<void> {
-		if ( ! this._set ) {
+	public async validate(errors, editor: Editor, data: object, action: string): Promise<void> {
+		if (!this._set) {
 			return;
 		}
 
-		this._prepare( editor );
-		let joinData = data[ this._name ] || [];
-		let submittedCount = data[ this._name + '-many-count' ] || null;
+		this._prepare(editor);
+		let joinData = data[this._name] || [];
+		let submittedCount = data[this._name + '-many-count'] || null;
 
 		// On edit, an empty submission means we are doing nothing.
 		if (action === 'edit' && submittedCount === null) {
 			return;
 		}
 
-		for ( let j = 0, jen=this._validators.length ; j < jen ; j++ ) {
+		for (let j = 0, jen = this._validators.length; j < jen; j++) {
 			let validator = this._validators[j];
-			let res = await validator.fn( editor, action, joinData );
+			let res = await validator.fn(editor, action, joinData);
 
-			if ( typeof res === 'string' ) {
-				errors.push( {
+			if (typeof res === 'string') {
+				errors.push({
 					name: validator.fieldName,
 					status: res
-				} );
+				});
 			}
 		}
 
-		for ( let i = 0, ien = joinData.length ; i < ien ; i++ ) {
-			await this._validateFields( errors, editor, joinData[i], this._name + '[].', action );
+		for (let i = 0, ien = joinData.length; i < ien; i++) {
+			await this._validateFields(errors, editor, joinData[i], this._name + '[].', action);
 		}
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
-	private _applyWhere( query: Knex.QueryBuilder<any, any> ): void {
+	private _applyWhere(query: Knex.QueryBuilder<any, any>): void {
 		let where = this._where;
 
-		for ( let i = 0, ien = where.length ; i < ien ; i++ ) {
-			query.where( where[i] );
+		for (let i = 0, ien = where.length; i < ien; i++) {
+			query.where(where[i]);
 		}
 	}
 
-	private async _insert( db: Knex, parentId: string, data: object ): Promise<void> {
+	private async _insert(db: Knex, parentId: string, data: object): Promise<void> {
 		let join = this._join;
 		let fields = this.fields();
 
-		if ( join.table ) {
+		if (join.table) {
 			// Insert keys into the join table
 			await db
-				.insert( {
+				.insert({
 					[join.parent[1]]: parentId,
-					[join.child[1]]: data[ join.child[0] ]
-				} )
-				.from( join.table );
+					[join.child[1]]: data[join.child[0]]
+				})
+				.from(join.table);
 		}
 		else {
 			// Insert values into the target table
@@ -715,36 +739,33 @@ export default class Mjoin extends NestedData {
 				[join.child.toString()]: parentId
 			};
 
-			for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
+			for (let i = 0, ien = fields.length; i < ien; i++) {
 				let field = fields[i];
 
-				if ( field.apply('create', data) ) {
-					set[ field.dbField() ] = field.val( 'set', data );
+				if (field.apply('create', data)) {
+					set[field.dbField()] = field.val('set', data);
 				}
 			}
 
-			await db
-				.insert( set )
-				.from( this._table );
+			await db.insert(set).from(this._table);
 		}
 	}
 
-	private _prepare( editor: Editor ): void {
+	private _prepare(editor: Editor): void {
 		this._editor = editor;
 
 		let links = this._links;
 		let editorTable = editor.table()[0];
 		let joinTable = this.table();
-		let dteTableAlias = editorTable.indexOf(' ') !== -1
-			? editorTable.split(/ (as )?/i)[2]
-			: editorTable;
+		let dteTableAlias =
+			editorTable.indexOf(' ') !== -1 ? editorTable.split(/ (as )?/i)[2] : editorTable;
 
-		if ( links.length === 2 ) {
+		if (links.length === 2) {
 			// No link table
 			let f1 = links[0].split('.');
 			let f2 = links[1].split('.');
 
-			if ( f1[0] === dteTableAlias ) {
+			if (f1[0] === dteTableAlias) {
 				this._join.parent = f1[1];
 				this._join.child = f2[1];
 			}
@@ -761,36 +782,42 @@ export default class Mjoin extends NestedData {
 			let f4 = links[3].split('.');
 
 			// Discover the name of the link table
-			if ( f1[0] !== dteTableAlias && f1[0] !== joinTable ) {
+			if (f1[0] !== dteTableAlias && f1[0] !== joinTable) {
 				this._join.table = f1[0];
 			}
-			else if ( f2[0] !== dteTableAlias && f2[0] !== joinTable ) {
+			else if (f2[0] !== dteTableAlias && f2[0] !== joinTable) {
 				this._join.table = f2[0];
 			}
-			else if ( f3[0] !== dteTableAlias && f3[0] !== joinTable ) {
+			else if (f3[0] !== dteTableAlias && f3[0] !== joinTable) {
 				this._join.table = f3[0];
 			}
 			else {
 				this._join.table = f4[0];
 			}
 
-			this._join.parent = [ f1[1], f2[1] ];
-			this._join.child = [ f3[1], f4[1] ];
+			this._join.parent = [f1[1], f2[1]];
+			this._join.child = [f3[1], f4[1]];
 		}
 	}
 
-	private async _validateFields( errors, editor: Editor, data: object, prefix: string, action: string ): Promise<void> {
+	private async _validateFields(
+		errors,
+		editor: Editor,
+		data: object,
+		prefix: string,
+		action: string
+	): Promise<void> {
 		let fields = this.fields();
 
-		for ( let i = 0, ien = fields.length ; i < ien ; i++ ) {
+		for (let i = 0, ien = fields.length; i < ien; i++) {
 			let field = fields[i];
-			let validation = await field.validate( data, editor, null, action );
+			let validation = await field.validate(data, editor, null, action);
 
-			if ( validation !== true ) {
-				errors.push( {
+			if (validation !== true) {
+				errors.push({
 					name: prefix + field.name(),
 					status: validation
-				} );
+				});
 			}
 		}
 	}

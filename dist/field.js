@@ -166,11 +166,36 @@ var Field = /** @class */ (function (_super) {
         this._name = name;
         return this;
     };
-    Field.prototype.options = function (opts) {
-        if (opts === undefined) {
+    Field.prototype.options = function (table, value, label, condition, format, order) {
+        if (value === void 0) { value = null; }
+        if (label === void 0) { label = null; }
+        if (condition === void 0) { condition = null; }
+        if (format === void 0) { format = null; }
+        if (order === void 0) { order = null; }
+        if (table === undefined) {
             return this._opts;
         }
-        this._opts = opts;
+        else if (typeof table === 'object') { // Options object
+            this._opts = table;
+        }
+        else if (typeof table === 'function') {
+            this._opts = new options_1.default().fn(table);
+        }
+        else {
+            this._opts = new options_1.default()
+                .table(table)
+                .value(value)
+                .label(label);
+            if (condition) {
+                this._opts.where(condition);
+            }
+            if (format) {
+                this._opts.render(format);
+            }
+            if (order) {
+                this._opts.order(order);
+            }
+        }
         return this;
     };
     Field.prototype.searchBuilderOptions = function (sbopts) {
@@ -272,22 +297,6 @@ var Field = /** @class */ (function (_super) {
         }
         // In the data set, so use it
         return true;
-    };
-    /**
-     * @hidden
-     */
-    Field.prototype.optionsExec = function (db) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                if (this._opts instanceof options_1.default) {
-                    return [2 /*return*/, this._opts.exec(db)];
-                }
-                else if (this._opts) {
-                    return [2 /*return*/, this._opts(db)];
-                }
-                return [2 /*return*/, false];
-            });
-        });
     };
     /**
      * @hidden

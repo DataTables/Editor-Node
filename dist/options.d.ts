@@ -4,7 +4,7 @@ export interface IOption {
     value: string | number;
 }
 export type IRenderer = (row: object) => string;
-export type CustomOptions = (db: Knex) => Promise<IOption[]>;
+export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
 /**
  * The Options class provides a convenient method of specifying where Editor
  * should get the list of options for a `select`, `radio` or `checkbox` field.
@@ -18,6 +18,10 @@ export type CustomOptions = (db: Knex) => Promise<IOption[]>;
  * @class Options
  */
 export default class Options {
+    private _alwaysRefresh;
+    private _customFn;
+    private _includes;
+    private _searchOnly;
     private _table;
     private _value;
     private _label;
@@ -35,6 +39,38 @@ export default class Options {
      */
     add(label: string, value?: string): this;
     /**
+     * Get the current alwaysRefresh flag
+     */
+    alwaysRefresh(): boolean;
+    /**
+     * Set the flag to indicate that the options should always be refreshed (i.e. on get, create
+     * and edit) or only on the initial data load (false).
+     *
+     * @param set Flag to set the always refresh to
+     */
+    alwaysRefresh(set: boolean): Options;
+    /**
+     * Get the function (if set) to get the options
+     */
+    fn(): CustomOptions;
+    /**
+     * Set the function used to get the options, rather than using the built in DB configuration.
+     *
+     * @param set Function to use for the custom options function
+     */
+    fn(set: CustomOptions): Options;
+    /**
+     * Get the list of field names to include in the option objects
+     */
+    include(): string[];
+    /**
+     * Column names from `value()` and `label()` that should be included in the output object for
+     * each option, in addition to the value and label.
+     *
+     * @param set The list of columns to include in the output
+     */
+    include(set: string[] | string): Options;
+    /**
      * Get the column(s) to be used for the label
      *
      * @returns {string[]} Label columns
@@ -46,7 +82,7 @@ export default class Options {
      * @param {string[]} label Database column names
      * @returns {Options} Self for chaining
      */
-    label(label: string[]): Options;
+    label(label: string | string[]): Options;
     /**
      * Add a left join condition to the Options instance, allowing it to operate
      * over multiple tables.
@@ -114,6 +150,17 @@ export default class Options {
      */
     render(fn: IRenderer): Options;
     /**
+     * Get the current search only flag
+     */
+    searchOnly(): boolean;
+    /**
+     * Set the flag to indicate if the options should always be refreshed (i.e. on get, create
+     * and edit) or only on the initial data load (false).
+     *
+     * @param set Flag to set the search only option to
+     */
+    searchOnly(set: boolean): Options;
+    /**
      * Get the table that the options will be gathered from.
      *
      * @returns {string} Table name
@@ -157,5 +204,23 @@ export default class Options {
     /**
      * @ignore
      */
-    exec(db: Knex): Promise<IOption[]>;
+    exec(db: Knex, refresh: any, search?: any, find?: any): Promise<IOption[] | false>;
+    /**
+     * Get the objects for a set of values.
+     *
+     * @param db  Database connection
+     * @param ids IDs to get
+     *
+     * @return array|bool
+     */
+    find(db: Knex, ids: any[]): Promise<IOption[] | false>;
+    /**
+     * Do a search for data on the source.
+     *
+     * @param db   Database connection
+     * @param term Search term
+     *
+     * @return array|bool
+     */
+    search(db: Knex, term: string): Promise<IOption[] | false>;
 }

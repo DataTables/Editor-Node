@@ -209,6 +209,16 @@ export default class Mjoin extends NestedData {
      */
     data(editor: Editor, response: IDtResponse): Promise<void>;
     /**
+     * Get options for the fields in this join.
+     *
+     * @param options Options object
+     * @param db      Database connection object
+     * @param refresh Refresh indication flag
+     *
+     * @internal
+     */
+    options(options: any, db: any, refresh: any): Promise<void>;
+    /**
      * @ignore
      */
     create(editor: Editor, parentId: string, data: object): Promise<void>;

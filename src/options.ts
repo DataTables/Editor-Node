@@ -431,6 +431,7 @@ export default class Options {
 			// select distinct.
 			this._order.split(',').forEach((val) => {
 				val = val.toLocaleLowerCase();
+
 				const direction = val.match(/( desc| asc)/g);
 				const field = val.replace(/( desc| asc$)/, '').trim();
 
@@ -459,7 +460,11 @@ export default class Options {
 
 			// Apply the search to the rendered label. Need to do it here rather than in SQL since
 			// the label is rendered in script.
-			if (search === null || search === '' || rowLabel.indexOf(search) === 0) {
+			if (
+				search === null ||
+				search === '' ||
+				rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0
+			) {
 				let option = {
 					label: rowLabel,
 					value: rowValue
@@ -512,5 +517,29 @@ export default class Options {
 		}
 
 		return out;
+	}
+
+	/**
+	 * Get the objects for a set of values.
+	 *
+	 * @param db  Database connection
+	 * @param ids IDs to get
+	 *
+	 * @return array|bool
+	 */
+	public async find(db: Knex, ids: any[]): Promise<IOption[] | false> {
+		return this.exec(db, false, null, ids);
+	}
+
+	/**
+	 * Do a search for data on the source.
+	 *
+	 * @param db   Database connection
+	 * @param term Search term
+	 *
+	 * @return array|bool
+	 */
+	public async search(db: Knex, term: string): Promise<IOption[] | false> {
+		return this.exec(db, false, term);
 	}
 }
