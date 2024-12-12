@@ -115,6 +115,9 @@ export interface IDtRequest {
 
 	/** Editor - Upload field name. */
 	uploadField?: string;
+
+	/** Dropdown values for label lookup */
+	values?: any[];
 }
 
 /**
@@ -2026,7 +2029,7 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		if (data.action && data.action !== 'upload' && ! data.data && ! data.search) {
+		if (data.action && data.action !== 'upload' && ! data.data && ! data.search && ! data.values) {
 			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 
