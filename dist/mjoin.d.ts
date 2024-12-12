@@ -1,10 +1,10 @@
-import Editor, { IDtRequest, IDtResponse } from './editor';
+import Editor, { IDtResponse } from './editor';
 import Field, { SetType } from './field';
 import NestedData from './nestedData';
 /**
  * Grouped validation
  */
-export type IMjoinValidator = (editor: Editor, action: string, data: IDtRequest) => Promise<true | string>;
+export type IMjoinValidator = (editor: Editor, action: string, data: any[]) => Promise<true | string>;
 /**
  * The MJoin class provides a one-to-many join link for Editor. This can
  * be useful in cases were an attribute can take multiple values at the

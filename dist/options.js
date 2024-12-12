@@ -266,8 +266,6 @@ var Options = /** @class */ (function () {
                         for (i = 0, ien = res.length; i < ien; i++) {
                             rowLabel = formatter(res[i]);
                             rowValue = res[i][value];
-
-                            console.log(res[i]);
                             // Apply the search to the rendered label. Need to do it here rather than in SQL since
                             // the label is rendered in script.
                             if (search === null ||

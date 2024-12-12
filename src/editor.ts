@@ -2012,7 +2012,7 @@ export default class Editor extends NestedData {
 			cancelled: [],
 			data: [],
 			fieldErrors: [],
-			options: []
+			options: {}
 		};
 
 		this._processData = data;
@@ -2054,6 +2054,7 @@ export default class Editor extends NestedData {
 			}
 			else if (action === Action.Delete && this._write) {
 				await this._remove(data);
+				await this._options(true);
 				await this._fileClean();
 			}
 			else if ((action === Action.Create || action === Action.Edit) && this._write) {

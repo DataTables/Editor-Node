@@ -1654,7 +1654,7 @@ var Editor = /** @class */ (function (_super) {
                             cancelled: [],
                             data: [],
                             fieldErrors: [],
-                            options: []
+                            options: {}
                         };
                         this._processData = data;
                         this._uploadData = upload;
@@ -1677,11 +1677,11 @@ var Editor = /** @class */ (function (_super) {
                         _i++;
                         return [3 /*break*/, 1];
                     case 4:
-                        if (data.action && data.action !== 'upload' && !data.data && !data.search) {
+                        if (data.action && data.action !== 'upload' && !data.data && !data.search && !data.values) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
                         action = Editor.action(data);
-                        if (!!this._out.error) return [3 /*break*/, 40];
+                        if (!!this._out.error) return [3 /*break*/, 41];
                         if (!(action === Action.Read)) return [3 /*break*/, 7];
                         return [4 /*yield*/, this._get(null, data)];
                     case 5:
@@ -1693,7 +1693,7 @@ var Editor = /** @class */ (function (_super) {
                         return [4 /*yield*/, this._options(false)];
                     case 6:
                         _h.sent();
-                        return [3 /*break*/, 40];
+                        return [3 /*break*/, 41];
                     case 7:
                         if (!(action === Action.Search)) return [3 /*break*/, 9];
                         /* Options search */
@@ -1701,44 +1701,47 @@ var Editor = /** @class */ (function (_super) {
                     case 8:
                         /* Options search */
                         _h.sent();
-                        return [3 /*break*/, 40];
+                        return [3 /*break*/, 41];
                     case 9:
                         if (!(action === Action.Upload && this._write)) return [3 /*break*/, 11];
                         return [4 /*yield*/, this._upload(data)];
                     case 10:
                         _h.sent();
-                        return [3 /*break*/, 40];
+                        return [3 /*break*/, 41];
                     case 11:
-                        if (!(action === Action.Delete && this._write)) return [3 /*break*/, 14];
+                        if (!(action === Action.Delete && this._write)) return [3 /*break*/, 15];
                         return [4 /*yield*/, this._remove(data)];
                     case 12:
                         _h.sent();
-                        return [4 /*yield*/, this._fileClean()];
+                        return [4 /*yield*/, this._options(true)];
                     case 13:
                         _h.sent();
-                        return [3 /*break*/, 40];
+                        return [4 /*yield*/, this._fileClean()];
                     case 14:
-                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 40];
+                        _h.sent();
+                        return [3 /*break*/, 41];
+                    case 15:
+                        if (!((action === Action.Create || action === Action.Edit) && this._write)) return [3 /*break*/, 41];
                         keys = Object.keys(data.data);
                         i = 0, ien = keys.length;
-                        _h.label = 15;
-                    case 15:
-                        if (!(i < ien)) return [3 /*break*/, 21];
+                        _h.label = 16;
+                    case 16:
+                        if (!(i < ien)) return [3 /*break*/, 22];
                         cancel = null;
                         idSrc = keys[i];
                         values = data.data[keys[i]];
-                        if (!(action === Action.Create)) return [3 /*break*/, 17];
+                        if (!(action === Action.Create)) return [3 /*break*/, 18];
                         return [4 /*yield*/, this._trigger('preCreate', values)];
-                    case 16:
-                        cancel = _h.sent();
-                        return [3 /*break*/, 19];
                     case 17:
+                        cancel = _h.sent();
+                        return [3 /*break*/, 20];
+                    case 18:
                         id = idSrc.replace(this.idPrefix(), '');
                         return [4 /*yield*/, this._trigger('preEdit', id, values)];
-                    case 18:
-                        cancel = _h.sent();
-                        _h.label = 19;
                     case 19:
+                        cancel = _h.sent();
+                        _h.label = 20;
+                    case 20:
                         // One of the event handlers returned false - don't continue
                         if (cancel === false) {
                             // Remove the data from the data set so it won't be processed
@@ -1746,45 +1749,45 @@ var Editor = /** @class */ (function (_super) {
                             // Tell the client-side we aren't updating this row
                             this._out.cancelled.push(idSrc);
                         }
-                        _h.label = 20;
-                    case 20:
+                        _h.label = 21;
+                    case 21:
                         i++;
-                        return [3 /*break*/, 15];
-                    case 21: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
-                    case 22:
+                        return [3 /*break*/, 16];
+                    case 22: return [4 /*yield*/, this.validate(this._out.fieldErrors, data)];
+                    case 23:
                         valid = _h.sent();
                         pkeys_2 = [];
                         eventName = action === Action.Create ?
                             'Create' :
                             'Edit';
-                        if (!valid) return [3 /*break*/, 38];
+                        if (!valid) return [3 /*break*/, 39];
                         keys = Object.keys(data.data);
                         _e = 0, keys_1 = keys;
-                        _h.label = 23;
-                    case 23:
-                        if (!(_e < keys_1.length)) return [3 /*break*/, 29];
-                        key = keys_1[_e];
-                        if (!(action === Action.Create)) return [3 /*break*/, 25];
-                        return [4 /*yield*/, this._insert(data.data[key])];
+                        _h.label = 24;
                     case 24:
+                        if (!(_e < keys_1.length)) return [3 /*break*/, 30];
+                        key = keys_1[_e];
+                        if (!(action === Action.Create)) return [3 /*break*/, 26];
+                        return [4 /*yield*/, this._insert(data.data[key])];
+                    case 25:
                         _f = _h.sent();
-                        return [3 /*break*/, 27];
-                    case 25: return [4 /*yield*/, this._update(key, data.data[key])];
-                    case 26:
-                        _f = _h.sent();
-                        _h.label = 27;
+                        return [3 /*break*/, 28];
+                    case 26: return [4 /*yield*/, this._update(key, data.data[key])];
                     case 27:
+                        _f = _h.sent();
+                        _h.label = 28;
+                    case 28:
                         pkey = _f;
                         pkeys_2.push({
                             dataKey: this.idPrefix() + pkey,
                             pkey: pkey,
                             submitKey: key, // could be array index (create)
                         });
-                        _h.label = 28;
-                    case 28:
-                        _e++;
-                        return [3 /*break*/, 23];
+                        _h.label = 29;
                     case 29:
+                        _e++;
+                        return [3 /*break*/, 24];
+                    case 30:
                         submitedData_1 = {};
                         Object.keys(data.data).forEach(function (key) {
                             var k = pkeys_2.find(function (p) { return p.submitKey === key; });
@@ -1792,11 +1795,11 @@ var Editor = /** @class */ (function (_super) {
                         });
                         // All writes done - trigger `All`
                         return [4 /*yield*/, this._trigger("write".concat(eventName, "All"), pkeys_2.map(function (k) { return k.pkey; }), submitedData_1)];
-                    case 30:
+                    case 31:
                         // All writes done - trigger `All`
                         _h.sent();
                         return [4 /*yield*/, this._get(pkeys_2.map(function (k) { return k.pkey; }))];
-                    case 31:
+                    case 32:
                         returnData = _h.sent();
                         this._out.data = returnData.data;
                         _loop_2 = function (key) {
@@ -1811,32 +1814,32 @@ var Editor = /** @class */ (function (_super) {
                         };
                         this_2 = this;
                         _g = 0, pkeys_1 = pkeys_2;
-                        _h.label = 32;
-                    case 32:
-                        if (!(_g < pkeys_1.length)) return [3 /*break*/, 35];
+                        _h.label = 33;
+                    case 33:
+                        if (!(_g < pkeys_1.length)) return [3 /*break*/, 36];
                         key = pkeys_1[_g];
                         return [5 /*yield**/, _loop_2(key)];
-                    case 33:
-                        _h.sent();
-                        _h.label = 34;
                     case 34:
+                        _h.sent();
+                        _h.label = 35;
+                    case 35:
                         _g++;
-                        return [3 /*break*/, 32];
-                    case 35: return [4 /*yield*/, this._trigger("post".concat(eventName, "All"), pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
-                    case 36:
+                        return [3 /*break*/, 33];
+                    case 36: return [4 /*yield*/, this._trigger("post".concat(eventName, "All"), pkeys_2.map(function (k) { return k.pkey; }), submitedData_1, returnData.data)];
+                    case 37:
                         _h.sent();
                         // File tidy up
                         return [4 /*yield*/, this._fileClean()];
-                    case 37:
+                    case 38:
                         // File tidy up
                         _h.sent();
-                        _h.label = 38;
-                    case 38: return [4 /*yield*/, this._options(true)];
-                    case 39:
+                        _h.label = 39;
+                    case 39: return [4 /*yield*/, this._options(true)];
+                    case 40:
                         _h.sent();
-                        _h.label = 40;
-                    case 40: return [4 /*yield*/, this._trigger("processed", action, data, this._out)];
-                    case 41:
+                        _h.label = 41;
+                    case 41: return [4 /*yield*/, this._trigger("processed", action, data, this._out)];
+                    case 42:
                         _h.sent();
                         if (this._debug) {
                             this._out.debug = this._debugInfo.slice();

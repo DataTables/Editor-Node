@@ -18,7 +18,7 @@ interface IJoinTable {
 export type IMjoinValidator = (
 	editor: Editor,
 	action: string,
-	data: IDtRequest
+	data: any[]
 ) => Promise<true | string>;
 
 /**

@@ -85,6 +85,8 @@ export interface IDtRequest {
     };
     /** Editor - Upload field name. */
     uploadField?: string;
+    /** Dropdown values for label lookup */
+    values?: any[];
 }
 /**
  * Response object for DataTables and Editor
