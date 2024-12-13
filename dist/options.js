@@ -199,7 +199,7 @@ var Options = /** @class */ (function () {
         if (search === void 0) { search = null; }
         if (find === void 0) { find = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, formatter, fields, q, res, out, max, i, ien, rowLabel, rowValue, option, j, inc;
+            var label, value, formatter, out, max, fields, options, i, i, ien, rowLabel, rowValue, option, j, inc;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -217,6 +217,8 @@ var Options = /** @class */ (function () {
                         label = this._label;
                         value = this._value;
                         formatter = this._renderer;
+                        out = [];
+                        max = this._limit;
                         fields = [value].concat(label);
                         // We need a default formatter if one isn't provided
                         if (!formatter) {
@@ -228,6 +230,80 @@ var Options = /** @class */ (function () {
                                 return a.join(' ');
                             };
                         }
+                        return [4 /*yield*/, this.execDb(db, find)];
+                    case 1:
+                        options = _a.sent();
+                        // Manually added options
+                        for (i = 0; i < this._manualOpts.length; i++) {
+                            options.push(this._manualOpts[i]);
+                        }
+                        // Create the output array
+                        for (i = 0, ien = options.length; i < ien; i++) {
+                            rowLabel = formatter(options[i]);
+                            rowValue = options[i][value];
+                            // Apply the search to the rendered label. Need to do it here rather than in SQL since
+                            // the label is rendered in script.
+                            if (search === null ||
+                                search === '' ||
+                                rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0) {
+                                option = {
+                                    label: rowLabel,
+                                    value: rowValue
+                                };
+                                // Add in any columns that are needed for extra data (includes)
+                                for (j = 0; j < this._includes.length; j++) {
+                                    inc = this._includes[j];
+                                    if (options[i][inc] !== undefined) {
+                                        option[inc] = options[i][inc];
+                                    }
+                                }
+                                out.push(option);
+                            }
+                            // Limit needs to be done in script space, rather than SQL, to allow for the script
+                            // based filtering above, and also for when using a custom function
+                            if (max !== null && out.length >= max) {
+                                break;
+                            }
+                        }
+                        // Local sorting
+                        if (this._order === true) {
+                            out.sort(function (a, b) {
+                                var aLabel = a.label;
+                                var bLabel = b.label;
+                                if (aLabel === null) {
+                                    aLabel = '';
+                                }
+                                if (bLabel === null) {
+                                    bLabel = '';
+                                }
+                                if (isNumeric(aLabel) && isNumeric(bLabel)) {
+                                    return aLabel * 1 - bLabel * 1;
+                                }
+                                return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
+                            });
+                        }
+                        return [2 /*return*/, out];
+                }
+            });
+        });
+    };
+    /**
+     * Get the list of options from the database based on the configuration
+     *
+     * @param db Database connection
+     * @param find Values to search for
+     * @returns List of found options
+     */
+    Options.prototype.execDb = function (db, find) {
+        return __awaiter(this, void 0, void 0, function () {
+            var fields, q, res;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this._table) {
+                            return [2 /*return*/, []];
+                        }
+                        fields = [this._value].concat(this._label);
                         q = db
                             .select(fields)
                             .distinct()
@@ -236,7 +312,7 @@ var Options = /** @class */ (function () {
                             q.where(this._where);
                         }
                         if (Array.isArray(find)) {
-                            q.whereIn(value, find);
+                            q.whereIn(this._value, find);
                         }
                         if (typeof this._order === 'string') {
                             // For cases where we are ordering by a field which isn't included in the list
@@ -260,58 +336,7 @@ var Options = /** @class */ (function () {
                         return [4 /*yield*/, q];
                     case 1:
                         res = _a.sent();
-                        out = [];
-                        max = this._limit;
-                        // Create the output array
-                        for (i = 0, ien = res.length; i < ien; i++) {
-                            rowLabel = formatter(res[i]);
-                            rowValue = res[i][value];
-                            // Apply the search to the rendered label. Need to do it here rather than in SQL since
-                            // the label is rendered in script.
-                            if (search === null ||
-                                search === '' ||
-                                rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0) {
-                                option = {
-                                    label: rowLabel,
-                                    value: rowValue
-                                };
-                                // Add in any columns that are needed for extra data (includes)
-                                for (j = 0; j < this._includes.length; j++) {
-                                    inc = this._includes[j];
-                                    if (res[i][inc] !== undefined) {
-                                        option[inc] = res[i][inc];
-                                    }
-                                }
-                                out.push(option);
-                            }
-                            // Limit needs to be done in script space, rather than SQL, to allow for the script
-                            // based filtering above, and also for when using a custom function
-                            if (max !== null && out.length >= max) {
-                                break;
-                            }
-                        }
-                        // Stick on any extra manually added options
-                        if (this._manualOpts.length) {
-                            out = out.concat(this._manualOpts);
-                        }
-                        // Local sorting
-                        if (this._order === true) {
-                            out.sort(function (a, b) {
-                                var aLabel = a.label;
-                                var bLabel = b.label;
-                                if (aLabel === null) {
-                                    aLabel = '';
-                                }
-                                if (bLabel === null) {
-                                    bLabel = '';
-                                }
-                                if (isNumeric(aLabel) && isNumeric(bLabel)) {
-                                    return aLabel * 1 - bLabel * 1;
-                                }
-                                return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
-                            });
-                        }
-                        return [2 /*return*/, out];
+                        return [2 /*return*/, res];
                 }
             });
         });

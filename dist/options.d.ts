@@ -43,8 +43,8 @@ export default class Options {
      */
     alwaysRefresh(): boolean;
     /**
-     * Set the flag to indicate that the options should always be refreshed (i.e. on get, create
-     * and edit) or only on the initial data load (false).
+     * Set the flag to indicate that the options should always be refreshed (i.e. on get, create,
+     * edit and delete) or only on the initial data load (false).
      *
      * @param set Flag to set the always refresh to
      */
@@ -204,7 +204,15 @@ export default class Options {
     /**
      * @ignore
      */
-    exec(db: Knex, refresh: any, search?: any, find?: any): Promise<IOption[] | false>;
+    exec(db: Knex, refresh: any, search?: string, find?: any[]): Promise<IOption[] | false>;
+    /**
+     * Get the list of options from the database based on the configuration
+     *
+     * @param db Database connection
+     * @param find Values to search for
+     * @returns List of found options
+     */
+    execDb(db: Knex, find: any[]): Promise<any[]>;
     /**
      * Get the objects for a set of values.
      *

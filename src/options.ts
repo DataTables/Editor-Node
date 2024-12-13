@@ -70,8 +70,8 @@ export default class Options {
 	 */
 	public alwaysRefresh(): boolean;
 	/**
-	 * Set the flag to indicate that the options should always be refreshed (i.e. on get, create
-	 * and edit) or only on the initial data load (false).
+	 * Set the flag to indicate that the options should always be refreshed (i.e. on get, create,
+	 * edit and delete) or only on the initial data load (false).
 	 *
 	 * @param set Flag to set the always refresh to
 	 */
@@ -376,7 +376,12 @@ export default class Options {
 	/**
 	 * @ignore
 	 */
-	public async exec(db: Knex, refresh, search = null, find = null): Promise<IOption[] | false> {
+	public async exec(
+		db: Knex,
+		refresh,
+		search: string = null,
+		find: any[] = null
+	): Promise<IOption[] | false> {
 		// If search only, and not a search action, then just return false
 		if (this.searchOnly() && search === null && find === null) {
 			return false;
@@ -394,6 +399,8 @@ export default class Options {
 		let label = this._label;
 		let value = this._value;
 		let formatter = this._renderer;
+		let out = [];
+		let max = this._limit;
 
 		// Create a list of the fields that we need to get from the db
 		let fields = [value].concat(label);
@@ -411,7 +418,91 @@ export default class Options {
 			};
 		}
 
-		// Get the data
+		// Get database data
+		let options = await this.execDb(db, find);
+
+		// Manually added options
+		for (let i = 0; i < this._manualOpts.length; i++) {
+			options.push(this._manualOpts[i]);
+		}
+
+		// Create the output array
+		for (let i = 0, ien = options.length; i < ien; i++) {
+			let rowLabel = formatter(options[i]);
+			let rowValue = options[i][value];
+
+			// Apply the search to the rendered label. Need to do it here rather than in SQL since
+			// the label is rendered in script.
+			if (
+				search === null ||
+				search === '' ||
+				rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0
+			) {
+				let option = {
+					label: rowLabel,
+					value: rowValue
+				};
+
+				// Add in any columns that are needed for extra data (includes)
+				for (let j = 0; j < this._includes.length; j++) {
+					let inc = this._includes[j];
+
+					if (options[i][inc] !== undefined) {
+						option[inc] = options[i][inc];
+					}
+				}
+
+				out.push(option);
+			}
+
+			// Limit needs to be done in script space, rather than SQL, to allow for the script
+			// based filtering above, and also for when using a custom function
+			if (max !== null && out.length >= max) {
+				break;
+			}
+		}
+
+		// Local sorting
+		if (this._order === true) {
+			out.sort(function (a, b) {
+				let aLabel = a.label;
+				let bLabel = b.label;
+
+				if (aLabel === null) {
+					aLabel = '';
+				}
+
+				if (bLabel === null) {
+					bLabel = '';
+				}
+
+				if (isNumeric(aLabel) && isNumeric(bLabel)) {
+					return aLabel * 1 - bLabel * 1;
+				}
+
+				return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
+			});
+		}
+
+		return out;
+	}
+
+	/**
+	 * Get the list of options from the database based on the configuration
+	 *
+	 * @param db Database connection
+	 * @param find Values to search for
+	 * @returns List of found options
+	 */
+	public async execDb(db: Knex, find: any[]) {
+		if (!this._table) {
+			return [];
+		}
+
+		// Create a list of the fields that we need to get from the db
+		let fields = [this._value].concat(this._label);
+
+		// Options query
 		let q = db
 			.select(fields)
 			.distinct()
@@ -422,7 +513,7 @@ export default class Options {
 		}
 
 		if (Array.isArray(find)) {
-			q.whereIn(value, find);
+			q.whereIn(this._value, find);
 		}
 
 		if (typeof this._order === 'string') {
@@ -450,73 +541,8 @@ export default class Options {
 		leftJoin(q, this._leftJoin);
 
 		let res = await q;
-		let out = [];
-		let max = this._limit;
 
-		// Create the output array
-		for (let i = 0, ien = res.length; i < ien; i++) {
-			let rowLabel = formatter(res[i]);
-			let rowValue = res[i][value];
-
-			// Apply the search to the rendered label. Need to do it here rather than in SQL since
-			// the label is rendered in script.
-			if (
-				search === null ||
-				search === '' ||
-				rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0
-			) {
-				let option = {
-					label: rowLabel,
-					value: rowValue
-				};
-
-				// Add in any columns that are needed for extra data (includes)
-				for (let j = 0; j < this._includes.length; j++) {
-					let inc = this._includes[j];
-
-					if (res[i][inc] !== undefined) {
-						option[inc] = res[i][inc];
-					}
-				}
-
-				out.push(option);
-			}
-
-			// Limit needs to be done in script space, rather than SQL, to allow for the script
-			// based filtering above, and also for when using a custom function
-			if (max !== null && out.length >= max) {
-				break;
-			}
-		}
-
-		// Stick on any extra manually added options
-		if (this._manualOpts.length) {
-			out = out.concat(this._manualOpts);
-		}
-
-		// Local sorting
-		if (this._order === true) {
-			out.sort(function (a, b) {
-				let aLabel = a.label;
-				let bLabel = b.label;
-
-				if (aLabel === null) {
-					aLabel = '';
-				}
-
-				if (bLabel === null) {
-					bLabel = '';
-				}
-
-				if (isNumeric(aLabel) && isNumeric(bLabel)) {
-					return aLabel * 1 - bLabel * 1;
-				}
-
-				return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
-			});
-		}
-
-		return out;
+		return res;
 	}
 
 	/**
