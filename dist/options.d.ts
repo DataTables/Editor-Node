@@ -219,7 +219,7 @@ export default class Options {
      * @param db  Database connection
      * @param ids IDs to get
      *
-     * @return array|bool
+     * @return array|bool List of options
      */
     find(db: Knex, ids: any[]): Promise<IOption[] | false>;
     /**
@@ -228,7 +228,7 @@ export default class Options {
      * @param db   Database connection
      * @param term Search term
      *
-     * @return array|bool
+     * @return array|bool List of options
      */
     search(db: Knex, term: string): Promise<IOption[] | false>;
 }

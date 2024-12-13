@@ -402,9 +402,6 @@ export default class Options {
 		let out = [];
 		let max = this._limit;
 
-		// Create a list of the fields that we need to get from the db
-		let fields = [value].concat(label);
-
 		// We need a default formatter if one isn't provided
 		if (!formatter) {
 			formatter = function (row) {
@@ -551,7 +548,7 @@ export default class Options {
 	 * @param db  Database connection
 	 * @param ids IDs to get
 	 *
-	 * @return array|bool
+	 * @return array|bool List of options
 	 */
 	public async find(db: Knex, ids: any[]): Promise<IOption[] | false> {
 		return this.exec(db, false, null, ids);
@@ -563,7 +560,7 @@ export default class Options {
 	 * @param db   Database connection
 	 * @param term Search term
 	 *
-	 * @return array|bool
+	 * @return array|bool List of options
 	 */
 	public async search(db: Knex, term: string): Promise<IOption[] | false> {
 		return this.exec(db, false, term);

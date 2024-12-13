@@ -199,7 +199,7 @@ var Options = /** @class */ (function () {
         if (search === void 0) { search = null; }
         if (find === void 0) { find = null; }
         return __awaiter(this, void 0, void 0, function () {
-            var label, value, formatter, out, max, fields, options, i, i, ien, rowLabel, rowValue, option, j, inc;
+            var label, value, formatter, out, max, options, i, i, ien, rowLabel, rowValue, option, j, inc;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -219,7 +219,6 @@ var Options = /** @class */ (function () {
                         formatter = this._renderer;
                         out = [];
                         max = this._limit;
-                        fields = [value].concat(label);
                         // We need a default formatter if one isn't provided
                         if (!formatter) {
                             formatter = function (row) {
@@ -347,7 +346,7 @@ var Options = /** @class */ (function () {
      * @param db  Database connection
      * @param ids IDs to get
      *
-     * @return array|bool
+     * @return array|bool List of options
      */
     Options.prototype.find = function (db, ids) {
         return __awaiter(this, void 0, void 0, function () {
@@ -362,7 +361,7 @@ var Options = /** @class */ (function () {
      * @param db   Database connection
      * @param term Search term
      *
-     * @return array|bool
+     * @return array|bool List of options
      */
     Options.prototype.search = function (db, term) {
         return __awaiter(this, void 0, void 0, function () {
