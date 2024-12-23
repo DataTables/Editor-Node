@@ -32,6 +32,24 @@ export default class Options {
     private _order;
     private _manualOpts;
     /**
+     * Create a new Options instance, to be configured by the chaining API
+     */
+    constructor();
+    /**
+     * Create Options instance with basic database options
+     *
+     * @param table Table name (`.table()`)
+     * @param value Value column name (`.value()`)
+     * @param label Label column name (`.label()`)
+     */
+    constructor(table: string, value: string, label: string);
+    /**
+     * Create Options instance with a function to create a list of options
+     *
+     * @param fn Custom function (`.fn()`)
+     */
+    constructor(fn: CustomOptions);
+    /**
      * Add extra options to the list, in addition to any obtained from the database
      *
      * @param label Label

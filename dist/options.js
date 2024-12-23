@@ -53,13 +53,21 @@ function isNumeric(n) {
  * @class Options
  */
 var Options = /** @class */ (function () {
-    function Options() {
+    function Options(table, value, label) {
         this._alwaysRefresh = true;
         this._includes = [];
         this._searchOnly = false;
         this._leftJoin = [];
         this._order = true;
         this._manualOpts = [];
+        if (typeof table === 'string') {
+            this.table(table);
+            this.value(value);
+            this.label(label);
+        }
+        else if (typeof table === 'function') {
+            this.fn(table);
+        }
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      * Public methods
