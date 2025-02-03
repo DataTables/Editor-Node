@@ -2288,7 +2288,7 @@ var Editor = /** @class */ (function (_super) {
         });
     };
     Editor.Action = Action;
-    Editor.version = '2.3.2';
+    Editor.version = '2.4.0';
     return Editor;
 }(nestedData_1.default));
 exports.default = Editor;
