@@ -1486,7 +1486,7 @@ var Editor = /** @class */ (function (_super) {
                         spOpts = _a.sent();
                         if (spOpts) {
                             if (!this._out.searchPanes) {
-                                this._out.searchPanes.options = {};
+                                this._out.searchPanes = { options: {} };
                             }
                             this._out.searchPanes.options[field.name()] = spOpts;
                         }
@@ -1495,7 +1495,7 @@ var Editor = /** @class */ (function (_super) {
                         sbOpts = _a.sent();
                         if (sbOpts) {
                             if (!this._out.searchBuilder) {
-                                this._out.searchBuilder.options = {};
+                                this._out.searchBuilder = { options: {} };
                             }
                             this._out.searchBuilder.options[field.name()] = sbOpts;
                         }

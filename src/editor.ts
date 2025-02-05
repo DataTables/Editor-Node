@@ -1846,7 +1846,7 @@ export default class Editor extends NestedData {
 
 			if (spOpts) {
 				if (! this._out.searchPanes) {
-					this._out.searchPanes.options = {};
+					this._out.searchPanes = {options: {}};
 				}
 
 				this._out.searchPanes.options[field.name()] = spOpts;
@@ -1856,7 +1856,7 @@ export default class Editor extends NestedData {
 
 			if (sbOpts) {
 				if (! this._out.searchBuilder) {
-					this._out.searchBuilder.options = {};
+					this._out.searchBuilder = {options: {}};
 				}
 
 				this._out.searchBuilder.options[field.name()] = sbOpts;
