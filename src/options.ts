@@ -528,7 +528,11 @@ export default class Options {
 		}
 
 		// Create a list of the fields that we need to get from the db
-		let fields = [this._value].concat(this._label);
+		let fields = [].concat(this._label);
+
+		if (! fields.includes(this._value)) {
+			fields.push(this._value);
+		}
 
 		// Options query
 		let q = db

@@ -310,7 +310,10 @@ var Options = /** @class */ (function () {
                         if (!this._table) {
                             return [2 /*return*/, []];
                         }
-                        fields = [this._value].concat(this._label);
+                        fields = [].concat(this._label);
+                        if (!fields.includes(this._value)) {
+                            fields.push(this._value);
+                        }
                         q = db
                             .select(fields)
                             .distinct()
