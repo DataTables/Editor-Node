@@ -392,6 +392,8 @@ var Editor = /** @class */ (function (_super) {
             return Action.Read;
         }
         switch (http.action) {
+            case 'read':
+                return Action.Read;
             case 'create':
                 return Action.Create;
             case 'edit':
@@ -1150,6 +1152,16 @@ var Editor = /** @class */ (function (_super) {
                                 query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
                             }
                         }
+                        // Limit to specific ids submitted from the client-side
+                        if (http.ids && http.ids.length) {
+                            query.where(function (q) {
+                                for (var _i = 0, _a = http.ids; _i < _a.length; _i++) {
+                                    var refreshId = _a[_i];
+                                    refreshId = refreshId.replace(_this.idPrefix(), '');
+                                    q.orWhere(_this.pkeyToObject(refreshId, true));
+                                }
+                            });
+                        }
                         return [4 /*yield*/, this._ssp(query, http)];
                     case 3:
                         ssp = _b.sent();
@@ -1677,7 +1689,12 @@ var Editor = /** @class */ (function (_super) {
                         _i++;
                         return [3 /*break*/, 1];
                     case 4:
-                        if (data.action && data.action !== 'upload' && !data.data && !data.search && !data.values) {
+                        if (data.action &&
+                            data.action !== 'upload' &&
+                            data.action !== 'read' &&
+                            !data.data &&
+                            !data.search &&
+                            !data.values) {
                             this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
                         }
                         action = Editor.action(data);

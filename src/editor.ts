@@ -461,6 +461,9 @@ export default class Editor extends NestedData {
 		}
 
 		switch (http.action) {
+			case 'read':
+				return Action.Read;
+
 			case 'create':
 				return Action.Create;
 
@@ -1535,6 +1538,17 @@ export default class Editor extends NestedData {
 				}
 			}
 
+			// Limit to specific ids submitted from the client-side
+			if (http.ids && http.ids.length) {
+				query.where(q => {
+					for (let refreshId of http.ids) {
+						refreshId = refreshId.replace(this.idPrefix(), '');
+
+						q.orWhere(this.pkeyToObject(refreshId, true));
+					}
+				});
+			}
+
 			let ssp = await this._ssp(query, http);
 
 			let result = await query;
@@ -2029,7 +2043,14 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		if (data.action && data.action !== 'upload' && ! data.data && ! data.search && ! data.values) {
+		if (
+			data.action &&
+			data.action !== 'upload' &&
+			data.action !== 'read' &&
+			! data.data &&
+			! data.search &&
+			! data.values
+		) {
 			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 
