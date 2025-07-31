@@ -1153,7 +1153,7 @@ var Editor = /** @class */ (function (_super) {
                             }
                         }
                         // Limit to specific ids submitted from the client-side
-                        if (http.ids && http.ids.length) {
+                        if (http && http.ids && http.ids.length) {
                             query.where(function (q) {
                                 for (var _i = 0, _a = http.ids; _i < _a.length; _i++) {
                                     var refreshId = _a[_i];

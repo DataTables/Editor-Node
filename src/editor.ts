@@ -1539,7 +1539,7 @@ export default class Editor extends NestedData {
 			}
 
 			// Limit to specific ids submitted from the client-side
-			if (http.ids && http.ids.length) {
+			if (http && http.ids && http.ids.length) {
 				query.where(q => {
 					for (let refreshId of http.ids) {
 						refreshId = refreshId.replace(this.idPrefix(), '');
