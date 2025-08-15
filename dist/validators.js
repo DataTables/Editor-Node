@@ -96,10 +96,8 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
-                    return [2 /*return*/, common === false ?
-                            opts.message :
-                            true];
+                    common = Validator._common(val, opts, data, host);
+                    return [2 /*return*/, common === false ? opts.message() : true];
                 });
             });
         };
@@ -114,16 +112,14 @@ var Validator = /** @class */ (function () {
     Validator.required = function (cfg) {
         if (cfg === void 0) { cfg = null; }
         var opts = validationOptions_1.default.select(cfg);
-        opts.empty = false;
-        opts.optional = false;
+        opts.empty(false);
+        opts.optional(false);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
-                    return [2 /*return*/, common === false ?
-                            opts.message :
-                            true];
+                    common = Validator._common(val, opts, data, host);
+                    return [2 /*return*/, common === false ? opts.message() : true];
                 });
             });
         };
@@ -138,15 +134,13 @@ var Validator = /** @class */ (function () {
     Validator.notEmpty = function (cfg) {
         if (cfg === void 0) { cfg = null; }
         var opts = validationOptions_1.default.select(cfg);
-        opts.empty = false;
+        opts.empty(false);
         return function (val, data, host) {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
-                    return [2 /*return*/, common === false ?
-                            opts.message :
-                            true];
+                    common = Validator._common(val, opts, data, host);
+                    return [2 /*return*/, common === false ? opts.message() : true];
                 });
             });
         };
@@ -165,22 +159,32 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
                     if (typeof val === 'string') {
                         val = val.toLocaleLowerCase();
                     }
-                    if (val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
-                        val === 'on' || val === 'yes' || val === '✓' || val === 'x' ||
-                        val === false || val === 0 || val === '0' || val === 'false' || val === 'f' ||
-                        val === 'off' || val === 'no') {
+                    if (val === true ||
+                        val === 1 ||
+                        val === '1' ||
+                        val === 'true' ||
+                        val === 't' ||
+                        val === 'on' ||
+                        val === 'yes' ||
+                        val === '✓' ||
+                        val === 'x' ||
+                        val === false ||
+                        val === 0 ||
+                        val === '0' ||
+                        val === 'false' ||
+                        val === 'f' ||
+                        val === 'off' ||
+                        val === 'no') {
                         return [2 /*return*/, true];
                     }
-                    return [2 /*return*/, opts.message];
+                    return [2 /*return*/, opts.message()];
                 });
             });
         };
@@ -204,11 +208,9 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
                     if (typeof val === 'number') {
                         return [2 /*return*/, true];
@@ -218,11 +220,9 @@ var Validator = /** @class */ (function () {
                     }
                     val = val.trim();
                     if (val === '') {
-                        return [2 /*return*/, opts.message];
+                        return [2 /*return*/, opts.message()];
                     }
-                    return [2 /*return*/, isNaN(Number(val)) ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, isNaN(Number(val)) ? opts.message() : true];
                 });
             });
         };
@@ -253,15 +253,13 @@ var Validator = /** @class */ (function () {
                             }
                             // val.toString() for '' is 0, which would mean it would always fail, even if empty values
                             // are allowed.
-                            if (val === '' && opts.empty) {
+                            if (val === '' && opts.empty()) {
                                 return [2 /*return*/, true];
                             }
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
                             }
-                            return [2 /*return*/, val < min ?
-                                    opts.message :
-                                    true];
+                            return [2 /*return*/, val < min ? opts.message() : true];
                     }
                 });
             });
@@ -294,9 +292,7 @@ var Validator = /** @class */ (function () {
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
                             }
-                            return [2 /*return*/, val > max ?
-                                    opts.message :
-                                    true];
+                            return [2 /*return*/, val > max ? opts.message() : true];
                     }
                 });
             });
@@ -330,9 +326,7 @@ var Validator = /** @class */ (function () {
                             if (decimal !== '.') {
                                 val = val.toString().replace(decimal, '.');
                             }
-                            return [2 /*return*/, val < min || val > max ?
-                                    opts.message :
-                                    true];
+                            return [2 /*return*/, val < min || val > max ? opts.message() : true];
                     }
                 });
             });
@@ -355,16 +349,12 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common, re;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
                     re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
-                    return [2 /*return*/, re.test(val) ?
-                            true :
-                            opts.message];
+                    return [2 /*return*/, re.test(val) ? true : opts.message()];
                 });
             });
         };
@@ -384,15 +374,11 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, val.length < min ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, val.length < min ? opts.message() : true];
                 });
             });
         };
@@ -412,15 +398,11 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, val.length > max ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, val.length > max ? opts.message() : true];
                 });
             });
         };
@@ -441,15 +423,11 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, val.length < min || val.length > max ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, val.length < min || val.length > max ? opts.message() : true];
                 });
             });
         };
@@ -468,23 +446,21 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common, a, i, parsed;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
                     a = val.split('.');
                     if (a.length !== 4) {
-                        return [2 /*return*/, opts.message];
+                        return [2 /*return*/, opts.message()];
                     }
                     for (i = 0; i < 4; i++) {
                         parsed = parseInt(a[i], 10);
                         if (parsed !== a[i] * 1) {
-                            return [2 /*return*/, opts.message];
+                            return [2 /*return*/, opts.message()];
                         }
                         if (parsed < 0 || parsed > 255) {
-                            return [2 /*return*/, opts.message];
+                            return [2 /*return*/, opts.message()];
                         }
                     }
                     return [2 /*return*/, true];
@@ -506,15 +482,11 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, !validUrl.isWebUri(val) ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, !validUrl.isWebUri(val) ? opts.message() : true];
                 });
             });
         };
@@ -533,16 +505,12 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common, field;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
                     field = host.field;
-                    return [2 /*return*/, field.xssSafety(val) !== val ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, field.xssSafety(val) !== val ? opts.message() : true];
                 });
             });
         };
@@ -562,15 +530,11 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, values.includes(val) ?
-                            true :
-                            opts.message];
+                    return [2 /*return*/, values.includes(val) ? true : opts.message()];
                 });
             });
         };
@@ -589,22 +553,18 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    return [2 /*return*/, val.toString().test(/<.*>/) ?
-                            opts.message :
-                            true];
+                    return [2 /*return*/, val.toString().test(/<.*>/) ? opts.message() : true];
                 });
             });
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * Date validation methods
-    */
+     * Date validation methods
+     */
     /**
      * Check that a valid date input is given. Uses MomentJS
      *
@@ -622,25 +582,21 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 var common, res;
                 return __generator(this, function (_a) {
-                    common = Validator._common(val, opts);
+                    common = Validator._common(val, opts, data, host);
                     if (common !== null) {
-                        return [2 /*return*/, common === false ?
-                                opts.message :
-                                true];
+                        return [2 /*return*/, common === false ? opts.message() : true];
                     }
-                    res = locale ?
-                        moment(val, format, locale, true).isValid() :
-                        moment(val, format, true).isValid();
-                    return [2 /*return*/, !res ?
-                            opts.message :
-                            true];
+                    res = locale
+                        ? moment(val, format, locale, true).isValid()
+                        : moment(val, format, true).isValid();
+                    return [2 /*return*/, !res ? opts.message() : true];
                 });
             });
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * Database validation
-    */
+     * Database validation
+     */
     /**
      * Check that the given value is unique in the database
      *
@@ -667,11 +623,9 @@ var Validator = /** @class */ (function () {
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            common = Validator._common(val, opts);
+                            common = Validator._common(val, opts, data, host);
                             if (common !== null) {
-                                return [2 /*return*/, common === false ?
-                                        opts.message :
-                                        true];
+                                return [2 /*return*/, common === false ? opts.message() : true];
                             }
                             if (db === null) {
                                 db = host.db;
@@ -695,9 +649,7 @@ var Validator = /** @class */ (function () {
                             return [4 /*yield*/, q];
                         case 1:
                             res = _b.sent();
-                            return [2 /*return*/, res.length ?
-                                    opts.message :
-                                    true];
+                            return [2 /*return*/, res.length ? opts.message() : true];
                     }
                 });
             });
@@ -734,12 +686,10 @@ var Validator = /** @class */ (function () {
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            common = Validator._common(val, opts);
+                            common = Validator._common(val, opts, data, host);
                             options = host.field.options();
                             if (common !== null) {
-                                return [2 /*return*/, common === false ?
-                                        opts.message :
-                                        true];
+                                return [2 /*return*/, common === false ? opts.message() : true];
                             }
                             if (values.indexOf(val) !== -1) {
                                 return [2 /*return*/, true];
@@ -755,7 +705,8 @@ var Validator = /** @class */ (function () {
                             }
                             if (table === null || column === null) {
                                 throw new Error('Table or column for database value check is not ' +
-                                    'defined for field ' + host.field.name());
+                                    'defined for field ' +
+                                    host.field.name());
                             }
                             return [4 /*yield*/, db
                                     .from(table)
@@ -763,17 +714,15 @@ var Validator = /** @class */ (function () {
                                     .where((_a = {}, _a[column] = val, _a))];
                         case 1:
                             res = _b.sent();
-                            return [2 /*return*/, !res || !res.length ?
-                                    opts.message :
-                                    true];
+                            return [2 /*return*/, !res || !res.length ? opts.message() : true];
                     }
                 });
             });
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * File upload validators
-    */
+     * File upload validators
+     */
     /**
      * Check that the uploaded file has a given extension
      *
@@ -808,16 +757,14 @@ var Validator = /** @class */ (function () {
         return function (file) {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
-                    return [2 /*return*/, file.size > size ?
-                            msg :
-                            true];
+                    return [2 /*return*/, file.size > size ? msg : true];
                 });
             });
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * Mjoin validators
-    */
+     * Mjoin validators
+     */
     /**
      * Require a minimum value of the number of options / values submitted in
      * an array
@@ -832,9 +779,7 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     if (action === 'create' || action === 'edit') {
-                        return [2 /*return*/, data.length < size ?
-                                msg :
-                                true];
+                        return [2 /*return*/, data.length < size ? msg : true];
                     }
                     return [2 /*return*/, true];
                 });
@@ -855,9 +800,7 @@ var Validator = /** @class */ (function () {
             return __awaiter(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     if (action === 'create' || action === 'edit') {
-                        return [2 /*return*/, data.length > size ?
-                                msg :
-                                true];
+                        return [2 /*return*/, data.length > size ? msg : true];
                     }
                     return [2 /*return*/, true];
                 });
@@ -865,27 +808,52 @@ var Validator = /** @class */ (function () {
         };
     };
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * Internal methods
-    */
-    Validator._common = function (val, opts) {
+     * Internal methods
+     */
+    Validator._common = function (val, opts, data, host) {
+        // Check if the validator should be applied. If not, then it will pass (i.e. as if
+        // there was no validator). If the validator should apply, fall through to the actual
+        // validator function.
+        if (Validator._conditional(val, opts, data, host) === false) {
+            return true;
+        }
         // Error state tests
-        if (!opts.optional && val === null) {
+        if (!opts.optional() && val === null) {
             // Value must be given
             return false;
         }
-        if (val !== null && opts.empty === false && val === '') {
+        if (val !== null && opts.empty() === false && val === '') {
             // Value must not be empty
             return false;
         }
         // Validate passed states
-        if (opts.optional && val === null) {
+        if (opts.optional() && val === null) {
             return true;
         }
-        if (opts.empty === true && val === '') {
+        if (opts.empty() === true && val === '') {
             return true;
         }
         // Have the specific validation function perform its tests
         return null;
+    };
+    /**
+     * Check if this validator should run or not
+     *
+     * @param val Field's value
+     * @param opts Validator options
+     * @param data Row's submitted data
+     * @param host Validation host
+     * @returns `true` if there is no condition, or if there is one and the condition
+     *   matches, or `false` if there is a condition and it doesn't match.
+     */
+    Validator._conditional = function (val, opts, data, host) {
+        console.log('conditional check', opts);
+        if (!opts) {
+            // No options, so there can be no condition. Validator applies.
+            return true;
+        }
+        // Otherwise, let the options dependency runner return the value
+        return opts.runDepends(val, data, host);
     };
     Validator.Options = validationOptions_1.default;
     Validator.Host = validationHost_1.default;

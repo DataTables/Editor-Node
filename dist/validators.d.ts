@@ -266,4 +266,15 @@ export default class Validator {
      */
     static mjoinMaxCount(size: number, msg: string): IMjoinValidator;
     private static _common;
+    /**
+     * Check if this validator should run or not
+     *
+     * @param val Field's value
+     * @param opts Validator options
+     * @param data Row's submitted data
+     * @param host Validation host
+     * @returns `true` if there is no condition, or if there is one and the condition
+     *   matches, or `false` if there is a condition and it doesn't match.
+     */
+    private static _conditional;
 }
