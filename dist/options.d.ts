@@ -20,6 +20,7 @@ export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
 export default class Options {
     private _alwaysRefresh;
     private _customFn;
+    private _get;
     private _includes;
     private _searchOnly;
     private _table;
@@ -77,6 +78,16 @@ export default class Options {
      * @param set Function to use for the custom options function
      */
     fn(set: CustomOptions): Options;
+    /**
+     * Get the current enablement flag
+     */
+    get(): boolean;
+    /**
+     * Enable / disable the reading of these options
+     *
+     * @param set Flag to enable / disable the reading of these options
+     */
+    get(set: boolean): Options;
     /**
      * Get the list of field names to include in the option objects
      */

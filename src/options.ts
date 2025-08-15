@@ -30,6 +30,7 @@ export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
 export default class Options {
 	private _alwaysRefresh: boolean = true;
 	private _customFn: CustomOptions;
+	private _get: boolean = true;
 	private _includes: string[] = [];
 	private _searchOnly: boolean = false;
 	private _table: string;
@@ -133,6 +134,26 @@ export default class Options {
 		}
 
 		this._customFn = set;
+
+		return this;
+	}
+
+	/**
+	 * Get the current enablement flag
+	 */
+	public get(): boolean;
+	/**
+	 * Enable / disable the reading of these options
+	 *
+	 * @param set Flag to enable / disable the reading of these options
+	 */
+	public get(set: boolean): Options;
+	public get(set?: boolean): any {
+		if (set === undefined) {
+			return this._get;
+		}
+
+		this._get = set;
 
 		return this;
 	}
@@ -413,6 +434,11 @@ export default class Options {
 		search: string = null,
 		find: any[] = null
 	): Promise<IOption[] | false> {
+		// Local enablement
+		if (this._get === false) {
+			return false;
+		}
+
 		// If search only, and not a search action, then just return false
 		if (this.searchOnly() && search === null && find === null) {
 			return false;
