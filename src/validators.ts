@@ -1,20 +1,20 @@
 import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 import * as moment from 'moment';
 import * as validUrl from 'valid-url';
 
 import Editor from './editor';
 import Field from './field';
-import {IMjoinValidator} from './mjoin';
-import {default as JoinOptions} from './options';
-import {IFile} from './upload';
+import { IMjoinValidator } from './mjoin';
+import { default as JoinOptions } from './options';
+import { IFile } from './upload';
 import ValidationHost from './validationHost';
 import ValidationOptions from './validationOptions';
 
 // Note that validators return a Promise to allow async validators, such as
 // checking a value is unique against the database
-export type IValidator = (val: any, data: object, host: ValidationHost) => Promise<true|string>;
-export type IFileValidator = (file: IFile) => Promise<true|string>;
+export type IValidator = (val: any, data: object, host: ValidationHost) => Promise<true | string>;
+export type IFileValidator = (file: IFile) => Promise<true | string>;
 
 /**
  * Validation methods for DataTables Editor fields. All of the methods
@@ -45,8 +45,12 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static none( cfg: ValidationOptions | null = null ): IValidator {
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
+	public static none(cfg: ValidationOptions | null = null): IValidator {
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
 			return true;
 		};
 	}
@@ -61,15 +65,17 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static basic( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static basic(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
 
-			return common === false ?
-				opts.message :
-				true;
+			return common === false ? opts.message() : true;
 		};
 	}
 
@@ -80,17 +86,19 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static required( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
-		opts.empty = false;
-		opts.optional = false;
+	public static required(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
+		opts.empty(false);
+		opts.optional(false);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
 
-			return common === false ?
-				opts.message :
-				true;
+			return common === false ? opts.message() : true;
 		};
 	}
 
@@ -101,16 +109,18 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static notEmpty( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
-		opts.empty = false;
+	public static notEmpty(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
+		opts.empty(false);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
 
-			return common === false ?
-				opts.message :
-				true;
+			return common === false ? opts.message() : true;
 		};
 	}
 
@@ -121,15 +131,17 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static boolean( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static boolean(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
 			if (typeof val === 'string') {
@@ -137,15 +149,27 @@ export default class Validator {
 			}
 
 			if (
-				val === true || val === 1 || val === '1' || val === 'true' || val === 't' ||
-				val === 'on' || val === 'yes' || val === '✓' || val === 'x' ||
-				val === false || val === 0 || val === '0' || val === 'false' || val === 'f' ||
-				val === 'off' || val === 'no' 
+				val === true ||
+				val === 1 ||
+				val === '1' ||
+				val === 'true' ||
+				val === 't' ||
+				val === 'on' ||
+				val === 'yes' ||
+				val === '✓' ||
+				val === 'x' ||
+				val === false ||
+				val === 0 ||
+				val === '0' ||
+				val === 'false' ||
+				val === 'f' ||
+				val === 'off' ||
+				val === 'no'
 			) {
 				return true;
 			}
 
-			return opts.message;
+			return opts.message();
 		};
 	}
 
@@ -161,33 +185,33 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static numeric( decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static numeric(decimal: string = '.', cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
 			if (typeof val === 'number') {
 				return true;
 			}
 
-			if ( decimal !== '.' ) {
+			if (decimal !== '.') {
 				val = val.toString().replace(decimal, '.');
 			}
 
 			val = val.trim();
 			if (val === '') {
-				return opts.message;
+				return opts.message();
 			}
 
-			return isNaN(Number(val)) ?
-				opts.message :
-				true;
+			return isNaN(Number(val)) ? opts.message() : true;
 		};
 	}
 
@@ -200,28 +224,34 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minNum( min: number, decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static minNum(
+		min: number,
+		decimal: string = '.',
+		cfg: ValidationOptions | null = null
+	): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== null ) {
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			if (numeric !== null) {
 				return numeric;
 			}
 
 			// val.toString() for '' is 0, which would mean it would always fail, even if empty values
 			// are allowed.
-			if (val === '' && opts.empty) {
+			if (val === '' && opts.empty()) {
 				return true;
 			}
 
-			if ( decimal !== '.' ) {
+			if (decimal !== '.') {
 				val = val.toString().replace(decimal, '.');
 			}
 
-			return val < min ?
-				opts.message :
-				true;
+			return val < min ? opts.message() : true;
 		};
 	}
 
@@ -234,22 +264,28 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static maxNum( max: number, decimal: string = '.', cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static maxNum(
+		max: number,
+		decimal: string = '.',
+		cfg: ValidationOptions | null = null
+	): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== null ) {
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			if (numeric !== null) {
 				return numeric;
 			}
 
-			if ( decimal !== '.' ) {
+			if (decimal !== '.') {
 				val = val.toString().replace(decimal, '.');
 			}
 
-			return val > max ?
-				opts.message :
-				true;
+			return val > max ? opts.message() : true;
 		};
 	}
 
@@ -269,21 +305,23 @@ export default class Validator {
 		decimal: string = '.',
 		cfg: ValidationOptions | null = null
 	): IValidator {
-		let opts = ValidationOptions.select( cfg );
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let numeric = await Validator.numeric( decimal, opts )( val, data, host );
-			if ( numeric !== null ) {
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			if (numeric !== null) {
 				return numeric;
 			}
 
-			if ( decimal !== '.' ) {
+			if (decimal !== '.') {
 				val = val.toString().replace(decimal, '.');
 			}
 
-			return val < min || val > max ?
-				opts.message :
-				true;
+			return val < min || val > max ? opts.message() : true;
 		};
 	}
 
@@ -298,22 +336,23 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static email( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static email(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			let re = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+			let re =
+				/^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 
-			return re.test( val ) ?
-				true :
-				opts.message;
+			return re.test(val) ? true : opts.message();
 		};
 	}
 
@@ -325,20 +364,20 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minLen( min: number, cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static minLen(min: number, cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return val.length < min ?
-				opts.message :
-				true;
+			return val.length < min ? opts.message() : true;
 		};
 	}
 
@@ -350,20 +389,20 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static maxLen( max: number, cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static maxLen(max: number, cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return val.length > max ?
-				opts.message :
-				true;
+			return val.length > max ? opts.message() : true;
 		};
 	}
 
@@ -376,20 +415,24 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minMaxLen( min: number, max: number, cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static minMaxLen(
+		min: number,
+		max: number,
+		cfg: ValidationOptions | null = null
+	): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return val.length < min || val.length > max ?
-				opts.message :
-				true;
+			return val.length < min || val.length > max ? opts.message() : true;
 		};
 	}
 
@@ -400,30 +443,32 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static ip( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static ip(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
 			let a = val.split('.');
-			if ( a.length !== 4 ) {
-				return opts.message;
+			if (a.length !== 4) {
+				return opts.message();
 			}
 
-			for ( let i = 0 ; i < 4 ; i++ ) {
-				let parsed = parseInt( a[i], 10 );
-				if ( parsed !== a[i] * 1 ) {
-					return opts.message;
+			for (let i = 0; i < 4; i++) {
+				let parsed = parseInt(a[i], 10);
+				if (parsed !== a[i] * 1) {
+					return opts.message();
 				}
 
-				if ( parsed < 0 || parsed > 255 ) {
-					return opts.message;
+				if (parsed < 0 || parsed > 255) {
+					return opts.message();
 				}
 			}
 
@@ -438,20 +483,20 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static url( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static url(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return ! validUrl.isWebUri( val ) ?
-				opts.message :
-				true;
+			return !validUrl.isWebUri(val) ? opts.message() : true;
 		};
 	}
 
@@ -462,22 +507,22 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static xss( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static xss(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
 			let field = host.field;
 
-			return field.xssSafety( val ) !== val ?
-				opts.message :
-				true;
+			return field.xssSafety(val) !== val ? opts.message() : true;
 		};
 	}
 
@@ -489,20 +534,20 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static values( values: any[], cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static values(values: any[], cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return values.includes( val ) ?
-				true :
-				opts.message;
+			return values.includes(val) ? true : opts.message();
 		};
 	}
 
@@ -513,26 +558,26 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static noTags( cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static noTags(cfg: ValidationOptions | null = null): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			return val.toString().test(/<.*>/) ?
-				opts.message :
-				true;
+			return val.toString().test(/<.*>/) ? opts.message() : true;
 		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* Date validation methods
-	*/
+	 * Date validation methods
+	 */
 
 	/**
 	 * Check that a valid date input is given. Uses MomentJS
@@ -543,30 +588,34 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static dateFormat( format: string, locale: string | null = null, cfg: ValidationOptions | null = null ): IValidator {
-		let opts = ValidationOptions.select( cfg );
+	public static dateFormat(
+		format: string,
+		locale: string | null = null,
+		cfg: ValidationOptions | null = null
+	): IValidator {
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			let res = locale ?
-				moment( val, format, locale, true ).isValid() :
-				moment( val, format, true ).isValid();
+			let res = locale
+				? moment(val, format, locale, true).isValid()
+				: moment(val, format, true).isValid();
 
-			return ! res ?
-				opts.message :
-				true;
+			return !res ? opts.message() : true;
 		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* Database validation
-	*/
+	 * Database validation
+	 */
 
 	/**
 	 * Check that the given value is unique in the database
@@ -587,45 +636,45 @@ export default class Validator {
 		table: string | null = null,
 		db: Knex | null = null
 	): IValidator {
-		let opts = ValidationOptions.select( cfg );
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			if ( db === null ) {
+			if (db === null) {
 				db = host.db;
 			}
 
-			if ( table === null ) {
+			if (table === null) {
 				table = host.editor.table()[0];
 			}
 
-			if ( column === null ) {
+			if (column === null) {
 				column = host.field.dbField();
 			}
 
 			let q = db
-				.table( table )
-				.select( column )
-				.where( { [column]: val } );
+				.table(table)
+				.select(column)
+				.where({ [column]: val });
 
 			// If doing an edit then we need to also discount the current row,
 			// since it is of course already validly unique
-			if ( host.action === 'edit' ) {
-				let cond = host.editor.pkeyToObject( host.id, true );
-				q.whereNot( cond );
+			if (host.action === 'edit') {
+				let cond = host.editor.pkeyToObject(host.id, true);
+				q.whereNot(cond);
 			}
 
 			let res = await q;
 
-			return res.length ?
-				opts.message :
-				true;
+			return res.length ? opts.message() : true;
 		};
 	}
 
@@ -653,54 +702,56 @@ export default class Validator {
 		db: Knex | null = null,
 		values: any[] = []
 	): IValidator {
-		let opts = ValidationOptions.select( cfg );
+		let opts = ValidationOptions.select(cfg);
 
-		return async function( val: any, data: object, host: ValidationHost ): Promise<true|string> {
-			let common = Validator._common( val, opts );
+		return async function (
+			val: any,
+			data: object,
+			host: ValidationHost
+		): Promise<true | string> {
+			let common = Validator._common(val, opts, data, host);
 			let options = host.field.options();
 
-			if ( common !== null ) {
-				return common === false ?
-					opts.message :
-					true;
+			if (common !== null) {
+				return common === false ? opts.message() : true;
 			}
 
-			if ( values.indexOf(val) !== -1 ) {
+			if (values.indexOf(val) !== -1) {
 				return true;
 			}
 
-			if ( db === null ) {
+			if (db === null) {
 				db = host.db;
 			}
 
-			if ( table === null && options instanceof JoinOptions ) {
+			if (table === null && options instanceof JoinOptions) {
 				table = options.table();
 			}
 
-			if ( column === null && options instanceof JoinOptions ) {
+			if (column === null && options instanceof JoinOptions) {
 				column = options.value();
 			}
 
-			if ( table === null || column === null ) {
-				throw new Error( 'Table or column for database value check is not ' +
-					'defined for field ' + host.field.name()
+			if (table === null || column === null) {
+				throw new Error(
+					'Table or column for database value check is not ' +
+						'defined for field ' +
+						host.field.name()
 				);
 			}
 
 			let res = await db
-				.from( table )
-				.select( column )
-				.where( { [column]: val } );
+				.from(table)
+				.select(column)
+				.where({ [column]: val });
 
-			return ! res || ! res.length ?
-				opts.message :
-				true;
+			return !res || !res.length ? opts.message() : true;
 		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* File upload validators
-	*/
+	 * File upload validators
+	 */
 
 	/**
 	 * Check that the uploaded file has a given extension
@@ -710,10 +761,10 @@ export default class Validator {
 	 * @param {string} msg Error message to return if not valid
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static fileExtensions( extns: string[], msg: string ): IFileValidator {
-		return async function( file: IFile ) {
-			for ( let i = 0, ien = extns.length; i < ien; i++ ) {
-				if ( file.extn.toLowerCase() === extns[i].toLowerCase() ) {
+	public static fileExtensions(extns: string[], msg: string): IFileValidator {
+		return async function (file: IFile) {
+			for (let i = 0, ien = extns.length; i < ien; i++) {
+				if (file.extn.toLowerCase() === extns[i].toLowerCase()) {
 					return true;
 				}
 			}
@@ -729,17 +780,15 @@ export default class Validator {
 	 * @param {string[]} size Max file size in bytes
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static fileSize( size: number, msg: string ): IFileValidator {
-		return async function( file: IFile ) {
-			return file.size > size ?
-				msg :
-				true;
+	public static fileSize(size: number, msg: string): IFileValidator {
+		return async function (file: IFile) {
+			return file.size > size ? msg : true;
 		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* Mjoin validators
-	*/
+	 * Mjoin validators
+	 */
 
 	/**
 	 * Require a minimum value of the number of options / values submitted in
@@ -750,12 +799,10 @@ export default class Validator {
 	 * @param msg Error message
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static mjoinMinCount( size: number, msg: string ): IMjoinValidator {
-		return async function( editor: Editor, action: string, data: any[] ) {
-			if ( action === 'create'  || action === 'edit' ) {
-				return data.length < size ?
-					msg :
-					true;
+	public static mjoinMinCount(size: number, msg: string): IMjoinValidator {
+		return async function (editor: Editor, action: string, data: any[]) {
+			if (action === 'create' || action === 'edit') {
+				return data.length < size ? msg : true;
 			}
 			return true;
 		};
@@ -770,43 +817,79 @@ export default class Validator {
 	 * @param msg Error message
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static mjoinMaxCount( size: number, msg: string ): IMjoinValidator {
-		return async function( editor: Editor, action: string, data: any[] ) {
-			if ( action === 'create'  || action === 'edit' ) {
-				return data.length > size ?
-					msg :
-					true;
+	public static mjoinMaxCount(size: number, msg: string): IMjoinValidator {
+		return async function (editor: Editor, action: string, data: any[]) {
+			if (action === 'create' || action === 'edit') {
+				return data.length > size ? msg : true;
 			}
 			return true;
 		};
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	* Internal methods
-	*/
+	 * Internal methods
+	 */
 
-	private static _common( val: any, opts: ValidationOptions ): boolean|null {
+	private static _common(
+		val: any,
+		opts: ValidationOptions,
+		data: any,
+		host: ValidationHost
+	): boolean | null {
+		// Check if the validator should be applied. If not, then it will pass (i.e. as if
+		// there was no validator). If the validator should apply, fall through to the actual
+		// validator function.
+		if (Validator._conditional(val, opts, data, host) === false) {
+			return true;
+		}
+
 		// Error state tests
-		if ( !opts.optional && val === null ) {
+		if (!opts.optional() && val === null) {
 			// Value must be given
 			return false;
 		}
 
-		if ( val !== null && opts.empty === false && val === '' ) {
+		if (val !== null && opts.empty() === false && val === '') {
 			// Value must not be empty
 			return false;
 		}
 
 		// Validate passed states
-		if ( opts.optional && val === null ) {
+		if (opts.optional() && val === null) {
 			return true;
 		}
 
-		if ( opts.empty === true && val === '' ) {
+		if (opts.empty() === true && val === '') {
 			return true;
 		}
 
 		// Have the specific validation function perform its tests
 		return null;
+	}
+
+	/**
+	 * Check if this validator should run or not
+	 *
+	 * @param val Field's value
+	 * @param opts Validator options
+	 * @param data Row's submitted data
+	 * @param host Validation host
+	 * @returns `true` if there is no condition, or if there is one and the condition
+	 *   matches, or `false` if there is a condition and it doesn't match.
+	 */
+	private static _conditional(
+		val: any,
+		opts: ValidationOptions,
+		data: any,
+		host: ValidationHost
+	): boolean {
+		console.log('conditional check', opts);
+		if (!opts) {
+			// No options, so there can be no condition. Validator applies.
+			return true;
+		}
+
+		// Otherwise, let the options dependency runner return the value
+		return opts.runDepends(val, data, host);
 	}
 }

@@ -55,6 +55,7 @@ function isNumeric(n) {
 var Options = /** @class */ (function () {
     function Options(table, value, label) {
         this._alwaysRefresh = true;
+        this._get = true;
         this._includes = [];
         this._searchOnly = false;
         this._leftJoin = [];
@@ -100,6 +101,13 @@ var Options = /** @class */ (function () {
             return this._customFn;
         }
         this._customFn = set;
+        return this;
+    };
+    Options.prototype.get = function (set) {
+        if (set === undefined) {
+            return this._get;
+        }
+        this._get = set;
         return this;
     };
     Options.prototype.include = function (set) {
@@ -211,6 +219,10 @@ var Options = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        // Local enablement
+                        if (this._get === false) {
+                            return [2 /*return*/, false];
+                        }
                         // If search only, and not a search action, then just return false
                         if (this.searchOnly() && search === null && find === null) {
                             return [2 /*return*/, false];
