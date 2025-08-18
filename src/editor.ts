@@ -444,7 +444,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.4.3';
+	public static version: string = '2.5.0-dev';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -1595,12 +1595,14 @@ export default class Editor extends NestedData {
 		return response;
 	}
 
-	private _getWhere(query: Knex.QueryBuilder): void {
+	private _getWhere(query: Knex.QueryBuilder): boolean {
 		let where = this.where();
 
 		for (let i = 0, ien = where.length; i < ien; i++) {
 			query.where.apply(query, where[i]);
 		}
+
+		return where.length > 0;
 	}
 
 	private async _insert(values: object): Promise<string> {
@@ -2325,27 +2327,32 @@ export default class Editor extends NestedData {
 			.from(this._readTable()[0])
 			.count(this._pkey[0] + ' as cnt');
 
-		this._getWhere(setCount);
-		this._sspFilter(setCount, http);
+		let isSpecific = this._getWhere(setCount);
+		let isFiltered = this._sspFilter(setCount, http);
 
 		leftJoin(setCount, this._leftJoin);
 
 		let res = await setCount;
 		let recordsFiltered = (res[0] as any).cnt;
+		let recordsTotal = recordsFiltered;
 
-		// Get the number of rows in the full set
-		let fullCount = this
-			.db()
-			.from(this._readTable()[0])
-			.count(this._pkey[0] + ' as cnt');
+		// If there is a filter applied, then we need to get the number of rows in the full set
+		// without a filter, to be able to display that in the table info. If there is no filter,
+		// then the recordsTotal === recordsFiltered (above).
+		if (isSpecific || isFiltered) {
+			let fullCount = this
+				.db()
+				.from(this._readTable()[0])
+				.count(this._pkey[0] + ' as cnt');
 
-		this._getWhere(fullCount);
-		if (this._where.length) { // only needed if there is a where condition
-			leftJoin(fullCount, this._leftJoin);
+			this._getWhere(fullCount);
+			if (this._where.length) { // only needed if there is a where condition
+				leftJoin(fullCount, this._leftJoin);
+			}
+
+			res = await fullCount;
+			recordsTotal = (res[0] as any).cnt;
 		}
-
-		res = await fullCount;
-		let recordsTotal = (res[0] as any).cnt;
 
 		return {
 			draw: http.draw * 1,
@@ -2370,11 +2377,14 @@ export default class Editor extends NestedData {
 		return field.dbField();
 	}
 
-	private _sspFilter(query: Knex.QueryBuilder, http): void {
+	private _sspFilter(query: Knex.QueryBuilder, http): boolean {
+		let filtered = false;
 		let fields = this.fields();
 
 		// Global filter
 		if (http.search.value) {
+			filtered = true;
+
 			query.where((q) => {
 				for (let i = 0, ien = http.columns.length; i < ien; i++) {
 					if (http.columns[i].searchable.toString() === 'true') {
@@ -2382,6 +2392,7 @@ export default class Editor extends NestedData {
 
 						if (field) {
 							let client = this._db.client.config.client;
+
 							// Nasty hack for Postgres
 							if (client === 'pg' || client === 'postgres') {
 								q.orWhereRaw('??::text ILIKE ?',[field,'%' + http.search.value + '%']);
@@ -2398,6 +2409,8 @@ export default class Editor extends NestedData {
 		if (http.searchPanes !== null && http.searchPanes !== undefined) {
 			for (let field of fields) {
 				if (http.searchPanes[field.name()] !== undefined) {
+					filtered = true;
+
 					query.where(function() {
 						for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
 							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
@@ -2416,6 +2429,7 @@ export default class Editor extends NestedData {
 		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
 			// Run the above function for the first level of the searchBuilder data
 			if(http.searchBuilder.criteria !== undefined) {
+				filtered = true;
 				query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
 			}
 		}
@@ -2426,6 +2440,8 @@ export default class Editor extends NestedData {
 			let search = column.search.value;
 
 			if (search !== '' && column.searchable.toString() === 'true') {
+				filtered = true;
+
 				// Nasty hack for Postgres
 				if (this._db.client.config.client === 'pg') {
 					query.whereRaw(
@@ -2442,6 +2458,8 @@ export default class Editor extends NestedData {
 				}
 			}
 		}
+
+		return filtered;
 	}
 
 	private _sspLimit(query: Knex.QueryBuilder, http: IDtRequest): void {
