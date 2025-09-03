@@ -1223,6 +1223,7 @@ var Editor = /** @class */ (function (_super) {
         for (var i = 0, ien = where.length; i < ien; i++) {
             query.where.apply(query, where[i]);
         }
+        return where.length > 0;
     };
     Editor.prototype._insert = function (values) {
         return __awaiter(this, void 0, void 0, function () {
@@ -2037,7 +2038,7 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._ssp = function (query, http) {
         return __awaiter(this, void 0, void 0, function () {
-            var setCount, res, recordsFiltered, fullCount, recordsTotal;
+            var setCount, isSpecific, isFiltered, res, recordsFiltered, recordsTotal, fullCount;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2052,13 +2053,15 @@ var Editor = /** @class */ (function (_super) {
                             .db()
                             .from(this._readTable()[0])
                             .count(this._pkey[0] + ' as cnt');
-                        this._getWhere(setCount);
-                        this._sspFilter(setCount, http);
+                        isSpecific = this._getWhere(setCount);
+                        isFiltered = this._sspFilter(setCount, http);
                         (0, helpers_1.leftJoin)(setCount, this._leftJoin);
                         return [4 /*yield*/, setCount];
                     case 1:
                         res = _a.sent();
                         recordsFiltered = res[0].cnt;
+                        recordsTotal = recordsFiltered;
+                        if (!(isSpecific || isFiltered)) return [3 /*break*/, 3];
                         fullCount = this
                             .db()
                             .from(this._readTable()[0])
@@ -2071,11 +2074,12 @@ var Editor = /** @class */ (function (_super) {
                     case 2:
                         res = _a.sent();
                         recordsTotal = res[0].cnt;
-                        return [2 /*return*/, {
-                                draw: http.draw * 1,
-                                recordsFiltered: recordsFiltered,
-                                recordsTotal: recordsTotal
-                            }];
+                        _a.label = 3;
+                    case 3: return [2 /*return*/, {
+                            draw: http.draw * 1,
+                            recordsFiltered: recordsFiltered,
+                            recordsTotal: recordsTotal
+                        }];
                 }
             });
         });
@@ -2094,9 +2098,11 @@ var Editor = /** @class */ (function (_super) {
     };
     Editor.prototype._sspFilter = function (query, http) {
         var _this = this;
+        var filtered = false;
         var fields = this.fields();
         // Global filter
         if (http.search.value) {
+            filtered = true;
             query.where(function (q) {
                 for (var i = 0, ien = http.columns.length; i < ien; i++) {
                     if (http.columns[i].searchable.toString() === 'true') {
@@ -2118,6 +2124,7 @@ var Editor = /** @class */ (function (_super) {
         if (http.searchPanes !== null && http.searchPanes !== undefined) {
             var _loop_4 = function (field) {
                 if (http.searchPanes[field.name()] !== undefined) {
+                    filtered = true;
                     query.where(function () {
                         for (var i = 0; i < http.searchPanes[field.name()].length; i++) {
                             if (http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
@@ -2139,6 +2146,7 @@ var Editor = /** @class */ (function (_super) {
         if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
             // Run the above function for the first level of the searchBuilder data
             if (http.searchBuilder.criteria !== undefined) {
+                filtered = true;
                 query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
             }
         }
@@ -2148,6 +2156,7 @@ var Editor = /** @class */ (function (_super) {
             var column = http.columns[i];
             var search = column.search.value;
             if (search !== '' && column.searchable.toString() === 'true') {
+                filtered = true;
                 // Nasty hack for Postgres
                 if (this._db.client.config.client === 'pg') {
                     query.whereRaw('??::text ILIKE ?', [this._sspField(http, i), '%' + search + '%']);
@@ -2157,6 +2166,7 @@ var Editor = /** @class */ (function (_super) {
                 }
             }
         }
+        return filtered;
     };
     Editor.prototype._sspLimit = function (query, http) {
         if (http.length !== -1) { // -1 is 'show all' in DataTables
