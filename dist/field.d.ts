@@ -40,6 +40,7 @@ export declare enum SetType {
  */
 export default class Field extends NestedData {
     static SetType: typeof SetType;
+    private _columnControl;
     private _dbField;
     private _get;
     private _getFormatter;
@@ -65,6 +66,16 @@ export default class Field extends NestedData {
      *   `dbField` name is used.
      */
     constructor(dbField?: string, name?: string);
+    /**
+     * Get the options class for the options to get for ColumnControl
+     */
+    columnControl(): Options;
+    /**
+     * Set the options class for the options to get for ColumnControl
+     *
+     * @param options Options configuration for ColumnControl
+     */
+    columnControl(options: Options): this;
     /**
      * Get the database column name
      *

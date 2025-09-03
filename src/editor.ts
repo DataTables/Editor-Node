@@ -9,6 +9,7 @@ import NestedData from './nestedData';
 import {IUpload} from './upload';
 import Validate from './validators';
 import {leftJoin} from './helpers';
+import ColumnControl from './columnControl';
 
 /**
  * Action that has been requested by the client-side
@@ -67,6 +68,17 @@ export interface IDtOrder {
  * @export
  */
 export interface IDtColumn {
+	columnControl?: {
+		list?: string[];
+
+		search?: {
+			logic: string;
+			mask?: string;
+			type: string;
+			value: string;
+		}
+	}
+
 	/** Data property (`columns.data`). */
 	data: string;
 
@@ -125,6 +137,8 @@ export interface IDtRequest {
  * @export
  */
 export interface IDtResponse {
+	columnControl?: {[field: string]: object};
+
 	/** DataTables - Array of row information. */
 	data?: object[];
 
@@ -1875,6 +1889,21 @@ export default class Editor extends NestedData {
 
 				this._out.searchBuilder.options[field.name()] = sbOpts;
 			}
+
+			// ContentControl - searchList content type
+			let cc = field.columnControl();
+
+			if (cc) {
+				let opts = await cc.exec(this._db, false);
+
+				if (opts !== false) {
+					if (! this._out.columnControl) {
+						this._out.columnControl = {};
+					}
+
+					this._out.columnControl[field.name()] = opts;
+				}
+			}
 		}
 
 		// Check the join's for a list of options
@@ -2419,6 +2448,8 @@ export default class Editor extends NestedData {
 				query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
 			}
 		}
+
+		ColumnControl.ssp(this, query, http);
 
 		// Column filter
 		for (let i = 0, ien = http.columns.length; i < ien; i++) {

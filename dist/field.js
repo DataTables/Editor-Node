@@ -124,6 +124,13 @@ var Field = /** @class */ (function (_super) {
         }
         return _this;
     }
+    Field.prototype.columnControl = function (options) {
+        if (!options) {
+            return this._columnControl;
+        }
+        this._columnControl = options;
+        return this;
+    };
     Field.prototype.dbField = function (dbField) {
         if (dbField === undefined) {
             return this._dbField;

@@ -49,6 +49,15 @@ export interface IDtOrder {
  * @export
  */
 export interface IDtColumn {
+    columnControl?: {
+        list?: string[];
+        search?: {
+            logic: string;
+            mask?: string;
+            type: string;
+            value: string;
+        };
+    };
     /** Data property (`columns.data`). */
     data: string;
     /** Searchable flag. */
@@ -93,6 +102,9 @@ export interface IDtRequest {
  * @export
  */
 export interface IDtResponse {
+    columnControl?: {
+        [field: string]: object;
+    };
     /** DataTables - Array of row information. */
     data?: object[];
     /** Editor - Rows which have not been acted upon. */

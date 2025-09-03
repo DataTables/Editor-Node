@@ -48,6 +48,7 @@ export enum SetType {
 export default class Field extends NestedData {
 	public static SetType = SetType;
 
+	private _columnControl: Options;
 	private _dbField: string;
 	private _get: boolean = true;
 	private _getFormatter: IFormatter;
@@ -96,6 +97,26 @@ export default class Field extends NestedData {
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
 	 */
+
+	/**
+	 * Get the options class for the options to get for ColumnControl
+	 */
+	public columnControl(): Options;
+	/**
+	 * Set the options class for the options to get for ColumnControl
+	 *
+	 * @param options Options configuration for ColumnControl
+	 */
+	public columnControl(options: Options): this;
+	public columnControl(options?: Options) {
+		if (! options) {
+			return this._columnControl;
+		}
+
+		this._columnControl = options;
+
+		return this;
+	}
 
 	/**
 	 * Get the database column name

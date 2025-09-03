@@ -67,6 +67,7 @@ var crc = require("crc");
 var field_1 = require("./field");
 var nestedData_1 = require("./nestedData");
 var helpers_1 = require("./helpers");
+var columnControl_1 = require("./columnControl");
 /**
  * Action that has been requested by the client-side
  * (based on the `action` parameter).
@@ -1474,7 +1475,7 @@ var Editor = /** @class */ (function (_super) {
      */
     Editor.prototype._options = function (refresh) {
         return __awaiter(this, void 0, void 0, function () {
-            var fields, i, ien, field, options, opts, spOpts, sbOpts, i;
+            var fields, i, ien, field, options, opts, spOpts, sbOpts, cc, opts, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1482,7 +1483,7 @@ var Editor = /** @class */ (function (_super) {
                         i = 0, ien = fields.length;
                         _a.label = 1;
                     case 1:
-                        if (!(i < ien)) return [3 /*break*/, 7];
+                        if (!(i < ien)) return [3 /*break*/, 8];
                         field = fields[i];
                         options = field.options();
                         if (!options) return [3 /*break*/, 3];
@@ -1511,23 +1512,34 @@ var Editor = /** @class */ (function (_super) {
                             }
                             this._out.searchBuilder.options[field.name()] = sbOpts;
                         }
-                        _a.label = 6;
+                        cc = field.columnControl();
+                        if (!cc) return [3 /*break*/, 7];
+                        return [4 /*yield*/, cc.exec(this._db, false)];
                     case 6:
+                        opts = _a.sent();
+                        if (opts !== false) {
+                            if (!this._out.columnControl) {
+                                this._out.columnControl = {};
+                            }
+                            this._out.columnControl[field.name()] = opts;
+                        }
+                        _a.label = 7;
+                    case 7:
                         i++;
                         return [3 /*break*/, 1];
-                    case 7:
-                        i = 0;
-                        _a.label = 8;
                     case 8:
-                        if (!(i < this._join.length)) return [3 /*break*/, 11];
-                        return [4 /*yield*/, this._join[i].options(this._out.options, this._db, refresh)];
+                        i = 0;
+                        _a.label = 9;
                     case 9:
-                        _a.sent();
-                        _a.label = 10;
+                        if (!(i < this._join.length)) return [3 /*break*/, 12];
+                        return [4 /*yield*/, this._join[i].options(this._out.options, this._db, refresh)];
                     case 10:
+                        _a.sent();
+                        _a.label = 11;
+                    case 11:
                         i++;
-                        return [3 /*break*/, 8];
-                    case 11: return [2 /*return*/];
+                        return [3 /*break*/, 9];
+                    case 12: return [2 /*return*/];
                 }
             });
         });
@@ -2130,6 +2142,7 @@ var Editor = /** @class */ (function (_super) {
                 query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
             }
         }
+        columnControl_1.default.ssp(this, query, http);
         // Column filter
         for (var i = 0, ien = http.columns.length; i < ien; i++) {
             var column = http.columns[i];
