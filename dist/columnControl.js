@@ -122,7 +122,6 @@ var ColumnControl = /** @class */ (function () {
         else if (logic === 'lessOrEqual') {
             query.where(field.dbField(), '<=', value);
         }
-        console.log(query.toSQL());
     };
     /**
      * Add conditions to a query for a ColumnControl test search.
