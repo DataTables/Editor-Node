@@ -458,7 +458,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.5.0';
+	public static version: string = '2.5.1';
 
 	/**
 	 * Determine the request type from an HTTP request.
