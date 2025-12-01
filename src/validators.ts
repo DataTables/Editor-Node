@@ -883,7 +883,6 @@ export default class Validator {
 		data: any,
 		host: ValidationHost
 	): boolean {
-		console.log('conditional check', opts);
 		if (!opts) {
 			// No options, so there can be no condition. Validator applies.
 			return true;
