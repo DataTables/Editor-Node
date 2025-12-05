@@ -222,6 +222,7 @@ var Validator = /** @class */ (function () {
                     if (val === '') {
                         return [2 /*return*/, opts.message()];
                     }
+                    console.log('validate check', val, isNaN(Number(val)), opts.message());
                     return [2 /*return*/, isNaN(Number(val)) ? opts.message() : true];
                 });
             });

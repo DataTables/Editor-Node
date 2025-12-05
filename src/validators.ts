@@ -1,4 +1,3 @@
-import * as knex from 'knex';
 import { Knex } from 'knex';
 import * as moment from 'moment';
 import * as validUrl from 'valid-url';
