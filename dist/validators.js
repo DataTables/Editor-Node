@@ -848,7 +848,6 @@ var Validator = /** @class */ (function () {
      *   matches, or `false` if there is a condition and it doesn't match.
      */
     Validator._conditional = function (val, opts, data, host) {
-        console.log('conditional check', opts);
         if (!opts) {
             // No options, so there can be no condition. Validator applies.
             return true;

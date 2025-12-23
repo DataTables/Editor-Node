@@ -209,6 +209,9 @@ export default class Validator {
 			if (val === '') {
 				return opts.message();
 			}
+			
+
+			console.log('validate check', val, isNaN(Number(val)), opts.message());
 
 			return isNaN(Number(val)) ? opts.message() : true;
 		};
