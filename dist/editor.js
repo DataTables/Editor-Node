@@ -64,10 +64,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Action = void 0;
 var crc = require("crc");
-var field_1 = require("./field");
-var nestedData_1 = require("./nestedData");
-var helpers_1 = require("./helpers");
 var columnControl_1 = require("./columnControl");
+var field_1 = require("./field");
+var helpers_1 = require("./helpers");
+var nestedData_1 = require("./nestedData");
 /**
  * Action that has been requested by the client-side
  * (based on the `action` parameter).
@@ -2129,6 +2129,7 @@ var Editor = /** @class */ (function (_super) {
                         for (var i = 0; i < http.searchPanes[field.name()].length; i++) {
                             if (http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
                                 this.orWhereNull(field.name());
+                                this.orWhere(field.name(), '');
                             }
                             else {
                                 this.orWhere(field.name(), http.searchPanes[field.name()][i]);

@@ -1,15 +1,12 @@
 import * as crc from 'crc';
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
-import Field, {SetType} from './field';
-import Format from './formatters';
+import ColumnControl from './columnControl';
+import Field, { SetType } from './field';
+import { leftJoin } from './helpers';
 import Mjoin from './mjoin';
 import NestedData from './nestedData';
-import {IUpload} from './upload';
-import Validate from './validators';
-import {leftJoin} from './helpers';
-import ColumnControl from './columnControl';
+import { IUpload } from './upload';
 
 /**
  * Action that has been requested by the client-side
@@ -2444,6 +2441,7 @@ export default class Editor extends NestedData {
 						for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
 							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
 								this.orWhereNull(field.name());
+								this.orWhere(field.name(), '');
 							}
 							else {
 								this.orWhere(field.name(), http.searchPanes[field.name()][i]);
