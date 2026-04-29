@@ -1476,6 +1476,27 @@ export default class Editor extends NestedData {
 	 */
 
 	/**
+	 * Get the alias or original for a db field
+	 *
+	 * @param name Column name
+	 * @param type Part to get
+	 * @returns Alias or actual name
+	 */
+	private _alias(name: string, type: 'alias' | 'orig' = 'alias'): string {
+		if (name.indexOf(' as ') !== -1) {
+			let a = name.split(/ as /i);
+			return type === 'alias' ? a[1] : a[0];
+		}
+
+		if (name.indexOf(' ') !== -1) {
+			let a = name.split(/ /i);
+			return type === 'alias' ? a[1] : a[0];
+		}
+
+		return name;
+	}
+
+	/**
 	 * Spin over all fields looking for upload instances on them, and if found
 	 * executing the clean up function.
 	 */
@@ -1859,7 +1880,10 @@ export default class Editor extends NestedData {
 	 * @param values Column / field values
 	 * @returns Row id
 	 */
-	private async _insertOrUpdate(id: string | null, values: object): Promise<string | null> {
+	private async _insertOrUpdate(
+		id: string | null,
+		values: object
+	): Promise<string | null> {
 		// Loop over the tables, doing the insert or update as needed
 		let tables = this.table();
 
@@ -2018,27 +2042,6 @@ export default class Editor extends NestedData {
 			// Update on the host table
 			await this.db().table(table).update(set).where(where);
 		}
-	}
-
-	/**
-	 * Get the alias or original for a db field
-	 *
-	 * @param name Column name
-	 * @param type Part to get
-	 * @returns Alias or actual name
-	 */
-	private _alias(name: string, type: 'alias' | 'orig' = 'alias'): string {
-		if (name.indexOf(' as ') !== -1) {
-			let a = name.split(/ as /i);
-			return type === 'alias' ? a[1] : a[0];
-		}
-
-		if (name.indexOf(' ') !== -1) {
-			let a = name.split(/ /i);
-			return type === 'alias' ? a[1] : a[0];
-		}
-
-		return name;
 	}
 
 	/**
