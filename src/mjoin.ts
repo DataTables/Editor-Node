@@ -1,9 +1,8 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
-import Editor, {IDtRequest, IDtResponse, ILeftJoin} from './editor';
-import Field, {SetType} from './field';
-import {leftJoin} from './helpers';
+import Editor, { IDtResponse, ILeftJoin } from './editor';
+import Field, { SetType } from './field';
+import { leftJoin } from './helpers';
 import NestedData from './nestedData';
 
 interface IJoinTable {
@@ -171,7 +170,12 @@ export default class Mjoin extends NestedData {
 	 * @param {string} field2 Field from the child table to use as the join link
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(table: string, field1: string, operator: string, field2: string): Mjoin;
+	public leftJoin(
+		table: string,
+		field1: string,
+		operator: string,
+		field2: string
+	): Mjoin;
 	public leftJoin(
 		table: string,
 		field1: string | Function,
@@ -219,7 +223,9 @@ export default class Mjoin extends NestedData {
 	 */
 	public link(field1: string, field2: string): Mjoin {
 		if (field1.indexOf('.') === -1 || field2.indexOf('.') === -1) {
-			throw new Error('Mjoin fields must contain both the table name and the column name');
+			throw new Error(
+				'Mjoin fields must contain both the table name and the column name'
+			);
 		}
 
 		if (this._links.length === 4) {
@@ -418,11 +424,17 @@ export default class Mjoin extends NestedData {
 			let dteTable = editor.table()[0];
 			let joinField = join.table ? join.parent[0] : join.parent;
 			let dteTableAlias =
-				dteTable.indexOf(' ') !== -1 ? dteTable.split(/ (as )?/i)[2] : dteTable;
+				dteTable.indexOf(' ') !== -1
+					? dteTable.split(/ (as )?/i)[2]
+					: dteTable;
 			let mJoinTable =
-				this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[0] : this._table;
+				this._table.indexOf(' ') !== -1
+					? this._table.split(/ (as )?/i)[0]
+					: this._table;
 			let mJoinTableAlias =
-				this._table.indexOf(' ') !== -1 ? this._table.split(/ (as )?/i)[2] : this._table;
+				this._table.indexOf(' ') !== -1
+					? this._table.split(/ (as )?/i)[2]
+					: this._table;
 
 			let pkeyIsJoin =
 				joinField === editor.pkey()[0] ||
@@ -453,10 +465,14 @@ export default class Mjoin extends NestedData {
 					let dbField = field.dbField();
 
 					if (dbField.indexOf('(') !== -1) {
-						query.select(editor.db().raw(dbField + ' as "' + dbField + '"'));
+						query.select(
+							editor.db().raw(dbField + ' as "' + dbField + '"')
+						);
 					}
 					else if (dbField.indexOf('.') === -1) {
-						query.select(mJoinTableAlias + '.' + dbField + ' as ' + dbField);
+						query.select(
+							mJoinTableAlias + '.' + dbField + ' as ' + dbField
+						);
 					}
 					else {
 						query.select(dbField + ' as ' + dbField);
@@ -492,7 +508,12 @@ export default class Mjoin extends NestedData {
 			this._applyWhere(query);
 
 			let readField = '';
-			if (this._propExists(dteTableAlias + '.' + joinField, response.data[0])) {
+			if (
+				this._propExists(
+					dteTableAlias + '.' + joinField,
+					response.data[0]
+				)
+			) {
 				readField = dteTableAlias + '.' + joinField;
 			}
 			else if (this._propExists(joinField.toString(), response.data[0])) {
@@ -520,7 +541,10 @@ export default class Mjoin extends NestedData {
 
 				for (let i = 0, ien = data.length; i < ien; i++) {
 					let linkValue = pkeyIsJoin
-						? (data[i] as any).DT_RowId.replace(editor.idPrefix(), '')
+						? (data[i] as any).DT_RowId.replace(
+								editor.idPrefix(),
+								''
+						  )
 						: this._readProp(readField, data[i]);
 
 					whereIn.push(linkValue);
@@ -600,7 +624,11 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async create(editor: Editor, parentId: string, data: object): Promise<void> {
+	public async create(
+		editor: Editor,
+		parentId: string,
+		data: object
+	): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Create && this._set !== SetType.Both) {
 			return;
@@ -622,7 +650,11 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async update(editor: Editor, parentId: string, data: object): Promise<void> {
+	public async update(
+		editor: Editor,
+		parentId: string,
+		data: object
+	): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Edit && this._set !== SetType.Both) {
 			return;
@@ -655,7 +687,7 @@ export default class Mjoin extends NestedData {
 			let query = db.del().from(join.table);
 
 			for (let i = 0, ien = ids.length; i < ien; i++) {
-				query.orWhere({[join.parent[1]]: ids[i]});
+				query.orWhere({ [join.parent[1]]: ids[i] });
 			}
 
 			await query;
@@ -665,7 +697,7 @@ export default class Mjoin extends NestedData {
 
 			query.where(function () {
 				for (let i = 0, ien = ids.length; i < ien; i++) {
-					query.orWhere({[join.child.toString()]: ids[i]});
+					query.orWhere({ [join.child.toString()]: ids[i] });
 				}
 			});
 
@@ -678,7 +710,12 @@ export default class Mjoin extends NestedData {
 	/**
 	 * @ignore
 	 */
-	public async validate(errors, editor: Editor, data: object, action: string): Promise<void> {
+	public async validate(
+		errors,
+		editor: Editor,
+		data: object,
+		action: string
+	): Promise<void> {
 		if (!this._set) {
 			return;
 		}
@@ -705,7 +742,13 @@ export default class Mjoin extends NestedData {
 		}
 
 		for (let i = 0, ien = joinData.length; i < ien; i++) {
-			await this._validateFields(errors, editor, joinData[i], this._name + '[].', action);
+			await this._validateFields(
+				errors,
+				editor,
+				joinData[i],
+				this._name + '[].',
+				action
+			);
 		}
 	}
 
@@ -720,7 +763,11 @@ export default class Mjoin extends NestedData {
 		}
 	}
 
-	private async _insert(db: Knex, parentId: string, data: object): Promise<void> {
+	private async _insert(
+		db: Knex,
+		parentId: string,
+		data: object
+	): Promise<void> {
 		let join = this._join;
 		let fields = this.fields();
 
@@ -758,7 +805,9 @@ export default class Mjoin extends NestedData {
 		let editorTable = editor.table()[0];
 		let joinTable = this.table();
 		let dteTableAlias =
-			editorTable.indexOf(' ') !== -1 ? editorTable.split(/ (as )?/i)[2] : editorTable;
+			editorTable.indexOf(' ') !== -1
+				? editorTable.split(/ (as )?/i)[2]
+				: editorTable;
 
 		if (links.length === 2) {
 			// No link table

@@ -1,7 +1,11 @@
 import NestedData from './nestedData';
 import ValidationHost from './validationHost';
 
-export type DependsOnFunc = (val: any, data: any, host: ValidationHost) => boolean;
+export type DependsOnFunc = (
+	val: any,
+	data: any,
+	host: ValidationHost
+) => boolean;
 
 /**
  * Common validation options that can be specified for all validation methods.
@@ -157,7 +161,9 @@ export default class ValidationOptions extends NestedData {
 	 *
 	 * @param options Options
 	 */
-	constructor(options: { message?: string; empty?: boolean; optional?: boolean } = {}) {
+	constructor(
+		options: { message?: string; empty?: boolean; optional?: boolean } = {}
+	) {
 		super();
 
 		if (options.message !== undefined) {

@@ -24,13 +24,13 @@ export default class Formatter {
 	 * @param {string} format Format to convert to.
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static sqlDateToFormat( format: string ): IFormatter {
-		return function(val: any, data: object ) {
-			if ( val === null ) {
+	public static sqlDateToFormat(format: string): IFormatter {
+		return function (val: any, data: object) {
+			if (val === null) {
 				return null;
 			}
 
-			return moment( val, 'YYYY-MM-DD' ).format( format );
+			return moment(val, 'YYYY-MM-DD').format(format);
 		};
 	}
 
@@ -44,13 +44,13 @@ export default class Formatter {
 	 * @param {string} format Format to convert from.
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static formatToSqlDate( format: string ): IFormatter {
-		return function(val: any, data: object ) {
-			if ( val === null || val === '' ) {
+	public static formatToSqlDate(format: string): IFormatter {
+		return function (val: any, data: object) {
+			if (val === null || val === '') {
 				return null;
 			}
 
-			return moment( val, format ).format( 'YYYY-MM-DD' );
+			return moment(val, format).format('YYYY-MM-DD');
 		};
 	}
 
@@ -64,13 +64,13 @@ export default class Formatter {
 	 * @param {string} to To format.
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static dateTime( from: string, to: string ): IFormatter {
-		return function(val: any, data: object ) {
-			if ( val === null ) {
+	public static dateTime(from: string, to: string): IFormatter {
+		return function (val: any, data: object) {
+			if (val === null) {
 				return null;
 			}
 
-			return moment( val, from ).format( to );
+			return moment(val, from).format(to);
 		};
 	}
 
@@ -81,9 +81,9 @@ export default class Formatter {
 	 * @param {string} [delimiter='|'] Delimiter string (i.e. what to split on)
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static explode( delimiter: string = '|' ): IFormatter {
-		return function(val: any, data: object ) {
-			return val.toString().split( delimiter );
+	public static explode(delimiter: string = '|'): IFormatter {
+		return function (val: any, data: object) {
+			return val.toString().split(delimiter);
 		};
 	}
 
@@ -95,9 +95,9 @@ export default class Formatter {
 	 * @param {string} [delimiter='|'] Delimiter string (i.e. what to join on)
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static implode( delimiter: string = '|' ): IFormatter {
-		return function(val: any, data: object ) {
-			return val.join( delimiter );
+	public static implode(delimiter: string = '|'): IFormatter {
+		return function (val: any, data: object) {
+			return val.join(delimiter);
 		};
 	}
 
@@ -112,11 +112,9 @@ export default class Formatter {
 	 *   is the typical value.
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static ifEmpty( emptyValue: any ): IFormatter {
-		return function(val: any, data: object ) {
-			return val === '' ?
-				emptyValue :
-				val;
+	public static ifEmpty(emptyValue: any): IFormatter {
+		return function (val: any, data: object) {
+			return val === '' ? emptyValue : val;
 		};
 	}
 
@@ -130,9 +128,9 @@ export default class Formatter {
 	 * @param {string} [char=','] Decimal place character
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static fromDecimalChar( char: string = ',' ): IFormatter {
-		return function(val: any, data: object ) {
-			return val.replace( char, '.' );
+	public static fromDecimalChar(char: string = ','): IFormatter {
+		return function (val: any, data: object) {
+			return val.replace(char, '.');
 		};
 	}
 
@@ -144,9 +142,9 @@ export default class Formatter {
 	 * @param {string} [char=','] Decimal place character
 	 * @returns {IFormatter} Configured formatter function
 	 */
-	public static toDecimalChar( char: string = ',' ): IFormatter {
-		return function(val: any, data: object ) {
-			return val.replace( '.', char );
+	public static toDecimalChar(char: string = ','): IFormatter {
+		return function (val: any, data: object) {
+			return val.replace('.', char);
 		};
 	}
 }

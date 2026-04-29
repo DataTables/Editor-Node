@@ -1,5 +1,4 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
 import Editor from './editor';
 import Field from './field';
@@ -63,7 +62,7 @@ export default class ValidationHost {
 	 *
 	 * @param {IHostOpts} opts Host information
 	 */
-	constructor( opts: IHostOpts ) {
+	constructor(opts: IHostOpts) {
 		this.action = opts.action;
 		this.id = opts.id;
 		this.field = opts.field;

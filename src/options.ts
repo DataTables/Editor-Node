@@ -1,7 +1,6 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
-import {ILeftJoin} from './editor';
-import {leftJoin} from './helpers';
+import { Knex } from 'knex';
+import { ILeftJoin } from './editor';
+import { leftJoin } from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -43,7 +42,6 @@ export default class Options {
 	private _order: string | boolean = true;
 	private _manualOpts: IOption[] = [];
 
-
 	/**
 	 * Create a new Options instance, to be configured by the chaining API
 	 */
@@ -63,7 +61,11 @@ export default class Options {
 	 */
 	constructor(fn: CustomOptions);
 
-	constructor(table?: string | CustomOptions, value?: string, label?: string) {
+	constructor(
+		table?: string | CustomOptions,
+		value?: string,
+		label?: string
+	) {
 		if (typeof table === 'string') {
 			this.table(table);
 			this.value(value);
@@ -232,7 +234,12 @@ export default class Options {
 	 * @param {string} field2 Field from the child table to use as the join link
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(table: string, field1: string, operator: string, field2: string): Options;
+	public leftJoin(
+		table: string,
+		field1: string,
+		operator: string,
+		field2: string
+	): Options;
 	public leftJoin(
 		table: string,
 		field1: string | Function,
@@ -556,15 +563,12 @@ export default class Options {
 		// Create a list of the fields that we need to get from the db
 		let fields = [].concat(this._label);
 
-		if (! fields.includes(this._value)) {
+		if (!fields.includes(this._value)) {
 			fields.push(this._value);
 		}
 
 		// Options query
-		let q = db
-			.select(fields)
-			.distinct()
-			.from(this._table);
+		let q = db.select(fields).distinct().from(this._table);
 
 		if (this._where) {
 			q.where(this._where);
@@ -578,7 +582,7 @@ export default class Options {
 			// For cases where we are ordering by a field which isn't included in the list
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
-			this._order.split(',').forEach((val) => {
+			this._order.split(',').forEach(val => {
 				val = val.toLocaleLowerCase();
 
 				const direction = val.match(/( desc| asc)/g);

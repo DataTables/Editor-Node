@@ -12,7 +12,11 @@ import ValidationOptions from './validationOptions';
 
 // Note that validators return a Promise to allow async validators, such as
 // checking a value is unique against the database
-export type IValidator = (val: any, data: object, host: ValidationHost) => Promise<true | string>;
+export type IValidator = (
+	val: any,
+	data: object,
+	host: ValidationHost
+) => Promise<true | string>;
 export type IFileValidator = (file: IFile) => Promise<true | string>;
 
 /**
@@ -184,7 +188,10 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static numeric(decimal: string = '.', cfg: ValidationOptions | null = null): IValidator {
+	public static numeric(
+		decimal: string = '.',
+		cfg: ValidationOptions | null = null
+	): IValidator {
 		let opts = ValidationOptions.select(cfg);
 
 		return async function (
@@ -209,9 +216,13 @@ export default class Validator {
 			if (val === '') {
 				return opts.message();
 			}
-			
 
-			console.log('validate check', val, isNaN(Number(val)), opts.message());
+			console.log(
+				'validate check',
+				val,
+				isNaN(Number(val)),
+				opts.message()
+			);
 
 			return isNaN(Number(val)) ? opts.message() : true;
 		};
@@ -238,7 +249,11 @@ export default class Validator {
 			data: object,
 			host: ValidationHost
 		): Promise<true | string> {
-			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			let numeric = await Validator.numeric(decimal, opts)(
+				val,
+				data,
+				host
+			);
 			if (numeric !== null) {
 				return numeric;
 			}
@@ -278,7 +293,11 @@ export default class Validator {
 			data: object,
 			host: ValidationHost
 		): Promise<true | string> {
-			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			let numeric = await Validator.numeric(decimal, opts)(
+				val,
+				data,
+				host
+			);
 			if (numeric !== null) {
 				return numeric;
 			}
@@ -314,7 +333,11 @@ export default class Validator {
 			data: object,
 			host: ValidationHost
 		): Promise<true | string> {
-			let numeric = await Validator.numeric(decimal, opts)(val, data, host);
+			let numeric = await Validator.numeric(decimal, opts)(
+				val,
+				data,
+				host
+			);
 			if (numeric !== null) {
 				return numeric;
 			}
@@ -366,7 +389,10 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static minLen(min: number, cfg: ValidationOptions | null = null): IValidator {
+	public static minLen(
+		min: number,
+		cfg: ValidationOptions | null = null
+	): IValidator {
 		let opts = ValidationOptions.select(cfg);
 
 		return async function (
@@ -391,7 +417,10 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static maxLen(max: number, cfg: ValidationOptions | null = null): IValidator {
+	public static maxLen(
+		max: number,
+		cfg: ValidationOptions | null = null
+	): IValidator {
 		let opts = ValidationOptions.select(cfg);
 
 		return async function (
@@ -536,7 +565,10 @@ export default class Validator {
 	 * @param {ValidationOptions} [cfg=null] Validation options
 	 * @returns {IValidator} Configured validation function
 	 */
-	public static values(values: any[], cfg: ValidationOptions | null = null): IValidator {
+	public static values(
+		values: any[],
+		cfg: ValidationOptions | null = null
+	): IValidator {
 		let opts = ValidationOptions.select(cfg);
 
 		return async function (

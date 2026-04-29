@@ -1,9 +1,8 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
+import Editor, { ILeftJoin } from './editor';
 import Field from './field';
-import Editor, {ILeftJoin} from './editor';
-import {leftJoin} from './helpers';
+import { leftJoin } from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -59,9 +58,7 @@ export default class SearchPaneOptions {
 			return this._label;
 		}
 
-		this._label = Array.isArray(label) ?
-			label :
-			[label];
+		this._label = Array.isArray(label) ? label : [label];
 
 		return this;
 	}
@@ -191,14 +188,19 @@ export default class SearchPaneOptions {
 	 * @param operator operator for the join
 	 * @param field2 the second field
 	 */
-	public leftJoin(table: string, field1: string | Function, operator: string, field2: string): this {
+	public leftJoin(
+		table: string,
+		field1: string | Function,
+		operator: string,
+		field2: string
+	): this {
 		if (typeof field1 === 'function') {
 			this._leftJoin.push({
 				field1: '',
 				field2: '',
 				fn: field1,
 				operator: '',
-				table,
+				table
 			});
 		}
 		else {
@@ -206,7 +208,7 @@ export default class SearchPaneOptions {
 				field1,
 				field2,
 				operator,
-				table,
+				table
 			});
 		}
 
@@ -226,7 +228,11 @@ export default class SearchPaneOptions {
 	 * @param leftJoinIn Info for a leftJoin if required
 	 */
 	public async exec(
-		field: Field, editor: Editor, http: any, fieldsIn: any, leftJoinIn: any
+		field: Field,
+		editor: Editor,
+		http: any,
+		fieldsIn: any,
+		leftJoinIn: any
 	): Promise<IOption[]> {
 		let fields = fieldsIn;
 		let db = editor.db();
@@ -242,9 +248,7 @@ export default class SearchPaneOptions {
 		let entries = null;
 
 		// If the value is not yet set then set the variable to be the field name
-		let value = this._value
-			? this._value
-			: field.dbField();
+		let value = this._value ? this._value : field.dbField();
 
 		// If the table is not yet set then set the table variable to be the same as editor
 		// This is not taking a value from the SearchPaneOptions instance as the table should be defined in value/label. This throws up errors if not.
@@ -254,33 +258,29 @@ export default class SearchPaneOptions {
 		if (this._table) {
 			table = this._table;
 		}
-		else if(readTable.length) {
+		else if (readTable.length) {
 			table = readTable[0];
 		}
 
 		// If the label value has not yet been set then just set it to be the same as value
-		let label = this._label
-			? this._label
-			: value;
+		let label = this._label ? this._label : value;
 
-		let formatter = this._renderer
-			? this._renderer
-			: d => d;
+		let formatter = this._renderer ? this._renderer : d => d;
 
 		// Use Editor's left joins and merge in any additional from this instance
 		let join = this._leftJoin.slice();
 
 		if (leftJoinIn) {
-			for (let i=0 ; i<leftJoinIn.length ; i++) {
+			for (let i = 0; i < leftJoinIn.length; i++) {
 				let found = false;
 
-				for (let j=0 ; j<join.length ; j++) {
+				for (let j = 0; j < join.length; j++) {
 					if (join[j].table === leftJoinIn[i].table) {
 						found = true;
 					}
 				}
 
-				if (! found) {
+				if (!found) {
 					join.push(leftJoinIn[i]);
 				}
 			}
@@ -299,7 +299,7 @@ export default class SearchPaneOptions {
 
 		// If not cascading, then the total and count must be the same
 		if (viewTotal) {
-			q.count({total: '*'});
+			q.count({ total: '*' });
 		}
 
 		leftJoin(q, join);
@@ -308,13 +308,14 @@ export default class SearchPaneOptions {
 			// For cases where we are ordering by a field which isn't included in the list
 			// of fields to display, we need to add the ordering field, due to the
 			// select distinct.
-			this._order.split(',').forEach((val) => {
-				let fie = val.toLocaleLowerCase()
+			this._order.split(',').forEach(val => {
+				let fie = val
+					.toLocaleLowerCase()
 					.replace(' asc', '')
 					.replace('desc', '')
 					.trim();
 
-				if (! fields.includes(fie)) {
+				if (!fields.includes(fie)) {
 					q.select(fie);
 				}
 			});
@@ -329,8 +330,8 @@ export default class SearchPaneOptions {
 			let values = rows.map(r => r.value);
 			let selected = http.searchPanes[field.name()];
 
-			for (let i=selected.length-1 ; i>=0 ; i--) {
-				if (! values.includes(selected[i])) {
+			for (let i = selected.length - 1; i >= 0; i--) {
+				if (!values.includes(selected[i])) {
 					http.searchPanes[field.name()].splice(i, 1);
 				}
 			}
@@ -342,7 +343,7 @@ export default class SearchPaneOptions {
 
 			leftJoin(query, join);
 
-			if (field.apply('get') && ! field.getValue()) {
+			if (field.apply('get') && !field.getValue()) {
 				query
 					.distinct()
 					.select(value + ' as value')
@@ -351,7 +352,7 @@ export default class SearchPaneOptions {
 				// We viewTotal is enabled, we need to do a count to get the number of records,
 				// If it isn't we still need to know it exists, but don't care about the cardinality
 				if (viewCount) {
-					query.count({count: '*'});
+					query.count({ count: '*' });
 				}
 				else {
 					query.select('(1) as count');
@@ -365,23 +366,43 @@ export default class SearchPaneOptions {
 
 				// If there is a last value set then a slightly different set of results is required for cascade
 				// That panes results are based off of the results when only considering the selections of all of the others
-				if (http.searchPanesLast && field.name() === http.searchPanesLast) {
-					if (http.searchPanes[fieName] !== undefined && fieName !== http.searchPanesLast) {
+				if (
+					http.searchPanesLast &&
+					field.name() === http.searchPanesLast
+				) {
+					if (
+						http.searchPanes[fieName] !== undefined &&
+						fieName !== http.searchPanesLast
+					) {
 						add = true;
 					}
 				}
-				else if (http.searchPanes && http.searchPanes[fieName] !== undefined) {
+				else if (
+					http.searchPanes &&
+					http.searchPanes[fieName] !== undefined
+				) {
 					add = true;
 				}
 
 				if (add) {
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[fieName].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[fieName][i] && http.searchPanes_null[fieName][i] !== 'false') {
+					query.where(function () {
+						for (
+							let i = 0;
+							i < http.searchPanes[fieName].length;
+							i++
+						) {
+							if (
+								http.searchPanes_null !== undefined &&
+								http.searchPanes_null[fieName][i] &&
+								http.searchPanes_null[fieName][i] !== 'false'
+							) {
 								this.orWhereNull(fieName);
 							}
 							else {
-								this.orWhere(fieName, http.searchPanes[fieName][i]);
+								this.orWhere(
+									fieName,
+									http.searchPanes[fieName][i]
+								);
 							}
 						}
 					});
@@ -398,17 +419,18 @@ export default class SearchPaneOptions {
 		}
 
 		let out = [];
-		
-		for (let i=0 ; i<rows.length ; i++) {
+
+		for (let i = 0; i < rows.length; i++) {
 			let row = rows[i];
 			let value = row.value;
 			let total = row.total !== undefined ? row.total : null;
 			let count = total;
 
 			if (entries) {
-				count = entries[value] && entries[value].count
-					? entries[value].count
-					: 0;
+				count =
+					entries[value] && entries[value].count
+						? entries[value].count
+						: 0;
 
 				// For when viewCount is enabled and viewTotal is not
 				// the total needs to be the same as the count!
@@ -426,15 +448,12 @@ export default class SearchPaneOptions {
 		}
 
 		// Only sort if there was no SQL order field
-		if (! this._order) {
-			out.sort(function(a, b) {
+		if (!this._order) {
+			out.sort(function (a, b) {
 				if (isNumeric(a) && isNumeric(b)) {
-					return (a.label * 1) - (b.label * 1);
+					return a.label * 1 - b.label * 1;
 				}
-				return a.label < b.label ?
-					-1 : a.label > b.label ?
-						1 :
-						0;
+				return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
 			});
 		}
 

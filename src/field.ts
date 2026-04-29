@@ -1,15 +1,14 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
-import Editor, {IDtRequest} from './editor';
-import {IFormatter} from './formatters';
+import Editor, { IDtRequest } from './editor';
+import { IFormatter } from './formatters';
 import NestedData from './nestedData';
-import Options, {CustomOptions, IOption} from './options';
-import SearchPaneOptions from './searchPaneOptions';
+import Options, { CustomOptions, IOption } from './options';
 import SearchBuilderOptions from './searchBuilderOptions';
+import SearchPaneOptions from './searchPaneOptions';
 import Upload from './upload';
-import Validator, {IValidator} from './validators';
-import xss, {Ixss} from './xss';
+import Validator, { IValidator } from './validators';
+import xss, { Ixss } from './xss';
 
 /**
  * Set types
@@ -61,7 +60,10 @@ export default class Field extends NestedData {
 	private _set: SetType = SetType.Both;
 	private _setFormatter: IFormatter;
 	private _setValue: any;
-	private _validator: Array<{setFormatted: boolean; validator: IValidator}> = [];
+	private _validator: Array<{
+		setFormatted: boolean;
+		validator: IValidator;
+	}> = [];
 	private _upload: Upload;
 	private _xss: Ixss;
 	private _xssFormat: boolean = true;
@@ -81,16 +83,12 @@ export default class Field extends NestedData {
 	constructor(dbField: string = null, name: string = null) {
 		super();
 
-		if (! name && dbField) {
+		if (!name && dbField) {
 			// Standard usage, a single parameter
-			this
-				.name(dbField)
-				.dbField(dbField);
+			this.name(dbField).dbField(dbField);
 		}
 		else {
-			this
-				.name(name)
-				.dbField(dbField);
+			this.name(name).dbField(dbField);
 		}
 	}
 
@@ -109,7 +107,7 @@ export default class Field extends NestedData {
 	 */
 	public columnControl(options: Options): this;
 	public columnControl(options?: Options) {
-		if (! options) {
+		if (!options) {
 			return this._columnControl;
 		}
 
@@ -290,22 +288,34 @@ export default class Field extends NestedData {
 	 * @param order Order to apply
 	 * @returns Self for chaining
 	 */
-	public options(table: string, value: string, label: string, condition, format, order): Field;
-	public options(table?: any, value: string = null, label: string = null, condition = null, format = null, order = null):any {
+	public options(
+		table: string,
+		value: string,
+		label: string,
+		condition,
+		format,
+		order
+	): Field;
+	public options(
+		table?: any,
+		value: string = null,
+		label: string = null,
+		condition = null,
+		format = null,
+		order = null
+	): any {
 		if (table === undefined) {
 			return this._opts;
 		}
-		else if (typeof table === 'object') { // Options object
+		else if (typeof table === 'object') {
+			// Options object
 			this._opts = table;
 		}
 		else if (typeof table === 'function') {
 			this._opts = new Options().fn(table);
 		}
 		else {
-			this._opts = new Options()
-				.table(table)
-				.value(value)
-				.label(label);
+			this._opts = new Options().table(table).value(value).label(label);
 
 			if (condition) {
 				this._opts.where(condition);
@@ -498,14 +508,14 @@ export default class Field extends NestedData {
 	 */
 	public validator(validator: IValidator, setFormatted?: boolean): Field;
 	public validator(validator?: IValidator, setFormatted = false): any {
-		if ( validator === undefined ) {
-			return this._validator.map((v) => v.validator);
+		if (validator === undefined) {
+			return this._validator.map(v => v.validator);
 		}
 
-		this._validator.push( {
+		this._validator.push({
 			setFormatted,
 			validator
-		} );
+		});
 
 		return this;
 	}
@@ -566,15 +576,24 @@ export default class Field extends NestedData {
 			return this._get;
 		}
 
-		if (action === 'create' && (this._set === SetType.None || this._set === SetType.Edit)) {
+		if (
+			action === 'create' &&
+			(this._set === SetType.None || this._set === SetType.Edit)
+		) {
 			return false;
 		}
-		else if (action === 'edit' && (this._set === SetType.None || this._set === SetType.Create)) {
+		else if (
+			action === 'edit' &&
+			(this._set === SetType.None || this._set === SetType.Create)
+		) {
 			return false;
 		}
 
 		// Check it was in the submitted data
-		if (this._setValue === undefined && ! this._propExists(this.name(), data)) {
+		if (
+			this._setValue === undefined &&
+			!this._propExists(this.name(), data)
+		) {
 			return false;
 		}
 
@@ -586,10 +605,21 @@ export default class Field extends NestedData {
 	 * @hidden
 	 */
 	public async searchBuilderOptionsExec(
-		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: Knex
+		field: Field,
+		editor: Editor,
+		http,
+		fields: Field[],
+		leftJoin,
+		db: Knex
 	): Promise<false | IOption[]> {
 		if (this._sbopts instanceof SearchBuilderOptions) {
-			let retVal = await this._sbopts.exec(field, editor, http, fields, leftJoin);
+			let retVal = await this._sbopts.exec(
+				field,
+				editor,
+				http,
+				fields,
+				leftJoin
+			);
 			return retVal;
 		}
 		else if (this._sbopts) {
@@ -598,15 +628,25 @@ export default class Field extends NestedData {
 		return false;
 	}
 
-
 	/**
 	 * @hidden
 	 */
-	 public async searchPaneOptionsExec(
-		field: Field, editor: Editor, http, fields: Field[], leftJoin, db: Knex
+	public async searchPaneOptionsExec(
+		field: Field,
+		editor: Editor,
+		http,
+		fields: Field[],
+		leftJoin,
+		db: Knex
 	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {
-			let retVal = await this._spopts.exec(field, editor, http, fields, leftJoin);
+			let retVal = await this._spopts.exec(
+				field,
+				editor,
+				http,
+				fields,
+				leftJoin
+			);
 			return retVal;
 		}
 		else if (this._spopts) {
@@ -623,15 +663,17 @@ export default class Field extends NestedData {
 
 		if (direction === 'get') {
 			if (this._getValue !== undefined) {
-				val = typeof this._getValue === 'function' ?
-					this._getValue() :
-					this._getValue;
+				val =
+					typeof this._getValue === 'function'
+						? this._getValue()
+						: this._getValue;
 			}
 			else {
 				// Getting data, so db field name
-				val = data[ this._dbField ] !== undefined ?
-					data[ this._dbField ] :
-					null;
+				val =
+					data[this._dbField] !== undefined
+						? data[this._dbField]
+						: null;
 			}
 
 			return this._format(val, data, this._getFormatter);
@@ -639,9 +681,10 @@ export default class Field extends NestedData {
 
 		// set - using from the payload, and thus use `name`
 		if (this._setValue !== undefined) {
-			val = typeof this._setValue === 'function' ?
-				this._setValue() :
-				this._setValue;
+			val =
+				typeof this._setValue === 'function'
+					? this._setValue()
+					: this._setValue;
 		}
 		else {
 			val = this._readProp(this._name, data);
@@ -653,7 +696,12 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public async validate(data: object, editor: Editor, id: string = null, action: IDtRequest['action']): Promise<true | string> {
+	public async validate(
+		data: object,
+		editor: Editor,
+		id: string = null,
+		action: IDtRequest['action']
+	): Promise<true | string> {
 		if (this._validator.length === 0) {
 			return true;
 		}
@@ -667,13 +715,13 @@ export default class Field extends NestedData {
 			id
 		});
 
-		for ( let i = 0, ien = this._validator.length ; i < ien ; i++ ) {
+		for (let i = 0, ien = this._validator.length; i < ien; i++) {
 			let validator = this._validator[i].validator;
 			let testVal = this._validator[i].setFormatted
 				? this.val('set', data)
 				: val;
 
-			let res = await validator( testVal, data, host );
+			let res = await validator(testVal, data, host);
 
 			if (res !== true) {
 				return res;
@@ -695,14 +743,14 @@ export default class Field extends NestedData {
 	 * @hidden
 	 */
 	public xssSafety(val: any) {
-		if (! this._xss) {
+		if (!this._xss) {
 			return val;
 		}
 
 		if (Array.isArray(val)) {
 			let out = [];
 
-			for (let i = 0, ien = val.length ; i < ien ; i++) {
+			for (let i = 0, ien = val.length; i < ien; i++) {
 				out.push(this._xss(val[i]));
 			}
 
@@ -717,8 +765,6 @@ export default class Field extends NestedData {
 	 */
 
 	private _format(val: any, data: object, formatter: IFormatter): any {
-		return formatter ?
-			formatter(val, data) :
-			val;
+		return formatter ? formatter(val, data) : val;
 	}
 }

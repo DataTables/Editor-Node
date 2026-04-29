@@ -73,8 +73,8 @@ export interface IDtColumn {
 			mask?: string;
 			type: string;
 			value: string;
-		}
-	}
+		};
+	};
 
 	/** Data property (`columns.data`). */
 	data: string;
@@ -134,7 +134,7 @@ export interface IDtRequest {
  * @export
  */
 export interface IDtResponse {
-	columnControl?: {[field: string]: object};
+	columnControl?: { [field: string]: object };
 
 	/** DataTables - Array of row information. */
 	data?: object[];
@@ -171,7 +171,7 @@ export interface IDtResponse {
 	searchPanes_null?: any;
 	/** Editor - Upload complete file id. */
 	upload?: {
-		id: string
+		id: string;
 	};
 
 	/** Debug information if enabled by Editor.debug() */
@@ -183,8 +183,11 @@ export interface IDtResponse {
  * delete request. The function can be useful for cases where fields must
  * be validates together, rather than individually.
  */
-export type IGlobalValidator =
-	(editor: Editor, action: string, http: IDtRequest) => Promise<true | string>;
+export type IGlobalValidator = (
+	editor: Editor,
+	action: string,
+	http: IDtRequest
+) => Promise<true | string>;
 
 /**
  * Server-side processing object structure
@@ -213,11 +216,11 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 /**
  * This function constructs the queries that are required to implement SearchBuilder filtering
  * It is given as a function rather than a method so that the scope of the function can be set to the correct query
- * 
+ *
  * @param sbData The criteria that has to have conditions created for it
  * @returns The new query with added where conditions
  */
- let _constructSearchBuilderQuery = function (sbData) {
+let _constructSearchBuilderQuery = function (sbData) {
 	// The first where condition has to be a normal where rather than an orwhere.
 	// Therefore we have to track that we have added a where condition before
 	// there is an attempt to create a new orwhere
@@ -228,7 +231,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 		// If criteria is defined then this must be a group
 		if (crit.criteria !== undefined) {
 			// Check if this is the first, or if it is and logic
-			if(sbData.logic === 'AND' || first) {
+			if (sbData.logic === 'AND' || first) {
 				// Call the function for the next group
 				this.where(q => _constructSearchBuilderQuery.apply(q, [crit]));
 				// Set first to false so that in future only the logic is checked
@@ -236,25 +239,39 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 			}
 			else {
 				// Call the function for the next group, OR logic in this block
-				this.orWhere(q => _constructSearchBuilderQuery.apply(q, [crit]));
+				this.orWhere(q =>
+					_constructSearchBuilderQuery.apply(q, [crit])
+				);
 			}
 		}
-		else if (crit.condition !== undefined && (crit.value1 !== undefined || crit.condition === "null" || crit.condition === "!null")) {
+		else if (
+			crit.condition !== undefined &&
+			(crit.value1 !== undefined ||
+				crit.condition === 'null' ||
+				crit.condition === '!null')
+		) {
 			let val1 = crit.value1;
 			let val2 = crit.value2;
 
-			if ((val1 === undefined || val1.length === 0) && crit.condition !== "null" && crit.condition !== "!null") {
+			if (
+				(val1 === undefined || val1.length === 0) &&
+				crit.condition !== 'null' &&
+				crit.condition !== '!null'
+			) {
 				continue;
 			}
-			if((val2 === undefined || val2.length === 0) && (crit.condition === "between" || crit.condition === "!between")) {
+			if (
+				(val2 === undefined || val2.length === 0) &&
+				(crit.condition === 'between' || crit.condition === '!between')
+			) {
 				continue;
 			}
 
 			// Switch on the condition that has been passed in
-			switch(crit.condition) {
+			switch (crit.condition) {
 				case '=':
 					// Check if this is the first, or if it is and logic
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						// Call the where function for this condition
 						this.where(crit.origData, val1);
 						// Set first to false so that in future only the logic is checked
@@ -266,7 +283,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case '!=':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.whereNot(crit.origData, val1);
 						first = false;
 					}
@@ -275,61 +292,73 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case 'contains':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', '%' + val1 + '%');
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', '%' + val1 + '%')
+						);
 					}
 					break;
 				case '!contains':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'NOT LIKE', '%' + val1 + '%');
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1 + '%'));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', '%' + val1 + '%')
+						);
 					}
 					break;
 				case 'starts':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', val1 + '%');
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', val1 + '%')
+						);
 					}
 					break;
 				case '!starts':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'NOT LIKE', val1 + '%');
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', val1 + '%'));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', val1 + '%')
+						);
 					}
 					break;
 				case 'ends':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'LIKE', '%' + val1);
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', '%' + val1)
+						);
 					}
 					break;
 				case '!ends':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, 'NOT LIKE', '%' + val1);
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.where(crit.origData, 'LIKE', '%' + val1));
+						this.orWhere(q =>
+							q.where(crit.origData, 'LIKE', '%' + val1)
+						);
 					}
 					break;
 				case '<':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, '<', val1);
 						first = false;
 					}
@@ -338,7 +367,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case '<=':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, '<=', val1);
 						first = false;
 					}
@@ -347,7 +376,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case '>=':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, '>=', val1);
 						first = false;
 					}
@@ -356,7 +385,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case '>':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(crit.origData, '>', val1);
 						first = false;
 					}
@@ -365,29 +394,49 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					}
 					break;
 				case 'between':
-					if(sbData.logic === 'AND' || first) {
-						this.whereBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]);
+					if (sbData.logic === 'AND' || first) {
+						this.whereBetween(crit.origData, [
+							isNaN(val1) ? val1 : +val1,
+							isNaN(val2) ? val2 : +val2
+						]);
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.whereBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]));
+						this.orWhere(q =>
+							q.whereBetween(crit.origData, [
+								isNaN(val1) ? val1 : +val1,
+								isNaN(val2) ? val2 : +val2
+							])
+						);
 					}
 					break;
 				case '!between':
-					if(sbData.logic === 'AND' || first) {
-						this.whereNotBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]);
+					if (sbData.logic === 'AND' || first) {
+						this.whereNotBetween(crit.origData, [
+							isNaN(val1) ? val1 : +val1,
+							isNaN(val2) ? val2 : +val2
+						]);
 						first = false;
 					}
 					else {
-						this.orWhere(q => q.whereNotBetween(crit.origData, [isNaN(val1) ? val1 : +val1, isNaN(val2) ? val2 : +val2]));
+						this.orWhere(q =>
+							q.whereNotBetween(crit.origData, [
+								isNaN(val1) ? val1 : +val1,
+								isNaN(val2) ? val2 : +val2
+							])
+						);
 					}
 					break;
 				case 'null':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(q => {
 							q.whereNull(crit.origData);
-							if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-								q.orWhere(crit.origData, "");
+							if (
+								!crit.type.includes('date') &&
+								!crit.type.includes('moment') &&
+								!crit.type.includes('luxon')
+							) {
+								q.orWhere(crit.origData, '');
 							}
 						});
 						first = false;
@@ -395,18 +444,26 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					else {
 						this.where(q => {
 							q.orWhere(q => q.whereNull(crit.origData));
-							if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-								q.orWhere(q => q.where(crit.origData, ""));
+							if (
+								!crit.type.includes('date') &&
+								!crit.type.includes('moment') &&
+								!crit.type.includes('luxon')
+							) {
+								q.orWhere(q => q.where(crit.origData, ''));
 							}
 						}, 'OR');
 					}
 					break;
 				case '!null':
-					if(sbData.logic === 'AND' || first) {
+					if (sbData.logic === 'AND' || first) {
 						this.where(q => {
 							q.whereNotNull(crit.origData);
-							if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-								q.whereNot(crit.origData, "");
+							if (
+								!crit.type.includes('date') &&
+								!crit.type.includes('moment') &&
+								!crit.type.includes('luxon')
+							) {
+								q.whereNot(crit.origData, '');
 							}
 						});
 						first = false;
@@ -414,8 +471,12 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 					else {
 						this.where(q => {
 							q.orWhere(q => q.whereNotNull(crit.origData));
-							if (!crit.type.includes('date') && !crit.type.includes('moment') && !crit.type.includes('luxon')) {
-								q.orWhere(q => q.whereNot(crit.origData, ""));
+							if (
+								!crit.type.includes('date') &&
+								!crit.type.includes('moment') &&
+								!crit.type.includes('luxon')
+							) {
+								q.orWhere(q => q.whereNot(crit.origData, ''));
 							}
 						}, 'OR');
 					}
@@ -426,7 +487,7 @@ type IGet = (id: string | string[], http) => Promise<IDtResponse>;
 		}
 	}
 	return this;
-}
+};
 
 /**
  * DataTables Editor base class for creating editable tables.
@@ -467,7 +528,7 @@ export default class Editor extends NestedData {
 	 * @returns {Action} Indicates what action the request is
 	 */
 	public static action(http: IDtRequest): Action {
-		if (! http || ! http.action) {
+		if (!http || !http.action) {
 			return Action.Read;
 		}
 
@@ -531,7 +592,11 @@ export default class Editor extends NestedData {
 	 * @param {(string|string[])} [pkey=null] Primary key column name in the
 	 *   table given in
 	 */
-	constructor(db: Knex = null, table: string | string[] = null, pkey: string | string[] = null) {
+	constructor(
+		db: Knex = null,
+		table: string | string[] = null,
+		pkey: string | string[] = null
+	) {
 		super();
 
 		if (db) {
@@ -773,10 +838,7 @@ export default class Editor extends NestedData {
 	 * @param {function} condition
 	 * @returns {Editor} Self for chaining
 	 */
-	public leftJoin(
-		table: string,
-		condition: Function
-	): Editor;
+	public leftJoin(table: string, condition: Function): Editor;
 	/**
 	 * Add a left join condition to the Editor instance, allowing it to operate
 	 * over multiple tables. Multiple `leftJoin()` calls can be made for a
@@ -827,7 +889,7 @@ export default class Editor extends NestedData {
 				field2: '',
 				fn: field1,
 				operator: '',
-				table,
+				table
 			});
 		}
 		else {
@@ -835,7 +897,7 @@ export default class Editor extends NestedData {
 				field1,
 				field2,
 				operator,
-				table,
+				table
 			});
 		}
 
@@ -873,11 +935,11 @@ export default class Editor extends NestedData {
 	 * @returns {Editor} Self for chaining.
 	 */
 	public on(name: string, callback: Function): Editor {
-		if (! this._events[ name ]) {
-			this._events[ name ] = [];
+		if (!this._events[name]) {
+			this._events[name] = [];
 		}
 
-		this._events[ name ].push(callback);
+		this._events[name].push(callback);
 
 		return this;
 	}
@@ -1013,8 +1075,7 @@ export default class Editor extends NestedData {
 		}
 
 		if (typeof pkey === 'string') {
-
-			this._pkey = [ pkey ];
+			this._pkey = [pkey];
 		}
 		else {
 			this._pkey = pkey;
@@ -1040,16 +1101,16 @@ export default class Editor extends NestedData {
 			let column = pkey[i];
 
 			if (flat) {
-				val = row[ column ] !== undefined ?
-					row[ column ] :
-					null;
+				val = row[column] !== undefined ? row[column] : null;
 			}
 			else {
 				val = this._readProp(column, row);
 			}
 
 			if (val === null) {
-				throw new Error('Primary key element is not available in the data set');
+				throw new Error(
+					'Primary key element is not available in the data set'
+				);
 			}
 
 			// Postgres gives a `Date` object for timestamps which causes issues as
@@ -1074,7 +1135,11 @@ export default class Editor extends NestedData {
 	 *   if not given
 	 * @returns {object} Array of field values that the id was made up of
 	 */
-	public pkeyToObject(value: string, flat: boolean = false, pkey: string[] = null): object {
+	public pkeyToObject(
+		value: string,
+		flat: boolean = false,
+		pkey: string[] = null
+	): object {
 		let arr: object = {};
 
 		value = value.replace(this.idPrefix(), '');
@@ -1090,7 +1155,7 @@ export default class Editor extends NestedData {
 
 		for (let i = 0, ien = idParts.length; i < ien; i++) {
 			if (flat) {
-				arr[ pkey[i] ] = idParts[i];
+				arr[pkey[i]] = idParts[i];
 			}
 			else {
 				this._writeProp(arr, pkey[i], idParts[i]);
@@ -1109,30 +1174,33 @@ export default class Editor extends NestedData {
 	 * @returns {Promise<Editor>} Promise that is fulfilled when Editor
 	 *   has completed its processing - result is the Editor instance.
 	 */
-	public async process(data: IDtRequest, files: IUpload = null): Promise<Editor> {
+	public async process(
+		data: IDtRequest,
+		files: IUpload = null
+	): Promise<Editor> {
 		if (this.debug()) {
-			this._debugInfo.push('Editor Node.js libraries - version ' + Editor.version);
+			this._debugInfo.push(
+				'Editor Node.js libraries - version ' + Editor.version
+			);
 		}
 
 		if (this._transaction) {
 			let processError;
 
 			try {
-				await this._db.transaction(async (trx) => {
+				await this._db.transaction(async trx => {
 					try {
 						this._knexTransaction = trx;
 						await this._process(data, files);
 						this._knexTransaction = null;
 
 						await trx.commit();
-					}
-					catch (e) {
+					} catch (e) {
 						processError = e;
 						await trx.rollback();
 					}
 				});
-			}
-			catch (e) {
+			} catch (e) {
 				if (this._tryCatch) {
 					this._out.error = processError.message;
 				}
@@ -1145,8 +1213,7 @@ export default class Editor extends NestedData {
 			if (this._tryCatch) {
 				try {
 					await this._process(data, files);
-				}
-				catch (e) {
+				} catch (e) {
 					this._out.error = e.message;
 				}
 			}
@@ -1197,11 +1264,14 @@ export default class Editor extends NestedData {
 	 * @param {IDtRequest} http The format data to check
 	 * @returns {Promise<boolean>} `true` if the data is valid, `false` if not.
 	 */
-	public async validate(errors: IDtError[], http: IDtRequest): Promise<boolean> {
+	public async validate(
+		errors: IDtError[],
+		http: IDtRequest
+	): Promise<boolean> {
 		if (this._doValidate === false) {
 			return true;
 		}
-		
+
 		if (http.action !== 'create' && http.action !== 'edit') {
 			return true;
 		}
@@ -1211,18 +1281,23 @@ export default class Editor extends NestedData {
 		let idPrefix = this.idPrefix();
 
 		for (let i = 0, ien = keys.length; i < ien; i++) {
-			let values = http.data[ keys[i] ];
+			let values = http.data[keys[i]];
 
 			for (let j = 0, jen = fields.length; j < jen; j++) {
 				let field = fields[j];
 				let id = keys[i].replace(idPrefix, '');
-				let validation = await field.validate(values, this, id, http.action);
+				let validation = await field.validate(
+					values,
+					this,
+					id,
+					http.action
+				);
 
 				if (validation !== true) {
 					errors.push({
 						id,
 						name: field.name(),
-						status: validation,
+						status: validation
 					});
 				}
 			}
@@ -1238,14 +1313,12 @@ export default class Editor extends NestedData {
 
 			if (typeof ret === 'string') {
 				this._out.error = ret;
-				
+
 				return false;
 			}
 		}
 
-		return errors.length > 0 ?
-			false :
-			true;
+		return errors.length > 0 ? false : true;
 	}
 
 	/**
@@ -1276,7 +1349,10 @@ export default class Editor extends NestedData {
 	 */
 	public validator(afterFields: boolean, fn: IGlobalValidator): Editor;
 
-	public validator(afterFields?: boolean | IGlobalValidator, fn?: IGlobalValidator): any {
+	public validator(
+		afterFields?: boolean | IGlobalValidator,
+		fn?: IGlobalValidator
+	): any {
 		// Argument shifting
 		if (afterFields === undefined) {
 			// No args
@@ -1291,9 +1367,7 @@ export default class Editor extends NestedData {
 
 		// Getter
 		if (fn === undefined) {
-			return afterFields
-				? this._validatorsAfterFields
-				: this._validators;
+			return afterFields ? this._validatorsAfterFields : this._validators;
 		}
 
 		// Setter
@@ -1341,20 +1415,20 @@ export default class Editor extends NestedData {
 	}
 
 	/**
-	* Getter/Setter for this._write which is used to decide which actions to allow
-	* @param writeVal Value for this._write
-	*/
-    public write(writeVal){
-	   if(writeVal == undefined){
-		   return this._write;
-	   }
-	   else if(typeof(writeVal) === "boolean") {
-		   this._write = writeVal;
-		   return this;
-	   }
-	   else {
-		   return this;
-	   }
+	 * Getter/Setter for this._write which is used to decide which actions to allow
+	 * @param writeVal Value for this._write
+	 */
+	public write(writeVal) {
+		if (writeVal == undefined) {
+			return this._write;
+		}
+		else if (typeof writeVal === 'boolean') {
+			this._write = writeVal;
+			return this;
+		}
+		else {
+			return this;
+		}
 	}
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
@@ -1362,7 +1436,7 @@ export default class Editor extends NestedData {
 
 	private async _fileClean(): Promise<void> {
 		let that = this;
-		let run = async function(fields) {
+		let run = async function (fields) {
 			for (let i = 0, ien = fields.length; i < ien; i++) {
 				let upload = fields[i].upload();
 
@@ -1379,7 +1453,11 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _fileData(limitTable: string = null, ids: string[] = null, data: any[] = null): Promise<object> {
+	private async _fileData(
+		limitTable: string = null,
+		ids: string[] = null,
+		data: any[] = null
+	): Promise<object> {
 		let files = {};
 
 		// The fields in this instance
@@ -1394,7 +1472,7 @@ export default class Editor extends NestedData {
 			if (data) {
 				joinData = [];
 
-				for (let j = 0, jen = data.length; j < jen ; j++) {
+				for (let j = 0, jen = data.length; j < jen; j++) {
 					let innerData = data[j][this._join[i].name()];
 
 					if (innerData) {
@@ -1403,14 +1481,24 @@ export default class Editor extends NestedData {
 				}
 			}
 
-			await this._fileDataFields(files, this._join[i].fields(), limitTable, ids, joinData);
+			await this._fileDataFields(
+				files,
+				this._join[i].fields(),
+				limitTable,
+				ids,
+				joinData
+			);
 		}
 
 		return files;
 	}
 
 	private async _fileDataFields(
-		files: object, fields: Field[], limitTable: string, ids: string[] = null, data: any[] = null
+		files: object,
+		fields: Field[],
+		limitTable: string,
+		ids: string[] = null,
+		data: any[] = null
 	): Promise<void> {
 		for (let i = 0, ien = fields.length; i < ien; i++) {
 			let upload = fields[i].upload();
@@ -1418,7 +1506,7 @@ export default class Editor extends NestedData {
 			if (upload) {
 				let table = upload.table();
 
-				if (! table) {
+				if (!table) {
 					continue;
 				}
 
@@ -1426,7 +1514,7 @@ export default class Editor extends NestedData {
 					continue;
 				}
 
-				if (files[ table ]) {
+				if (files[table]) {
 					continue;
 				}
 
@@ -1458,7 +1546,7 @@ export default class Editor extends NestedData {
 				let fileData = await upload.data(this.db(), ids);
 
 				if (fileData) {
-					files[ table ] = fileData;
+					files[table] = fileData;
 				}
 			}
 		}
@@ -1485,7 +1573,10 @@ export default class Editor extends NestedData {
 		return null;
 	}
 
-	private async _get(id: string | string[], http = null): Promise<IDtResponse> {
+	private async _get(
+		id: string | string[],
+		http = null
+	): Promise<IDtResponse> {
 		let response;
 		let cancel = await this._trigger('preGet', id);
 
@@ -1511,7 +1602,10 @@ export default class Editor extends NestedData {
 					continue;
 				}
 
-				if (fields[i].apply('get') && fields[i].getValue() === undefined) {
+				if (
+					fields[i].apply('get') &&
+					fields[i].getValue() === undefined
+				) {
 					// Use the `as` to ensure that the table name is included, if using a join
 					let dbField = fields[i].dbField();
 
@@ -1519,7 +1613,9 @@ export default class Editor extends NestedData {
 						query.select(dbField + ' as ' + dbField);
 					}
 					else {
-						query.select(this.db().raw(dbField + ' as "' + dbField + '"'));
+						query.select(
+							this.db().raw(dbField + ' as "' + dbField + '"')
+						);
 					}
 				}
 			}
@@ -1542,10 +1638,16 @@ export default class Editor extends NestedData {
 			}
 
 			// If there is a searchBuilder condition present in the request data
-			if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
+			if (
+				http !== null &&
+				http.searchBuilder !== undefined &&
+				http.searchBuilder !== null
+			) {
 				// Run the above function for the first level of the searchBuilder data
-				if(http.searchBuilder.criteria !== undefined) {
-					query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+				if (http.searchBuilder.criteria !== undefined) {
+					query = _constructSearchBuilderQuery.apply(query, [
+						http.searchBuilder
+					]);
 				}
 			}
 
@@ -1563,16 +1665,18 @@ export default class Editor extends NestedData {
 			let ssp = await this._ssp(query, http);
 
 			let result = await query;
-			if (! result) {
-				throw new Error('Error executing SQL for data get. Enable SQL debug using ' +
-					'`debug: true` in your Knex db configuration'
+			if (!result) {
+				throw new Error(
+					'Error executing SQL for data get. Enable SQL debug using ' +
+						'`debug: true` in your Knex db configuration'
 				);
 			}
 
 			let out = [];
 			for (let i = 0, ien = result.length; i < ien; i++) {
 				let inner = {
-					DT_RowId: this.idPrefix() + this.pkeyToValue(result[i], true),
+					DT_RowId:
+						this.idPrefix() + this.pkeyToValue(result[i], true)
 				};
 
 				for (let j = 0, jen = fields.length; j < jen; j++) {
@@ -1643,9 +1747,10 @@ export default class Editor extends NestedData {
 
 		// Was the primary key altered as part of the edit, if so use the
 		// submitted values
-		id = this._pkey.length > 1 ?
-			this.pkeyToValue(all) :
-			this._pkeySubmitMerge(id, all);
+		id =
+			this._pkey.length > 1
+				? this.pkeyToValue(all)
+				: this._pkeySubmitMerge(id, all);
 
 		// Join
 		for (let i = 0, ien = this._join.length; i < ien; i++) {
@@ -1665,9 +1770,7 @@ export default class Editor extends NestedData {
 			let res = await this._insertOrUpdateTable(
 				tables[i],
 				values,
-				id !== null ?
-					this.pkeyToObject(id, true) :
-					null
+				id !== null ? this.pkeyToObject(id, true) : null
 			);
 
 			// If you don't have an id yet, then the first insert will return
@@ -1715,11 +1818,11 @@ export default class Editor extends NestedData {
 				// host field was submitted
 				let field = this._findField(parentLink, 'db');
 
-				if (! field || ! field.apply('edit', values)) {
+				if (!field || !field.apply('edit', values)) {
 					// If not, then check if the child id was submitted
 					field = this._findField(childLink, 'db');
 
-					if (! field || ! field.apply('edit', values)) {
+					if (!field || !field.apply('edit', values)) {
 						// No data available, so we can't do anything
 						continue;
 					}
@@ -1730,20 +1833,22 @@ export default class Editor extends NestedData {
 
 			let whereName = this._part(childLink, 'column');
 
-			await this._insertOrUpdateTable(
-				join.table,
-				values,
-				{ [whereName]: whereVal }
-			);
+			await this._insertOrUpdateTable(join.table, values, {
+				[whereName]: whereVal
+			});
 		}
 
 		return id;
 	}
 
-	private async _insertOrUpdateTable(table: string, values: object, where: object = null) {
+	private async _insertOrUpdateTable(
+		table: string,
+		values: object,
+		where: object = null
+	) {
 		let set = {};
 		let res;
-		let action: 'create' | 'edit' = (where === null) ? 'create' : 'edit';
+		let action: 'create' | 'edit' = where === null ? 'create' : 'edit';
 		let tableAlias = this._alias(table, 'alias');
 		let fields = this.fields();
 
@@ -1763,14 +1868,14 @@ export default class Editor extends NestedData {
 
 			// Check if this field should be set, based on options and
 			// submitted data
-			if (! field.apply(action, values)) {
+			if (!field.apply(action, values)) {
 				continue;
 			}
 
 			// Some database's (specifically pg) don't like having the table
 			// name prefixing the column name.
 			let fieldPart = this._part(field.dbField(), 'column');
-			set[ fieldPart ] = field.val('set', values);
+			set[fieldPart] = field.val('set', values);
 		}
 
 		if (Object.keys(set).length === 0) {
@@ -1780,68 +1885,44 @@ export default class Editor extends NestedData {
 		if (action === 'create' && this.table().indexOf(table) !== -1) {
 			// On the main table we get the pkey that is generated
 			let pkey = this._part(this._pkey[0], 'column');
-			res = await this
-				.db()
-				.insert(set)
-				.table(table)
-				.returning(pkey);
+			res = await this.db().insert(set).table(table).returning(pkey);
 
-			return typeof res[0] === 'object' ?
-				res[0][pkey].toString() :
-				res[0].toString();
+			return typeof res[0] === 'object'
+				? res[0][pkey].toString()
+				: res[0].toString();
 		}
 		else if (action === 'create') {
 			// Create on a linked table
-			res = await this
-				.db()
-				.insert(set)
-				.table(table);
+			res = await this.db().insert(set).table(table);
 		}
 		else if (this.table().indexOf(table) === -1) {
 			// Update on a linked table - the record might not yet exist, so need to check.
-			let check = await this
-				.db()
-				.table(table)
-				.select('*')
-				.where(where);
+			let check = await this.db().table(table).select('*').where(where);
 
 			if (check && check.length) {
-				await this
-					.db()
-					.table(table)
-					.update(set)
-					.where(where);
+				await this.db().table(table).update(set).where(where);
 			}
 			else {
-				await this
-					.db()
+				await this.db()
 					.table(table)
-					.insert({...set, ...where});
+					.insert({ ...set, ...where });
 			}
 		}
 		else {
 			// Update on the host table
-			await this
-				.db()
-				.table(table)
-				.update(set)
-				.where(where);
+			await this.db().table(table).update(set).where(where);
 		}
 	}
 
 	private _alias(name: string, type: 'alias' | 'orig' = 'alias'): string {
 		if (name.indexOf(' as ') !== -1) {
 			let a = name.split(/ as /i);
-			return type === 'alias' ?
-				a[1] :
-				a[0];
+			return type === 'alias' ? a[1] : a[0];
 		}
 
 		if (name.indexOf(' ') !== -1) {
 			let a = name.split(/ /i);
-			return type === 'alias' ?
-				a[1] :
-				a[0];
+			return type === 'alias' ? a[1] : a[0];
 		}
 
 		return name;
@@ -1852,8 +1933,7 @@ export default class Editor extends NestedData {
 	 *
 	 * @param refresh false for initial load, true if after insert, update
 	 */
-	private async _options(refresh: boolean)
-	{
+	private async _options(refresh: boolean) {
 		let fields = this.fields();
 
 		for (let i = 0, ien = fields.length; i < ien; i++) {
@@ -1869,21 +1949,35 @@ export default class Editor extends NestedData {
 				}
 			}
 
-			let spOpts = await fields[i].searchPaneOptionsExec(field, this, this._processData, fields, this._leftJoin, this.db());
+			let spOpts = await fields[i].searchPaneOptionsExec(
+				field,
+				this,
+				this._processData,
+				fields,
+				this._leftJoin,
+				this.db()
+			);
 
 			if (spOpts) {
-				if (! this._out.searchPanes) {
-					this._out.searchPanes = {options: {}};
+				if (!this._out.searchPanes) {
+					this._out.searchPanes = { options: {} };
 				}
 
 				this._out.searchPanes.options[field.name()] = spOpts;
 			}
 
-			let sbOpts = await fields[i].searchBuilderOptionsExec(field, this, this._processData, fields, this._leftJoin, this.db());
+			let sbOpts = await fields[i].searchBuilderOptionsExec(
+				field,
+				this,
+				this._processData,
+				fields,
+				this._leftJoin,
+				this.db()
+			);
 
 			if (sbOpts) {
-				if (! this._out.searchBuilder) {
-					this._out.searchBuilder = {options: {}};
+				if (!this._out.searchBuilder) {
+					this._out.searchBuilder = { options: {} };
 				}
 
 				this._out.searchBuilder.options[field.name()] = sbOpts;
@@ -1896,7 +1990,7 @@ export default class Editor extends NestedData {
 				let opts = await cc.exec(this._db, false);
 
 				if (opts !== false) {
-					if (! this._out.columnControl) {
+					if (!this._out.columnControl) {
 						this._out.columnControl = {};
 					}
 
@@ -1906,7 +2000,7 @@ export default class Editor extends NestedData {
 		}
 
 		// Check the join's for a list of options
-		for (let i = 0; i < this._join.length ; i++) {
+		for (let i = 0; i < this._join.length; i++) {
 			await this._join[i].options(this._out.options, this._db, refresh);
 		}
 	}
@@ -1916,8 +2010,7 @@ export default class Editor extends NestedData {
 	 *
 	 * @param array $http Submitted HTTP request for search
 	 */
-	private async _optionsSearch(http)
-	{
+	private async _optionsSearch(http) {
 		let values = null;
 		let field = this._findField(http.field, 'name');
 
@@ -1943,8 +2036,10 @@ export default class Editor extends NestedData {
 		}
 	}
 
-
-	private _part(name: string, type: 'table' | 'db' | 'column' = 'table'): string {
+	private _part(
+		name: string,
+		type: 'table' | 'db' | 'column' = 'table'
+	): string {
 		let db;
 		let table;
 		let column;
@@ -1985,7 +2080,8 @@ export default class Editor extends NestedData {
 			let val = this._pkey[i];
 
 			if (val.indexOf('.') === -1) {
-				this._pkey[i] = this._alias(this.table()[0], 'alias') + '.' + val;
+				this._pkey[i] =
+					this._alias(this.table()[0], 'alias') + '.' + val;
 			}
 		}
 
@@ -1997,9 +2093,12 @@ export default class Editor extends NestedData {
 			let name = field.dbField();
 
 			if (name.indexOf('.') === -1) {
-				throw new Error('Table part of the field "' + name + '" was not found. ' +
-					'In Editor instances that use a join, all fields must have the ' +
-					'database table set explicitly.'
+				throw new Error(
+					'Table part of the field "' +
+						name +
+						'" was not found. ' +
+						'In Editor instances that use a join, all fields must have the ' +
+						'database table set explicitly.'
 				);
 			}
 		}
@@ -2016,11 +2115,11 @@ export default class Editor extends NestedData {
 		let arr = this.pkeyToObject(pkeyVal, true);
 
 		for (let i = 0, ien = pkey.length; i < ien; i++) {
-			let column = pkey[ i ];
+			let column = pkey[i];
 			let field = this._findField(column, 'db');
 
 			if (field && field.apply('edit', row)) {
-				arr[ column ] = field.val('set', row);
+				arr[column] = field.val('set', row);
 			}
 		}
 
@@ -2038,10 +2137,11 @@ export default class Editor extends NestedData {
 			let column = pkey[i];
 			let field = this._findField(column, 'db');
 
-			if (! field || ! field.apply('create', row)) {
-				throw new Error('When inserting into a compound key table, ' +
-					'all fields that are part of the compound key must be ' +
-					'submitted with a specific value.'
+			if (!field || !field.apply('create', row)) {
+				throw new Error(
+					'When inserting into a compound key table, ' +
+						'all fields that are part of the compound key must be ' +
+						'submitted with a specific value.'
 				);
 			}
 		}
@@ -2075,16 +2175,17 @@ export default class Editor extends NestedData {
 			data.action &&
 			data.action !== 'upload' &&
 			data.action !== 'read' &&
-			! data.data &&
-			! data.search &&
-			! data.values
+			!data.data &&
+			!data.search &&
+			!data.values
 		) {
-			this._out.error = 'No data detected. Have you used `{extended: true}` for `bodyParser`?';
+			this._out.error =
+				'No data detected. Have you used `{extended: true}` for `bodyParser`?';
 		}
 
 		let action = Editor.action(data);
 
-		if (! this._out.error) {
+		if (!this._out.error) {
 			if (action === Action.Read) {
 				let outData = await this._get(null, data);
 
@@ -2106,7 +2207,10 @@ export default class Editor extends NestedData {
 				await this._options(true);
 				await this._fileClean();
 			}
-			else if ((action === Action.Create || action === Action.Edit) && this._write) {
+			else if (
+				(action === Action.Create || action === Action.Edit) &&
+				this._write
+			) {
 				// create or edit
 				let keys = Object.keys(data.data);
 
@@ -2128,7 +2232,7 @@ export default class Editor extends NestedData {
 					// One of the event handlers returned false - don't continue
 					if (cancel === false) {
 						// Remove the data from the data set so it won't be processed
-						delete data.data[ idSrc ];
+						delete data.data[idSrc];
 
 						// Tell the client-side we aren't updating this row
 						this._out.cancelled.push(idSrc);
@@ -2138,23 +2242,22 @@ export default class Editor extends NestedData {
 				// Field validation
 				let valid = await this.validate(this._out.fieldErrors, data);
 				let pkeys = [];
-				let eventName = action === Action.Create ?
-					'Create' :
-					'Edit';
-			
+				let eventName = action === Action.Create ? 'Create' : 'Edit';
+
 				if (valid) {
 					keys = Object.keys(data.data);
 
 					// Perform db insert / update
 					for (let key of keys) {
-						let pkey = action === Action.Create ?
-							await this._insert(data.data[key]) :
-							await this._update(key, data.data[key]);
+						let pkey =
+							action === Action.Create
+								? await this._insert(data.data[key])
+								: await this._update(key, data.data[key]);
 
 						pkeys.push({
 							dataKey: this.idPrefix() + pkey,
 							pkey,
-							submitKey: key, // could be array index (create)
+							submitKey: key // could be array index (create)
 						});
 					}
 
@@ -2184,7 +2287,9 @@ export default class Editor extends NestedData {
 							`post${eventName}`,
 							key.pkey,
 							data.data[key.submitKey],
-							returnData.data.find(row => row['DT_RowId'] === key.dataKey)
+							returnData.data.find(
+								row => row['DT_RowId'] === key.dataKey
+							)
 						);
 					}
 
@@ -2203,12 +2308,7 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		await this._trigger(
-			`processed`,
-			action,
-			data,
-			this._out
-		);
+		await this._trigger(`processed`, action, data, this._out);
 
 		if (this._debug) {
 			this._out.debug = this._debugInfo.slice();
@@ -2216,9 +2316,7 @@ export default class Editor extends NestedData {
 	}
 
 	private _readTable(): string[] {
-		return this._readTableNames.length ?
-			this._readTableNames :
-			this._table;
+		return this._readTableNames.length ? this._readTableNames : this._table;
 	}
 
 	private async _remove(http: IDtRequest): Promise<void> {
@@ -2286,13 +2384,21 @@ export default class Editor extends NestedData {
 		}
 
 		for (let i = 0, ien = ids.length; i < ien; i++) {
-			await this._trigger('postRemove', ids[i], http.data[ this.idPrefix() + ids[i] ]);
+			await this._trigger(
+				'postRemove',
+				ids[i],
+				http.data[this.idPrefix() + ids[i]]
+			);
 		}
 
 		await this._trigger('postRemoveAll', ids, http.data);
 	}
 
-	private async _removeTable(table: string, ids: string[], pkey: string[] = null): Promise<void> {
+	private async _removeTable(
+		table: string,
+		ids: string[],
+		pkey: string[] = null
+	): Promise<void> {
 		if (pkey === null) {
 			pkey = this.pkey();
 		}
@@ -2315,8 +2421,10 @@ export default class Editor extends NestedData {
 		for (let i = 0, ien = fields.length; i < ien; i++) {
 			let dbField = fields[i].dbField();
 
-			if (dbField.indexOf('.') === -1 ||
-				(this._part(dbField, 'table') === tableAlias && fields[i].set() !== SetType.None)
+			if (
+				dbField.indexOf('.') === -1 ||
+				(this._part(dbField, 'table') === tableAlias &&
+					fields[i].set() !== SetType.None)
 			) {
 				count++;
 			}
@@ -2328,7 +2436,7 @@ export default class Editor extends NestedData {
 			for (let i = 0, ien = ids.length; i < ien; i++) {
 				let cond = this.pkeyToObject(ids[i], true, pkey);
 
-				q.orWhere(function() {
+				q.orWhere(function () {
 					this.where(cond);
 				});
 			}
@@ -2337,8 +2445,11 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _ssp(query: Knex.QueryBuilder, http: IDtRequest): Promise<ISSP> {
-		if (! http || ! http.draw) {
+	private async _ssp(
+		query: Knex.QueryBuilder,
+		http: IDtRequest
+	): Promise<ISSP> {
+		if (!http || !http.draw) {
 			return {};
 		}
 
@@ -2348,8 +2459,7 @@ export default class Editor extends NestedData {
 		this._sspFilter(query, http);
 
 		// Get the number of rows in the result set
-		let setCount = this
-			.db()
+		let setCount = this.db()
 			.from(this._readTable()[0])
 			.count(this._pkey[0] + ' as cnt');
 
@@ -2366,13 +2476,13 @@ export default class Editor extends NestedData {
 		// without a filter, to be able to display that in the table info. If there is no filter,
 		// then the recordsTotal === recordsFiltered (above).
 		if (isSpecific || isFiltered) {
-			let fullCount = this
-				.db()
+			let fullCount = this.db()
 				.from(this._readTable()[0])
 				.count(this._pkey[0] + ' as cnt');
 
 			this._getWhere(fullCount);
-			if (this._where.length) { // only needed if there is a where condition
+			if (this._where.length) {
+				// only needed if there is a where condition
 				leftJoin(fullCount, this._leftJoin);
 			}
 
@@ -2388,16 +2498,18 @@ export default class Editor extends NestedData {
 	}
 
 	private _sspField(http: IDtRequest, index: number): string {
-		let name = http.columns[ index ].data;
+		let name = http.columns[index].data;
 		let field = this._findField(name, 'name');
 
-		if (! field) {
+		if (!field) {
 			// Is it the primary key?
 			if (name === 'DT_RowId') {
 				return this._pkey[0];
 			}
 
-			throw new Error('Unknown field: ' + name + ' (index ' + index + ')');
+			throw new Error(
+				'Unknown field: ' + name + ' (index ' + index + ')'
+			);
 		}
 
 		return field.dbField();
@@ -2411,7 +2523,7 @@ export default class Editor extends NestedData {
 		if (http.search.value) {
 			filtered = true;
 
-			query.where((q) => {
+			query.where(q => {
 				for (let i = 0, ien = http.columns.length; i < ien; i++) {
 					if (http.columns[i].searchable.toString() === 'true') {
 						let field = this._sspField(http, i);
@@ -2421,10 +2533,17 @@ export default class Editor extends NestedData {
 
 							// Nasty hack for Postgres
 							if (client === 'pg' || client === 'postgres') {
-								q.orWhereRaw('??::text ILIKE ?',[field,'%' + http.search.value + '%']);
+								q.orWhereRaw('??::text ILIKE ?', [
+									field,
+									'%' + http.search.value + '%'
+								]);
 							}
 							else {
-								q.orWhere(field, 'LIKE', '%' + http.search.value + '%');
+								q.orWhere(
+									field,
+									'LIKE',
+									'%' + http.search.value + '%'
+								);
 							}
 						}
 					}
@@ -2437,14 +2556,27 @@ export default class Editor extends NestedData {
 				if (http.searchPanes[field.name()] !== undefined) {
 					filtered = true;
 
-					query.where(function() {
-						for (let i = 0; i < http.searchPanes[field.name()].length; i++) {
-							if(http.searchPanes_null !== undefined && http.searchPanes_null[field.name()] !== undefined && http.searchPanes_null[field.name()][i] !== 'false') {
+					query.where(function () {
+						for (
+							let i = 0;
+							i < http.searchPanes[field.name()].length;
+							i++
+						) {
+							if (
+								http.searchPanes_null !== undefined &&
+								http.searchPanes_null[field.name()] !==
+									undefined &&
+								http.searchPanes_null[field.name()][i] !==
+									'false'
+							) {
 								this.orWhereNull(field.name());
 								this.orWhere(field.name(), '');
 							}
 							else {
-								this.orWhere(field.name(), http.searchPanes[field.name()][i]);
+								this.orWhere(
+									field.name(),
+									http.searchPanes[field.name()][i]
+								);
 							}
 						}
 					});
@@ -2453,11 +2585,17 @@ export default class Editor extends NestedData {
 		}
 
 		// If there is a searchBuilder condition present in the request data
-		if (http !== null && http.searchBuilder !== undefined && http.searchBuilder !== null) {
+		if (
+			http !== null &&
+			http.searchBuilder !== undefined &&
+			http.searchBuilder !== null
+		) {
 			// Run the above function for the first level of the searchBuilder data
-			if(http.searchBuilder.criteria !== undefined) {
+			if (http.searchBuilder.criteria !== undefined) {
 				filtered = true;
-				query = _constructSearchBuilderQuery.apply(query, [http.searchBuilder]);
+				query = _constructSearchBuilderQuery.apply(query, [
+					http.searchBuilder
+				]);
 			}
 		}
 
@@ -2473,10 +2611,10 @@ export default class Editor extends NestedData {
 
 				// Nasty hack for Postgres
 				if (this._db.client.config.client === 'pg') {
-					query.whereRaw(
-						'??::text ILIKE ?',
-						[this._sspField(http, i),'%' + search + '%']
-					);
+					query.whereRaw('??::text ILIKE ?', [
+						this._sspField(http, i),
+						'%' + search + '%'
+					]);
 				}
 				else {
 					query.where(
@@ -2492,10 +2630,9 @@ export default class Editor extends NestedData {
 	}
 
 	private _sspLimit(query: Knex.QueryBuilder, http: IDtRequest): void {
-		if (http.length !== -1) { // -1 is 'show all' in DataTables
-			query
-				.limit(http.length * 1)
-				.offset(http.start * 1);
+		if (http.length !== -1) {
+			// -1 is 'show all' in DataTables
+			query.limit(http.length * 1).offset(http.start * 1);
 		}
 	}
 
@@ -2511,16 +2648,16 @@ export default class Editor extends NestedData {
 			}
 		}
 
-		if (! http.order || http.order.length === 0) {
+		if (!http.order || http.order.length === 0) {
 			query.orderBy(this._pkey[0], 'asc');
 		}
 	}
 
 	private async _trigger(name: string, ...args): Promise<boolean> {
 		let out = null;
-		let events = this._events[ name ];
+		let events = this._events[name];
 
-		if (! this._events[ name ]) {
+		if (!this._events[name]) {
 			return;
 		}
 
@@ -2565,7 +2702,7 @@ export default class Editor extends NestedData {
 		let field = this._findField(http.uploadField, 'name');
 		let fieldName = '';
 
-		if (! field) {
+		if (!field) {
 			// Perhaps it is in a join instance
 			for (let i = 0, ien = this._join.length; i < ien; i++) {
 				let join = this._join[i];
@@ -2586,11 +2723,11 @@ export default class Editor extends NestedData {
 			fieldName = field.name();
 		}
 
-		if (! this._uploadData) {
+		if (!this._uploadData) {
 			throw new Error('No upload data supplied');
 		}
 
-		if (! field) {
+		if (!field) {
 			throw new Error('Unknown upload field name submitted');
 		}
 
@@ -2602,13 +2739,15 @@ export default class Editor extends NestedData {
 		}
 
 		let upload = field.upload();
-		if (! upload) {
-			throw new Error('File uploaded to a field that does not have upload options configured');
+		if (!upload) {
+			throw new Error(
+				'File uploaded to a field that does not have upload options configured'
+			);
 		}
 
 		let res = await upload.exec(this, this._uploadData);
 
-		if (! res) {
+		if (!res) {
 			this._out.fieldErrors.push({
 				name: fieldName,
 				status: upload.error()

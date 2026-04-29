@@ -10,6 +10,6 @@ export type Ixss = (str: string) => string;
  * @param {string} str User submitted string
  * @returns {string} Sanitized string
  */
-export default function xss( str: string ): string {
-	return xssFilters.inHTMLData( str );
+export default function xss(str: string): string {
+	return xssFilters.inHTMLData(str);
 }

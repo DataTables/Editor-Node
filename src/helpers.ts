@@ -1,8 +1,10 @@
+import { Knex } from 'knex';
+import { ILeftJoin } from './editor';
 
-import {Knex} from 'knex';
-import {ILeftJoin} from './editor';
-
-export function leftJoin(query: Knex.QueryBuilder, leftJoin: ILeftJoin[]): void {
+export function leftJoin(
+	query: Knex.QueryBuilder,
+	leftJoin: ILeftJoin[]
+): void {
 	if (leftJoin === null || leftJoin === undefined) {
 		return;
 	}
@@ -14,7 +16,7 @@ export function leftJoin(query: Knex.QueryBuilder, leftJoin: ILeftJoin[]): void 
 			query.leftJoin(join.table, join.fn as any);
 		}
 		else {
-			query.leftJoin(join.table, function() {
+			query.leftJoin(join.table, function () {
 				this.on(join.field1, join.operator, join.field2);
 			});
 		}

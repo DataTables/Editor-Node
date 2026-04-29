@@ -1,9 +1,8 @@
-import * as knex from 'knex';
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
+import Editor, { ILeftJoin } from './editor';
 import Field from './field';
-import Editor, {ILeftJoin} from './editor';
-import {leftJoin} from './helpers';
+import { leftJoin } from './helpers';
 
 function isNumeric(n) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -60,9 +59,7 @@ export default class SearchBuilderOptions {
 			return this._label;
 		}
 
-		this._label = Array.isArray(label) ?
-			label :
-			[label];
+		this._label = Array.isArray(label) ? label : [label];
 
 		return this;
 	}
@@ -192,8 +189,13 @@ export default class SearchBuilderOptions {
 	 * @param operator operator for the join
 	 * @param field2 the second field
 	 */
-	public leftJoin(table: string, field1: string | Function, operator: string, field2: string): this {
-		if(this._leftJoin === undefined || this._leftJoin === null) {
+	public leftJoin(
+		table: string,
+		field1: string | Function,
+		operator: string,
+		field2: string
+	): this {
+		if (this._leftJoin === undefined || this._leftJoin === null) {
 			this._leftJoin = [];
 		}
 
@@ -203,7 +205,7 @@ export default class SearchBuilderOptions {
 				field2: '',
 				fn: field1,
 				operator: '',
-				table,
+				table
 			});
 		}
 		else {
@@ -211,7 +213,7 @@ export default class SearchBuilderOptions {
 				field1,
 				field2,
 				operator,
-				table,
+				table
 			});
 		}
 		return this;
@@ -230,7 +232,11 @@ export default class SearchBuilderOptions {
 	 * @param leftJoinIn Info for a leftJoin if required
 	 */
 	public async exec(
-		field: Field, editor: Editor, http: any, fieldsIn: any, leftJoinIn: any
+		field: Field,
+		editor: Editor,
+		http: any,
+		fieldsIn: any,
+		leftJoinIn: any
 	): Promise<IOption[]> {
 		let label;
 		let value;
@@ -243,9 +249,10 @@ export default class SearchBuilderOptions {
 		//  SearchBuilderOptions or the fieldName if it has not been declared
 		if (this._value === undefined) {
 			let sbopts = field.searchBuilderOptions();
-			value = sbopts.label() !== undefined ?
-				sbopts.label()[0] :
-			 	value = field.name();
+			value =
+				sbopts.label() !== undefined
+					? sbopts.label()[0]
+					: (value = field.name());
 		}
 		// Otherwise we can just get it from the value that has been defined
 		else {
@@ -262,13 +269,18 @@ export default class SearchBuilderOptions {
 		}
 
 		// If the table has not been defined then get it from the editor instance
-		table = this._table !== undefined ?
-			this._table :
-			editor.readTable().length > 0 ?
-				editor.readTable()[0] :
-				editor.table()[0];
+		table =
+			this._table !== undefined
+				? this._table
+				: editor.readTable().length > 0
+				? editor.readTable()[0]
+				: editor.table()[0];
 
-		if (leftJoinIn !== undefined && leftJoinIn !== null && this._leftJoin === undefined) {
+		if (
+			leftJoinIn !== undefined &&
+			leftJoinIn !== null &&
+			this._leftJoin === undefined
+		) {
 			join = leftJoinIn;
 		}
 
@@ -278,8 +290,8 @@ export default class SearchBuilderOptions {
 		// let fields = [ value ].concat(label);
 
 		// We need a default formatter if one isn't provided
-		if (! formatter) {
-			formatter = function(str) {
+		if (!formatter) {
+			formatter = function (str) {
 				return str;
 			};
 		}
@@ -300,20 +312,17 @@ export default class SearchBuilderOptions {
 		for (let recordCou of res) {
 			out.push({
 				value: recordCou.value,
-				label: recordCou.label,
-			})
+				label: recordCou.label
+			});
 		}
 
 		// Only sort if there was no SQL order field
-		if (! this._order) {
-			out.sort(function(a, b) {
+		if (!this._order) {
+			out.sort(function (a, b) {
 				if (isNumeric(a) && isNumeric(b)) {
-					return (a.label * 1) - (b.label * 1);
+					return a.label * 1 - b.label * 1;
 				}
-				return a.label < b.label ?
-					-1 : a.label > b.label ?
-						1 :
-						0;
+				return a.label < b.label ? -1 : a.label > b.label ? 1 : 0;
 			});
 		}
 

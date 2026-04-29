@@ -1,8 +1,12 @@
-import Editor, { IDtRequest } from './editor';
 import { Knex } from 'knex';
+import Editor, { IDtRequest } from './editor';
 
 export default class ColumnControl {
-	public static ssp(editor: Editor, query: Knex.QueryBuilder<any, any>, http: IDtRequest) {
+	public static ssp(
+		editor: Editor,
+		query: Knex.QueryBuilder<any, any>,
+		http: IDtRequest
+	) {
 		for (let i = 0; i < http.columns.length; i++) {
 			let column = http['columns'][i];
 
@@ -20,7 +24,13 @@ export default class ColumnControl {
 						ColumnControl._sspNumber(query, field, value, logic);
 					}
 					else if (type === 'date') {
-						ColumnControl._sspDate(query, field, value, logic, search.mask);
+						ColumnControl._sspDate(
+							query,
+							field,
+							value,
+							logic,
+							search.mask
+						);
 					}
 					else {
 						ColumnControl._sspText(query, field, value, logic);
@@ -97,13 +107,13 @@ export default class ColumnControl {
 	 */
 	private static _sspNumber(query, field, value, logic) {
 		if (logic === 'empty') {
-			query.where((q) => {
+			query.where(q => {
 				q.whereNull(field.dbField());
 				q.orWhere(field.dbField(), '=', '');
 			});
 		}
 		else if (logic === 'notEmpty') {
-			query.where((q) => {
+			query.where(q => {
 				q.whereNotNull(field.dbField());
 				q.where(field.dbField(), '!=', '');
 			});
@@ -143,13 +153,13 @@ export default class ColumnControl {
 	 */
 	private static _sspText(query, field, value, logic) {
 		if (logic === 'empty') {
-			query.where((q) => {
+			query.where(q => {
 				q.whereNull(field.dbField());
 				q.orWhere(field.dbField(), '=', '');
 			});
 		}
 		else if (logic === 'notEmpty') {
-			query.where((q) => {
+			query.where(q => {
 				q.whereNotNull(field.dbField());
 				q.where(field.dbField(), '!=', '');
 			});
