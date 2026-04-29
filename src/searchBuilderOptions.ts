@@ -4,7 +4,7 @@ import Editor, { ILeftJoin } from './editor';
 import Field from './field';
 import { leftJoin } from './helpers';
 
-function isNumeric(n) {
+function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
@@ -29,13 +29,13 @@ export type CustomOptions = (db: Knex) => Promise<IOption[]>;
  * @class Options
  */
 export default class SearchBuilderOptions {
-	private _table: string;
-	private _value: string;
-	private _label: string[];
+	private _table: string = '';
+	private _value: string = '';
+	private _label: string[] = [];
 	private _leftJoin: ILeftJoin[] = [];
-	private _renderer: IRenderer;
+	private _renderer: IRenderer | null = null;
 	private _where: any;
-	private _order: string;
+	private _order: string = '';
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods

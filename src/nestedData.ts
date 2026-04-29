@@ -14,7 +14,7 @@ export default class NestedData {
 	 * @param {object} data Data set to check
 	 * @returns {boolean} `true` if present, `false` otherwise
 	 */
-	protected _propExists(name: string, data: object): boolean {
+	protected _propExists(name: string, data: any): boolean {
 		if (data === undefined) {
 			return false;
 		}
@@ -44,7 +44,7 @@ export default class NestedData {
 	 * @param {object} data Data set to check
 	 * @returns {*} Value
 	 */
-	protected _readProp(name: string, data: object): any {
+	protected _readProp(name: string, data: any): any {
 		if (name.indexOf('.') === -1) {
 			return data[name] !== undefined ? data[name] : null;
 		}
@@ -73,7 +73,7 @@ export default class NestedData {
 	 * @param {*} value Value to write
 	 * @returns {void} No return.
 	 */
-	protected _writeProp(out: object, name: string, value: any): void {
+	protected _writeProp(out: any, name: string, value: any): void {
 		if (name.indexOf('.') === -1) {
 			out[name] = value;
 			return;

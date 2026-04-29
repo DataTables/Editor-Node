@@ -4,7 +4,7 @@ import Editor, { ILeftJoin } from './editor';
 import Field from './field';
 import { leftJoin } from './helpers';
 
-function isNumeric(n) {
+function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
@@ -28,13 +28,13 @@ export type CustomOptions = (db: Knex) => Promise<IOption[]>;
  * @class Options
  */
 export default class SearchPaneOptions {
-	private _table: string;
-	private _value: string;
-	private _label: string[];
+	private _table: string = '';
+	private _value: string = '';
+	private _label: string[] = [];
 	private _leftJoin: ILeftJoin[] = [];
-	private _renderer: IRenderer;
+	private _renderer: IRenderer | null = null;
 	private _where: any;
-	private _order: string;
+	private _order: string = '';
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Public methods
@@ -245,7 +245,7 @@ export default class SearchPaneOptions {
 		let cascade = http.searchPanes_options
 			? http.searchPanes_options.cascade === 'true'
 			: false;
-		let entries = null;
+		let entries: any = null;
 
 		// If the value is not yet set then set the variable to be the field name
 		let value = this._value ? this._value : field.dbField();
@@ -265,7 +265,7 @@ export default class SearchPaneOptions {
 		// If the label value has not yet been set then just set it to be the same as value
 		let label = this._label ? this._label : value;
 
-		let formatter = this._renderer ? this._renderer : d => d;
+		let formatter = this._renderer ? this._renderer : (d: any) => d;
 
 		// Use Editor's left joins and merge in any additional from this instance
 		let join = this._leftJoin.slice();

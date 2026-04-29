@@ -1,9 +1,9 @@
 import { Knex } from 'knex';
 
-import Editor, { IDtRequest } from './editor';
+import Editor, { IDtRequest, ILeftJoin } from './editor';
 import { IFormatter } from './formatters';
 import NestedData from './nestedData';
-import Options, { CustomOptions, IOption } from './options';
+import Options, { CustomOptions, IOption, IRenderer } from './options';
 import SearchBuilderOptions from './searchBuilderOptions';
 import SearchPaneOptions from './searchPaneOptions';
 import Upload from './upload';
@@ -47,25 +47,25 @@ export enum SetType {
 export default class Field extends NestedData {
 	public static SetType = SetType;
 
-	private _columnControl: Options;
-	private _dbField: string;
+	private _columnControl?: Options;
+	private _dbField: string = '';
 	private _get: boolean = true;
-	private _getFormatter: IFormatter;
+	private _getFormatter?: IFormatter;
 	private _getValue: any;
 	private _http: boolean = true;
-	private _opts: Options;
-	private _name: string;
-	private _spopts: SearchPaneOptions;
-	private _sbopts: SearchBuilderOptions;
+	private _opts?: Options;
+	private _name: string = '';
+	private _spopts?: SearchPaneOptions;
+	private _sbopts?: SearchBuilderOptions;
 	private _set: SetType = SetType.Both;
-	private _setFormatter: IFormatter;
+	private _setFormatter?: IFormatter;
 	private _setValue: any;
 	private _validator: Array<{
 		setFormatted: boolean;
 		validator: IValidator;
 	}> = [];
-	private _upload: Upload;
-	private _xss: Ixss;
+	private _upload?: Upload;
+	private _xss?: Ixss;
 	private _xssFormat: boolean = true;
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -75,20 +75,20 @@ export default class Field extends NestedData {
 	/**
 	 * Creates an instance of Field.
 	 *
-	 * @param {string} [dbField=null] Name of the database column
-	 * @param {string} [name=null] Name to use in the JSON output from Editor and the
-	 *   HTTP submit from the client-side when editing. If not given then the
+	 * @param dbField Name of the database column
+	 * @param name Name to use in the JSON output from Editor and the HTTP
+	 *   submit from the client-side when editing. If not given then the
 	 *   `dbField` name is used.
 	 */
-	constructor(dbField: string = null, name: string = null) {
+	constructor(dbField: string, name?: string) {
 		super();
 
-		if (!name && dbField) {
-			// Standard usage, a single parameter
-			this.name(dbField).dbField(dbField);
+		if (name) {
+			this.name(name).dbField(dbField);
 		}
 		else {
-			this.name(name).dbField(dbField);
+			// Standard usage, a single parameter
+			this.name(dbField).dbField(dbField);
 		}
 	}
 
@@ -292,17 +292,17 @@ export default class Field extends NestedData {
 		table: string,
 		value: string,
 		label: string,
-		condition,
-		format,
-		order
+		condition: any,
+		format: null | IRenderer,
+		order: string | boolean
 	): Field;
 	public options(
 		table?: any,
-		value: string = null,
-		label: string = null,
-		condition = null,
-		format = null,
-		order = null
+		value: string = '',
+		label: string = '',
+		condition: any = null,
+		format: null | IRenderer = null,
+		order: string | boolean | null = null
 	): any {
 		if (table === undefined) {
 			return this._opts;
@@ -389,7 +389,7 @@ export default class Field extends NestedData {
 	 * @returns {Field} Self for chaining.
 	 */
 	public set(flag: boolean | SetType): Field;
-	public set(flag?: boolean): any {
+	public set(flag?: boolean | SetType): any {
 		if (flag === undefined) {
 			return this._set;
 		}
@@ -554,7 +554,7 @@ export default class Field extends NestedData {
 			this._xss = xss;
 		}
 		else if (flag === false) {
-			this._xss = null;
+			this._xss = undefined;
 		}
 		else {
 			this._xss = flag;
@@ -571,7 +571,7 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public apply(action: 'get' | 'create' | 'edit', data?: object): boolean {
+	public apply(action: 'get' | 'create' | 'edit', data?: any): boolean {
 		if (action === 'get') {
 			return this._get;
 		}
@@ -607,9 +607,9 @@ export default class Field extends NestedData {
 	public async searchBuilderOptionsExec(
 		field: Field,
 		editor: Editor,
-		http,
+		http: IDtRequest,
 		fields: Field[],
-		leftJoin,
+		leftJoin: ILeftJoin[],
 		db: Knex
 	): Promise<false | IOption[]> {
 		if (this._sbopts instanceof SearchBuilderOptions) {
@@ -634,9 +634,9 @@ export default class Field extends NestedData {
 	public async searchPaneOptionsExec(
 		field: Field,
 		editor: Editor,
-		http,
+		http: IDtRequest,
 		fields: Field[],
-		leftJoin,
+		leftJoin: ILeftJoin[],
 		db: Knex
 	): Promise<false | IOption[]> {
 		if (this._spopts instanceof SearchPaneOptions) {
@@ -658,7 +658,7 @@ export default class Field extends NestedData {
 	/**
 	 * @hidden
 	 */
-	public val(direction: 'get' | 'set', data: object): any {
+	public val(direction: 'get' | 'set', data: any): any {
 		let val;
 
 		if (direction === 'get') {
@@ -699,7 +699,7 @@ export default class Field extends NestedData {
 	public async validate(
 		data: object,
 		editor: Editor,
-		id: string = null,
+		id: string,
 		action: IDtRequest['action']
 	): Promise<true | string> {
 		if (this._validator.length === 0) {
@@ -708,7 +708,7 @@ export default class Field extends NestedData {
 
 		let val = this._readProp(this.name(), data);
 		let host = new Validator.Host({
-			action,
+			action: action || '',
 			db: editor.db(),
 			editor,
 			field: this,
@@ -764,7 +764,7 @@ export default class Field extends NestedData {
 	 * Private methods
 	 */
 
-	private _format(val: any, data: object, formatter: IFormatter): any {
+	private _format(val: any, data: object, formatter?: IFormatter): any {
 		return formatter ? formatter(val, data) : val;
 	}
 }

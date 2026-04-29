@@ -17,7 +17,9 @@ export function leftJoin(
 		}
 		else {
 			query.leftJoin(join.table, function () {
-				this.on(join.field1, join.operator, join.field2);
+				if (join.field1 && join.operator && join.field2) {
+					this.on(join.field1, join.operator, join.field2);
+				}
 			});
 		}
 	}

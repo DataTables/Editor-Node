@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 export type IFormatter = (val: any, data: object) => any;
 

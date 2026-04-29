@@ -2,16 +2,17 @@ import { Knex } from 'knex';
 import { ILeftJoin } from './editor';
 import { leftJoin } from './helpers';
 
-function isNumeric(n) {
+function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
 }
 
 export interface IOption {
+	[key: string]: any;
 	label: string;
 	value: string | number;
 }
 
-export type IRenderer = (row: object) => string;
+export type IRenderer = (row: Record<string, any>) => string;
 export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
 
 /**
@@ -28,16 +29,16 @@ export type CustomOptions = (db: Knex, search?: string) => Promise<IOption[]>;
  */
 export default class Options {
 	private _alwaysRefresh: boolean = true;
-	private _customFn: CustomOptions;
+	private _customFn?: CustomOptions;
 	private _get: boolean = true;
 	private _includes: string[] = [];
 	private _searchOnly: boolean = false;
-	private _table: string;
-	private _value: string;
-	private _label: string[];
+	private _table?: string;
+	private _value: string = '';
+	private _label: string[] = [];
 	private _leftJoin: ILeftJoin[] = [];
-	private _limit: number;
-	private _renderer: IRenderer;
+	private _limit?: number;
+	private _renderer?: IRenderer;
 	private _where: any;
 	private _order: string | boolean = true;
 	private _manualOpts: IOption[] = [];
@@ -68,8 +69,8 @@ export default class Options {
 	) {
 		if (typeof table === 'string') {
 			this.table(table);
-			this.value(value);
-			this.label(label);
+			this.value(value!);
+			this.label(label!);
 		}
 		else if (typeof table === 'function') {
 			this.fn(table);
@@ -437,9 +438,9 @@ export default class Options {
 	 */
 	public async exec(
 		db: Knex,
-		refresh,
-		search: string = null,
-		find: any[] = null
+		refresh: boolean,
+		search: string | null = null,
+		find: any[] | null = null
 	): Promise<IOption[] | false> {
 		// Local enablement
 		if (this._get === false) {
@@ -457,7 +458,7 @@ export default class Options {
 		}
 
 		if (this._customFn) {
-			return this._customFn(db, search);
+			return this._customFn(db, search || '');
 		}
 
 		let label = this._label;
@@ -480,7 +481,7 @@ export default class Options {
 		}
 
 		// Get database data
-		let options = await this.execDb(db, find);
+		let options = await this.execDb(db, find!);
 
 		// Manually added options
 		for (let i = 0; i < this._manualOpts.length; i++) {
@@ -499,7 +500,7 @@ export default class Options {
 				search === '' ||
 				rowLabel.toLowerCase().indexOf(search.toLowerCase()) === 0
 			) {
-				let option = {
+				let option: IOption = {
 					label: rowLabel,
 					value: rowValue
 				};
@@ -518,7 +519,7 @@ export default class Options {
 
 			// Limit needs to be done in script space, rather than SQL, to allow for the script
 			// based filtering above, and also for when using a custom function
-			if (max !== null && out.length >= max) {
+			if (max !== null && max !== undefined && out.length >= max) {
 				break;
 			}
 		}
@@ -538,7 +539,7 @@ export default class Options {
 				}
 
 				if (isNumeric(aLabel) && isNumeric(bLabel)) {
-					return aLabel * 1 - bLabel * 1;
+					return parseFloat(aLabel) * 1 - parseFloat(bLabel) * 1;
 				}
 
 				return aLabel < bLabel ? -1 : aLabel > bLabel ? 1 : 0;
@@ -561,7 +562,7 @@ export default class Options {
 		}
 
 		// Create a list of the fields that we need to get from the db
-		let fields = [].concat(this._label);
+		let fields = ([] as string[]).concat(this._label);
 
 		if (!fields.includes(this._value)) {
 			fields.push(this._value);

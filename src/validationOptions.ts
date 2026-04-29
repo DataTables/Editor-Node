@@ -9,20 +9,18 @@ export type DependsOnFunc = (
 
 /**
  * Common validation options that can be specified for all validation methods.
- *
- * @export
- * @class ValidationOptions
  */
 export default class ValidationOptions extends NestedData {
-	private _dependsField: string = null;
-	private _dependsValue: any = null;
-	private _dependsFn: DependsOnFunc = null;
+	private _dependsField: string | null = null;
+	private _dependsValue: any | null = null;
+	private _dependsFn: DependsOnFunc | null = null;
 	private _empty: boolean = true;
 	private _message: string = 'Input not valid';
 	private _optional: boolean = true;
 
 	/**
-	 * Set a function that will be executed to see if a validator should be applied or not.
+	 * Set a function that will be executed to see if a validator should be
+	 * applied or not.
 	 *
 	 * @param fn Callback function to check if the validator should apply
 	 */
@@ -34,7 +32,8 @@ export default class ValidationOptions extends NestedData {
 	 */
 	public dependsOn(field: string): this;
 	/**
-	 * If the given field has one of the value's specified, this validator will be applied.
+	 * If the given field has one of the value's specified, this validator will
+	 * be applied.
 	 *
 	 * @param field Field to check for a value
 	 * @param value Value(s) to check for
@@ -53,8 +52,8 @@ export default class ValidationOptions extends NestedData {
 	}
 
 	/**
-	 * Allow a field to be empty, i.e. a zero length string -
-	 * `''` (`true` - default) or require it to be non-zero length (`false`).
+	 * Allow a field to be empty, i.e. a zero length string - `''` (`true` -
+	 * default) or require it to be non-zero length (`false`).
 	 */
 	public empty(): boolean;
 	/**
@@ -94,12 +93,12 @@ export default class ValidationOptions extends NestedData {
 	}
 
 	/**
-	 * Require the field to be submitted (`false`) or not
-	 * (`true` - default). When set to `true` the field does not need to be
-	 * included in the list of parameters sent by the client - if set to `false`
-	 * then it must be included. This option can be particularly useful in Editor
-	 * as Editor will not set a value for fields which have not been submitted -
-	 * giving the ability to submit just a partial list of options.
+	 * Require the field to be submitted (`false`) or not (`true` - default).
+	 * When set to `true` the field does not need to be included in the list of
+	 * parameters sent by the client - if set to `false` then it must be
+	 * included. This option can be particularly useful in Editor as Editor will
+	 * not set a value for fields which have not been submitted - giving the
+	 * ability to submit just a partial list of options.
 	 */
 	public optional(): boolean;
 	/**

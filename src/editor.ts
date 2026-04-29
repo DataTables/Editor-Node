@@ -100,10 +100,16 @@ export interface IDtRequest {
 	action?: string;
 
 	/** Editor - Data being sent for create / edit / delete. */
-	data?: object[];
+	data?: Record<string, Record<string, any>>;
 
 	/** DataTables SSP - Draw counter. */
 	draw?: number;
+
+	/** Dropdown search request from Editor */
+	field?: string;
+
+	/** IDs to get (as part of a specific row get request) */
+	ids?: string[];
 
 	/** DataTables SSP - paging start point. */
 	start?: number;
@@ -122,6 +128,15 @@ export interface IDtRequest {
 		value: string;
 	};
 
+	/** SearchBuilder search data */
+	searchBuilder?: any;
+
+	/** SearchPanes search data */
+	searchPanes?: any;
+
+	/** Indicate which panes are looking for empty data */
+	searchPanes_null?: any;
+
 	/** Editor - Upload field name. */
 	uploadField?: string;
 
@@ -137,7 +152,7 @@ export interface IDtResponse {
 	columnControl?: { [field: string]: object };
 
 	/** DataTables - Array of row information. */
-	data?: object[];
+	data?: Record<string, any>[];
 
 	/** Editor - Rows which have not been acted upon. */
 	cancelled?: string[];
@@ -149,7 +164,7 @@ export interface IDtResponse {
 	fieldErrors?: IDtError[];
 
 	/** Editor - `select`, `radio` and `checkbox` options. */
-	options?: object;
+	options?: Record<string, Record<string, any>>;
 
 	/** Editor - file information. */
 	files?: object;
@@ -168,7 +183,7 @@ export interface IDtResponse {
 
 	/** DataTables SSP - SearchPanes Options */
 	searchPanes?: any;
-	searchPanes_null?: any;
+
 	/** Editor - Upload complete file id. */
 	upload?: {
 		id: string;
@@ -211,19 +226,26 @@ export interface ILeftJoin {
 	operator?: string;
 }
 
-type IGet = (id: string | string[], http) => Promise<IDtResponse>;
+type IGet = (
+	id: string | string[] | null,
+	http: IDtRequest | null
+) => Promise<IDtResponse>;
 
 /**
- * This function constructs the queries that are required to implement SearchBuilder filtering
- * It is given as a function rather than a method so that the scope of the function can be set to the correct query
+ * This function constructs the queries that are required to implement
+ * SearchBuilder filtering It is given as a function rather than a method so
+ * that the scope of the function can be set to the correct query
  *
  * @param sbData The criteria that has to have conditions created for it
  * @returns The new query with added where conditions
  */
-let _constructSearchBuilderQuery = function (sbData) {
-	// The first where condition has to be a normal where rather than an orwhere.
-	// Therefore we have to track that we have added a where condition before
-	// there is an attempt to create a new orwhere
+let _constructSearchBuilderQuery = function (
+	this: Knex.QueryBuilder,
+	sbData: any
+) {
+	// The first where condition has to be a normal where rather than an
+	// orwhere. Therefore we have to track that we have added a where condition
+	// before there is an attempt to create a new orwhere
 	let first = true;
 
 	// Iterate over every group or criteria in the current group
@@ -234,7 +256,8 @@ let _constructSearchBuilderQuery = function (sbData) {
 			if (sbData.logic === 'AND' || first) {
 				// Call the function for the next group
 				this.where(q => _constructSearchBuilderQuery.apply(q, [crit]));
-				// Set first to false so that in future only the logic is checked
+				// Set first to false so that in future only the logic is
+				// checked
 				first = false;
 			}
 			else {
@@ -443,15 +466,15 @@ let _constructSearchBuilderQuery = function (sbData) {
 					}
 					else {
 						this.where(q => {
-							q.orWhere(q => q.whereNull(crit.origData));
+							q.orWhere(r => r.whereNull(crit.origData));
 							if (
 								!crit.type.includes('date') &&
 								!crit.type.includes('moment') &&
 								!crit.type.includes('luxon')
 							) {
-								q.orWhere(q => q.where(crit.origData, ''));
+								q.orWhere(r => r.where(crit.origData, ''));
 							}
-						}, 'OR');
+						});
 					}
 					break;
 				case '!null':
@@ -478,7 +501,7 @@ let _constructSearchBuilderQuery = function (sbData) {
 							) {
 								q.orWhere(q => q.whereNot(crit.origData, ''));
 							}
-						}, 'OR');
+						});
 					}
 					break;
 				default:
@@ -516,7 +539,7 @@ let _constructSearchBuilderQuery = function (sbData) {
 export default class Editor extends NestedData {
 	public static Action = Action;
 
-	public static version: string = '2.5.2';
+	public static version: string = '3.0.0-dev';
 
 	/**
 	 * Determine the request type from an HTTP request.
@@ -556,29 +579,28 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _db: Knex;
+	private _db!: Knex;
 	private _fields: Field[] = [];
-	private _formData;
-	private _processData;
+	private _processData!: IDtRequest;
 	private _idPrefix: string = 'row_';
 	private _join: Mjoin[] = [];
 	private _pkey: string[] = ['id'];
 	private _table: string[] = [];
 	private _readTableNames: string[] = [];
 	private _transaction: boolean = false;
-	private _where = [];
+	private _where: Knex.Where[] = [];
 	private _leftJoin: ILeftJoin[] = [];
 	private _out: IDtResponse = {};
-	private _events = [];
+	private _events: Record<string, Function[]> = {};
 	private _validators: IGlobalValidator[] = [];
 	private _validatorsAfterFields: IGlobalValidator[] = [];
 	private _tryCatch: boolean = false;
-	private _knexTransaction: Knex;
-	private _uploadData: IUpload;
+	private _knexTransaction: Knex | null = null;
+	private _uploadData: IUpload | null = null;
 	private _debug: boolean = false;
 	private _debugInfo: any[] = [];
 	private _leftJoinRemove: boolean = false;
-	private _schema: string = null;
+	private _schema: string | null = null;
 	private _write: boolean = true;
 	private _doValidate: boolean = true;
 	private _customGet: null | IGet = null;
@@ -593,9 +615,9 @@ export default class Editor extends NestedData {
 	 *   table given in
 	 */
 	constructor(
-		db: Knex = null,
-		table: string | string[] = null,
-		pkey: string | string[] = null
+		db?: Knex,
+		table?: string | string[],
+		pkey?: string | string[]
 	) {
 		super();
 
@@ -651,7 +673,7 @@ export default class Editor extends NestedData {
 	}
 
 	/** Get the current transaction */
-	public dbTransaction(): Knex {
+	public dbTransaction(): Knex | null {
 		return this._knexTransaction;
 	}
 
@@ -1092,7 +1114,10 @@ export default class Editor extends NestedData {
 	 *   (useful for `where` conditions) or nested for join tables.
 	 * @returns {string} The created primary key value.
 	 */
-	public pkeyToValue(row: object, flat: boolean = false): string {
+	public pkeyToValue(
+		row: Record<string, any>,
+		flat: boolean = false
+	): string {
 		let pkey = this.pkey();
 		let id = [];
 		let val;
@@ -1138,9 +1163,9 @@ export default class Editor extends NestedData {
 	public pkeyToObject(
 		value: string,
 		flat: boolean = false,
-		pkey: string[] = null
-	): object {
-		let arr: object = {};
+		pkey: string[] | null = null
+	): Record<string, any> {
+		let arr: Record<string, any> = {};
 
 		value = value.replace(this.idPrefix(), '');
 		let idParts = value.split(this._pkeySeparator());
@@ -1176,7 +1201,7 @@ export default class Editor extends NestedData {
 	 */
 	public async process(
 		data: IDtRequest,
-		files: IUpload = null
+		files: IUpload | null = null
 	): Promise<Editor> {
 		if (this.debug()) {
 			this._debugInfo.push(
@@ -1185,7 +1210,7 @@ export default class Editor extends NestedData {
 		}
 
 		if (this._transaction) {
-			let processError;
+			let processError: any;
 
 			try {
 				await this._db.transaction(async trx => {
@@ -1195,13 +1220,13 @@ export default class Editor extends NestedData {
 						this._knexTransaction = null;
 
 						await trx.commit();
-					} catch (e) {
+					} catch (e: any) {
 						processError = e;
 						await trx.rollback();
 					}
 				});
 			} catch (e) {
-				if (this._tryCatch) {
+				if (this._tryCatch && processError) {
 					this._out.error = processError.message;
 				}
 				else {
@@ -1213,7 +1238,7 @@ export default class Editor extends NestedData {
 			if (this._tryCatch) {
 				try {
 					await this._process(data, files);
-				} catch (e) {
+				} catch (e: any) {
 					this._out.error = e.message;
 				}
 			}
@@ -1273,6 +1298,10 @@ export default class Editor extends NestedData {
 		}
 
 		if (http.action !== 'create' && http.action !== 'edit') {
+			return true;
+		}
+
+		if (!http.data) {
 			return true;
 		}
 
@@ -1393,13 +1422,13 @@ export default class Editor extends NestedData {
 	 * @param {*} cond Knex query condition
 	 * @returns {Editor} Self for chaining.
 	 */
-	public where(...cond: any[]): Editor;
-	public where(...cond: any[]): any {
+	public where(...cond: Knex.Where[]): Editor;
+	public where(...cond: Knex.Where[]): any {
 		if (cond.length === 0) {
 			return this._where;
 		}
 
-		this._where.push(cond);
+		this._where.push(...cond);
 
 		return this;
 	}
@@ -1415,10 +1444,21 @@ export default class Editor extends NestedData {
 	}
 
 	/**
-	 * Getter/Setter for this._write which is used to decide which actions to allow
-	 * @param writeVal Value for this._write
+	 * Get the write flag for this instance
+	 *
+	 * @returns Write flag
 	 */
-	public write(writeVal) {
+	public write(): boolean;
+
+	/**
+	 * Set the write flag for this instance
+	 *
+	 * @param writeVal Write flag
+	 * @returns Self for chaining
+	 */
+	public write(writeVal?: boolean): this;
+
+	public write(writeVal?: boolean) {
 		if (writeVal == undefined) {
 			return this._write;
 		}
@@ -1430,13 +1470,18 @@ export default class Editor extends NestedData {
 			return this;
 		}
 	}
+
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Private methods
 	 */
 
+	/**
+	 * Spin over all fields looking for upload instances on them, and if found
+	 * executing the clean up function.
+	 */
 	private async _fileClean(): Promise<void> {
 		let that = this;
-		let run = async function (fields) {
+		let run = async function (fields: Field[]) {
 			for (let i = 0, ien = fields.length; i < ien; i++) {
 				let upload = fields[i].upload();
 
@@ -1453,10 +1498,18 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	/**
+	 * Get file information for one or more database tables
+	 *
+	 * @param limitTable Limit the data to only a specific db table if specified
+	 * @param ids Limit the data to specific file ids if specified
+	 * @param data Row data that has already been read
+	 * @returns File information
+	 */
 	private async _fileData(
-		limitTable: string = null,
-		ids: string[] = null,
-		data: any[] = null
+		limitTable: string | null = null,
+		ids: string[] | null = null,
+		data: any[] | null = null
 	): Promise<object> {
 		let files = {};
 
@@ -1465,7 +1518,7 @@ export default class Editor extends NestedData {
 
 		// From joined tables
 		for (let i = 0, ien = this._join.length; i < ien; i++) {
-			let joinData = null;
+			let joinData: any[] | null = null;
 
 			// If we have data from the get, it is nested from the join, so we need to
 			// un-nest it (i.e. get the array of joined data for each row)
@@ -1493,12 +1546,21 @@ export default class Editor extends NestedData {
 		return files;
 	}
 
+	/**
+	 * Get the file information for a group of fields
+	 *
+	 * @param files Files object data is to be added to
+	 * @param fields Fields to look for upload information from
+	 * @param limitTable Limit the data to only a specific db table if specified
+	 * @param ids Limit the data to specific file ids if specified
+	 * @param data Row data that has already been read
+	 */
 	private async _fileDataFields(
-		files: object,
+		files: Record<string, any>,
 		fields: Field[],
-		limitTable: string,
-		ids: string[] = null,
-		data: any[] = null
+		limitTable: string | null,
+		ids: string[] | null = null,
+		data: any[] | null = null
 	): Promise<void> {
 		for (let i = 0, ien = fields.length; i < ien; i++) {
 			let upload = fields[i].upload();
@@ -1552,7 +1614,14 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private _findField(name: string, type: 'db' | 'name'): Field {
+	/**
+	 * Find a field instance based on a name or db column.
+	 *
+	 * @param name Name to look for
+	 * @param type Database column name or JSON / HTTP name
+	 * @returns Field if found, null if not.
+	 */
+	private _findField(name: string, type: 'db' | 'name'): Field | null {
 		let fields = this._fields;
 
 		for (let i = 0, ien = fields.length; i < ien; i++) {
@@ -1573,11 +1642,18 @@ export default class Editor extends NestedData {
 		return null;
 	}
 
+	/**
+	 * Read data from the database for one or more rows
+	 *
+	 * @param id Limit to one or more row ids, or all if null
+	 * @param http DataTables' request
+	 * @returns Response object with the read data
+	 */
 	private async _get(
-		id: string | string[],
-		http = null
+		id: string | string[] | null,
+		http: IDtRequest | null = null
 	): Promise<IDtResponse> {
-		let response;
+		let response: IDtResponse;
 		let cancel = await this._trigger('preGet', id);
 
 		if (cancel === false) {
@@ -1585,13 +1661,12 @@ export default class Editor extends NestedData {
 		}
 
 		if (this._customGet) {
-			response = this._customGet(id, http);
+			response = await this._customGet(id, http);
 		}
 		else {
 			let fields = this.fields();
 			let pkeys = this.pkey();
 			let query = this.db().table(this._readTable()[0]);
-			let options = {};
 
 			for (let i = 0, ien = pkeys.length; i < ien; i++) {
 				query.select(pkeys[i] + ' as ' + pkeys[i]);
@@ -1654,7 +1729,7 @@ export default class Editor extends NestedData {
 			// Limit to specific ids submitted from the client-side
 			if (http && http.ids && http.ids.length) {
 				query.where(q => {
-					for (let refreshId of http.ids) {
+					for (let refreshId of http.ids!) {
 						refreshId = refreshId.replace(this.idPrefix(), '');
 
 						q.orWhere(this.pkeyToObject(refreshId, true));
@@ -1710,6 +1785,12 @@ export default class Editor extends NestedData {
 		return response;
 	}
 
+	/**
+	 * Apply the WHERE conditions for the instance to a query.
+	 *
+	 * @param query Query to apply the condition to
+	 * @returns Number of conditions
+	 */
 	private _getWhere(query: Knex.QueryBuilder): boolean {
 		let where = this.where();
 
@@ -1720,10 +1801,17 @@ export default class Editor extends NestedData {
 		return where.length > 0;
 	}
 
-	private async _insert(values: object): Promise<string> {
+	/**
+	 * Insert a new row in the db
+	 *
+	 * @param values Values to add for the fields
+	 * @returns Row id
+	 */
+	private async _insert(values: object): Promise<string | null> {
 		// Get values to generate the id, including from setValue, not just the
 		// submitted values
-		let all = [];
+		let all: any[] = [];
+
 		this._fields.forEach(f => {
 			if (f.val('set', values)) {
 				this._writeProp(all, f.name(), f.val('set', values));
@@ -1762,7 +1850,16 @@ export default class Editor extends NestedData {
 		return id;
 	}
 
-	private async _insertOrUpdate(id: string, values: object): Promise<string> {
+	/**
+	 * Perform an insert or update (based on there being an id). This will find
+	 * the tables / values that need to be inserted / updated, as multiple
+	 * tables could be impacted.
+	 *
+	 * @param id Row id for update, or if none, insert
+	 * @param values Column / field values
+	 * @returns Row id
+	 */
+	private async _insertOrUpdate(id: string | null, values: object): Promise<string | null> {
 		// Loop over the tables, doing the insert or update as needed
 		let tables = this.table();
 
@@ -1791,22 +1888,22 @@ export default class Editor extends NestedData {
 
 			// Which side of the join refers to the parent table?
 			let joinTable = this._alias(join.table, 'alias');
-			let tablePart = this._part(join.field1);
-			let parentLink;
-			let childLink;
+			let tablePart = this._part(join.field1!);
+			let parentLink = '';
+			let childLink = '';
 			let whereVal;
 
-			if (this._part(join.field1, 'db')) {
-				tablePart = this._part(join.field1, 'db') + '.' + tablePart;
+			if (this._part(join.field1!, 'db')) {
+				tablePart = this._part(join.field1!, 'db') + '.' + tablePart;
 			}
 
 			if (tablePart === joinTable) {
-				parentLink = join.field2;
-				childLink = join.field1;
+				parentLink = join.field2!;
+				childLink = join.field1!;
 			}
 			else {
-				parentLink = join.field1;
-				childLink = join.field2;
+				parentLink = join.field1!;
+				childLink = join.field2!;
 			}
 
 			if (parentLink === this._pkey[0] && this._pkey.length === 1) {
@@ -1841,12 +1938,20 @@ export default class Editor extends NestedData {
 		return id;
 	}
 
+	/**
+	 * Actually perform the insert on a table
+	 *
+	 * @param table Table to operate on
+	 * @param values Values to insert
+	 * @param where Condition for an update
+	 * @returns Row id
+	 */
 	private async _insertOrUpdateTable(
 		table: string,
 		values: object,
-		where: object = null
+		where: Record<string, any> | null = null
 	) {
-		let set = {};
+		let set: Record<string, any> = {};
 		let res;
 		let action: 'create' | 'edit' = where === null ? 'create' : 'edit';
 		let tableAlias = this._alias(table, 'alias');
@@ -1895,8 +2000,9 @@ export default class Editor extends NestedData {
 			// Create on a linked table
 			res = await this.db().insert(set).table(table);
 		}
-		else if (this.table().indexOf(table) === -1) {
-			// Update on a linked table - the record might not yet exist, so need to check.
+		else if (this.table().indexOf(table) === -1 && where) {
+			// Update on a linked table - the record might not yet exist, so
+			// need to check.
 			let check = await this.db().table(table).select('*').where(where);
 
 			if (check && check.length) {
@@ -1908,12 +2014,19 @@ export default class Editor extends NestedData {
 					.insert({ ...set, ...where });
 			}
 		}
-		else {
+		else if (where) {
 			// Update on the host table
 			await this.db().table(table).update(set).where(where);
 		}
 	}
 
+	/**
+	 * Get the alias or original for a db field
+	 *
+	 * @param name Column name
+	 * @param type Part to get
+	 * @returns Alias or actual name
+	 */
 	private _alias(name: string, type: 'alias' | 'orig' = 'alias'): string {
 		if (name.indexOf(' as ') !== -1) {
 			let a = name.split(/ as /i);
@@ -1945,7 +2058,7 @@ export default class Editor extends NestedData {
 				let opts = await options.exec(this._db, refresh);
 
 				if (opts !== false) {
-					this._out.options[field.name()] = opts;
+					this._out.options![field.name()] = opts;
 				}
 			}
 
@@ -2001,7 +2114,7 @@ export default class Editor extends NestedData {
 
 		// Check the join's for a list of options
 		for (let i = 0; i < this._join.length; i++) {
-			await this._join[i].options(this._out.options, this._db, refresh);
+			await this._join[i].options(this._out.options!, this._db, refresh);
 		}
 	}
 
@@ -2010,7 +2123,11 @@ export default class Editor extends NestedData {
 	 *
 	 * @param array $http Submitted HTTP request for search
 	 */
-	private async _optionsSearch(http) {
+	private async _optionsSearch(http: IDtRequest) {
+		if (!http.field) {
+			return;
+		}
+
 		let values = null;
 		let field = this._findField(http.field, 'name');
 
@@ -2025,7 +2142,10 @@ export default class Editor extends NestedData {
 		}
 
 		if (http.search) {
-			values = await options.search(this.db(), http.search);
+			values = await options.search(
+				this.db(),
+				http.search as unknown as string
+			);
 		}
 		else if (http.values) {
 			values = await options.find(this.db(), http.values);
@@ -2036,6 +2156,14 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	/**
+	 * Get the requested part of a database field from the notation
+	 * `[dbName.][table.]column`.
+	 *
+	 * @param name FQN
+	 * @param type Part needed
+	 * @returns Resulting value
+	 */
 	private _part(
 		name: string,
 		type: 'table' | 'db' | 'column' = 'table'
@@ -2062,14 +2190,17 @@ export default class Editor extends NestedData {
 		}
 
 		if (type === 'db') {
-			return db;
+			return db || '';
 		}
 		else if (type === 'table') {
-			return table;
+			return table || '';
 		}
-		return column;
+		return column || '';
 	}
 
+	/**
+	 * Validate that we have all the parts needed for a join
+	 */
 	private _prepJoin(): void {
 		if (this._leftJoin.length === 0) {
 			return;
@@ -2104,12 +2235,24 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	/**
+	 * Create the separator value for a compound primary key.
+	 *
+	 * @returns Calculated separator
+	 */
 	private _pkeySeparator(): string {
 		let str = this.pkey().join(',');
 
 		return crc.crc32(str).toString(16);
 	}
 
+	/**
+	 * Merge a primary key value with an updated data source.
+	 *
+	 * @param pkeyVal Old primary key value to merge into
+	 * @param row Data source for update
+	 * @returns Merged value
+	 */
 	private _pkeySubmitMerge(pkeyVal: string, row: object): string {
 		let pkey = this._pkey;
 		let arr = this.pkeyToObject(pkeyVal, true);
@@ -2126,6 +2269,12 @@ export default class Editor extends NestedData {
 		return this.pkeyToValue(arr, true);
 	}
 
+	/**
+	 * Validate that all primary key fields have values for create.
+	 *
+	 * @param row Row's data
+	 * @returns `true` if valid, `false` otherwise
+	 */
 	private _pkeyValidateInsert(row: object): boolean {
 		let pkey = this.pkey();
 
@@ -2149,7 +2298,16 @@ export default class Editor extends NestedData {
 		return true;
 	}
 
-	private async _process(data: IDtRequest, upload: IUpload): Promise<void> {
+	/**
+	 * Process a request from the Editor client-side to get / set data.
+	 *
+	 * @param data Data to process
+	 * @param upload Upload data
+	 */
+	private async _process(
+		data: IDtRequest,
+		upload: IUpload | null
+	): Promise<void> {
 		this._out = {
 			cancelled: [],
 			data: [],
@@ -2159,11 +2317,10 @@ export default class Editor extends NestedData {
 
 		this._processData = data;
 		this._uploadData = upload;
-		this._formData = data.data ? data.data : null;
 		this._prepJoin();
 
 		for (let validator of this._validators) {
-			let ret = await validator(this, data.action, data);
+			let ret = await validator(this, data.action || '', data);
 
 			if (typeof ret === 'string') {
 				this._out.error = ret;
@@ -2190,7 +2347,7 @@ export default class Editor extends NestedData {
 				let outData = await this._get(null, data);
 
 				for (let [key, val] of Object.entries(outData)) {
-					this._out[key] = val;
+					(this._out as any)[key] = val;
 				}
 
 				await this._options(false);
@@ -2209,7 +2366,8 @@ export default class Editor extends NestedData {
 			}
 			else if (
 				(action === Action.Create || action === Action.Edit) &&
-				this._write
+				this._write &&
+				data.data
 			) {
 				// create or edit
 				let keys = Object.keys(data.data);
@@ -2235,12 +2393,12 @@ export default class Editor extends NestedData {
 						delete data.data[idSrc];
 
 						// Tell the client-side we aren't updating this row
-						this._out.cancelled.push(idSrc);
+						this._out.cancelled!.push(idSrc);
 					}
 				}
 
 				// Field validation
-				let valid = await this.validate(this._out.fieldErrors, data);
+				let valid = await this.validate(this._out.fieldErrors!, data);
 				let pkeys = [];
 				let eventName = action === Action.Create ? 'Create' : 'Edit';
 
@@ -2264,21 +2422,25 @@ export default class Editor extends NestedData {
 					// Remap the submitted data from the submitted key to the row id
 					// This isn't just row id without the prefix, since the create is
 					// array indexed
-					let submitedData = {};
+					let submittedData: Record<string, any> = {};
+
 					Object.keys(data.data).forEach(key => {
 						let k = pkeys.find(p => p.submitKey === key);
-						submitedData[k.pkey] = data.data[key];
+
+						if (k && k.pkey) {
+							submittedData[k.pkey] = data.data![key];
+						}
 					});
 
 					// All writes done - trigger `All`
 					await this._trigger(
 						`write${eventName}All`,
 						pkeys.map(k => k.pkey),
-						submitedData
+						submittedData
 					);
 
 					// Get the data that was updated in a single query
-					let returnData = await this._get(pkeys.map(k => k.pkey));
+					let returnData = await this._get(pkeys.map(k => k.pkey!));
 					this._out.data = returnData.data;
 
 					// post events
@@ -2287,16 +2449,18 @@ export default class Editor extends NestedData {
 							`post${eventName}`,
 							key.pkey,
 							data.data[key.submitKey],
-							returnData.data.find(
-								row => row['DT_RowId'] === key.dataKey
-							)
+							returnData.data
+								? returnData.data.find(
+										row => row['DT_RowId'] === key.dataKey
+								  )
+								: ''
 						);
 					}
 
 					await this._trigger(
 						`post${eventName}All`,
 						pkeys.map(k => k.pkey),
-						submitedData,
+						submittedData,
 						returnData.data
 					);
 
@@ -2315,11 +2479,28 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	/**
+	 * The CRUD read table name. If this method is used, Editor will create from
+	 * the table name(s) given rather than those given by `Editor.table()`.
+	 * This can be a useful distinction to allow a read from a VIEW (which could
+	 * make use of a complex SELECT) while writing to a different table.
+	 *
+	 * @returns Array of read tables names.
+	 */
 	private _readTable(): string[] {
 		return this._readTableNames.length ? this._readTableNames : this._table;
 	}
 
+	/**
+	 * Delete one or more rows from the database based on the HTTP request
+	 *
+	 * @param http DataTables' request data
+	 */
 	private async _remove(http: IDtRequest): Promise<void> {
+		if (!http.data) {
+			return;
+		}
+
 		let ids: string[] = [];
 		let keys = Object.keys(http.data);
 
@@ -2331,7 +2512,7 @@ export default class Editor extends NestedData {
 
 			// Allow the event to be cancelled and inform the client-side
 			if (res === false) {
-				this._out.cancelled.push(id);
+				this._out.cancelled!.push(id);
 			}
 			else {
 				ids.push(id);
@@ -2357,7 +2538,7 @@ export default class Editor extends NestedData {
 				let childLink;
 
 				// Which side of the join refers to the parent table?
-				if (join.field1.indexOf(join.table) === 0) {
+				if (join.field1 && join.field1.indexOf(join.table) === 0) {
 					parentLink = join.field2;
 					childLink = join.field1;
 				}
@@ -2366,11 +2547,15 @@ export default class Editor extends NestedData {
 					childLink = join.field2;
 				}
 
-				// Only delete on the primary key, since that is what the ids refer
-				// to - otherwise we'd be deleting random data! Note that this
-				// won't work with compound keys since the parent link would be
-				// over multiple fields.
-				if (parentLink === this._pkey[0] && this._pkey.length === 1) {
+				// Only delete on the primary key, since that is what the ids
+				// refer to - otherwise we'd be deleting random data! Note that
+				// this won't work with compound keys since the parent link
+				// would be over multiple fields.
+				if (
+					parentLink === this._pkey[0] &&
+					this._pkey.length === 1 &&
+					childLink
+				) {
 					await this._removeTable(join.table, ids, [childLink]);
 				}
 			}
@@ -2394,10 +2579,17 @@ export default class Editor extends NestedData {
 		await this._trigger('postRemoveAll', ids, http.data);
 	}
 
+	/**
+	 * Delete rows from a specific db table
+	 *
+	 * @param table Table to operate on
+	 * @param ids Row ids
+	 * @param pkey Primary key(s)
+	 */
 	private async _removeTable(
 		table: string,
 		ids: string[],
-		pkey: string[] = null
+		pkey: string[] | null = null
 	): Promise<void> {
 		if (pkey === null) {
 			pkey = this.pkey();
@@ -2445,9 +2637,16 @@ export default class Editor extends NestedData {
 		}
 	}
 
+	/**
+	 * Modify a query to operate with a server-side processing request
+	 *
+	 * @param query Query to operate on
+	 * @param http DataTables' HTTP request data
+	 * @returns Server-side processing information
+	 */
 	private async _ssp(
 		query: Knex.QueryBuilder,
-		http: IDtRequest
+		http: IDtRequest | null
 	): Promise<ISSP> {
 		if (!http || !http.draw) {
 			return {};
@@ -2497,38 +2696,58 @@ export default class Editor extends NestedData {
 		};
 	}
 
+	/**
+	 * Get the field name for a column index set from the client-side
+	 *
+	 * @param http Submitted data
+	 * @param index Column index
+	 * @returns Field name
+	 */
 	private _sspField(http: IDtRequest, index: number): string {
-		let name = http.columns[index].data;
-		let field = this._findField(name, 'name');
+		let name = '';
 
-		if (!field) {
-			// Is it the primary key?
-			if (name === 'DT_RowId') {
-				return this._pkey[0];
+		if (http.columns) {
+			let name = http.columns[index].data;
+			let field = this._findField(name, 'name');
+
+			if (field) {
+				return field.dbField();
 			}
-
-			throw new Error(
-				'Unknown field: ' + name + ' (index ' + index + ')'
-			);
 		}
 
-		return field.dbField();
+		// Is it the primary key?
+		if (name === 'DT_RowId') {
+			return this._pkey[0];
+		}
+
+		throw new Error('Unknown field: ' + name + ' (index ' + index + ')');
 	}
 
-	private _sspFilter(query: Knex.QueryBuilder, http): boolean {
+	/**
+	 * Apply client provided conditions to a query
+	 *
+	 * @param query Query to add conditions to
+	 * @param http DataTables' HTTP request data
+	 * @returns `true` if a condition was applied
+	 */
+	private _sspFilter(query: Knex.QueryBuilder, http: IDtRequest): boolean {
 		let filtered = false;
 		let fields = this.fields();
 
 		// Global filter
-		if (http.search.value) {
+		if (http.search && http.search.value) {
 			filtered = true;
 
 			query.where(q => {
+				if (!http.columns) {
+					return;
+				}
+
 				for (let i = 0, ien = http.columns.length; i < ien; i++) {
 					if (http.columns[i].searchable.toString() === 'true') {
 						let field = this._sspField(http, i);
 
-						if (field) {
+						if (field && http.search) {
 							let client = this._db.client.config.client;
 
 							// Nasty hack for Postgres
@@ -2602,26 +2821,28 @@ export default class Editor extends NestedData {
 		ColumnControl.ssp(this, query, http);
 
 		// Column filter
-		for (let i = 0, ien = http.columns.length; i < ien; i++) {
-			let column = http.columns[i];
-			let search = column.search.value;
+		if (http.columns) {
+			for (let i = 0, ien = http.columns.length; i < ien; i++) {
+				let column = http.columns[i];
+				let search = column.search.value;
 
-			if (search !== '' && column.searchable.toString() === 'true') {
-				filtered = true;
+				if (search !== '' && column.searchable.toString() === 'true') {
+					filtered = true;
 
-				// Nasty hack for Postgres
-				if (this._db.client.config.client === 'pg') {
-					query.whereRaw('??::text ILIKE ?', [
-						this._sspField(http, i),
-						'%' + search + '%'
-					]);
-				}
-				else {
-					query.where(
-						this._sspField(http, i),
-						'LIKE',
-						'%' + search + '%'
-					);
+					// Nasty hack for Postgres
+					if (this._db.client.config.client === 'pg') {
+						query.whereRaw('??::text ILIKE ?', [
+							this._sspField(http, i),
+							'%' + search + '%'
+						]);
+					}
+					else {
+						query.where(
+							this._sspField(http, i),
+							'LIKE',
+							'%' + search + '%'
+						);
+					}
 				}
 			}
 		}
@@ -2629,13 +2850,26 @@ export default class Editor extends NestedData {
 		return filtered;
 	}
 
+	/**
+	 * Apply server-side processing page limiting to get a data for only a
+	 * specific page.
+	 *
+	 * @param query Query to operate on
+	 * @param http DataTables' HTTP request data
+	 */
 	private _sspLimit(query: Knex.QueryBuilder, http: IDtRequest): void {
-		if (http.length !== -1) {
+		if (http.length && http.start && http.length !== -1) {
 			// -1 is 'show all' in DataTables
 			query.limit(http.length * 1).offset(http.start * 1);
 		}
 	}
 
+	/**
+	 * Apply the ordering requested by the client-side to a query
+	 *
+	 * @param query Query to operate on
+	 * @param http DataTables' HTTP request data
+	 */
 	private _sspSort(query: Knex.QueryBuilder, http: IDtRequest): void {
 		if (http.order) {
 			for (let i = 0, ien = http.order.length; i < ien; i++) {
@@ -2653,12 +2887,19 @@ export default class Editor extends NestedData {
 		}
 	}
 
-	private async _trigger(name: string, ...args): Promise<boolean> {
+	/**
+	 * Fire off an event
+	 *
+	 * @param name Event name
+	 * @param args Arguments for the event
+	 * @returns Result
+	 */
+	private async _trigger(name: string, ...args: any[]): Promise<boolean> {
 		let out = null;
 		let events = this._events[name];
 
 		if (!this._events[name]) {
-			return;
+			return true;
 		}
 
 		args.unshift(this);
@@ -2674,6 +2915,13 @@ export default class Editor extends NestedData {
 		return out;
 	}
 
+	/**
+	 * Update row
+	 *
+	 * @param id Row id to update
+	 * @param values Values to update with
+	 * @returns Row id
+	 */
 	private async _update(id: string, values: object): Promise<string> {
 		id = id.replace(this.idPrefix(), '');
 
@@ -2697,8 +2945,17 @@ export default class Editor extends NestedData {
 		return getId;
 	}
 
+	/**
+	 * Handle a file upload request
+	 *
+	 * @param http DataTables' request data with file information
+	 */
 	private async _upload(http: IDtRequest): Promise<void> {
 		// Search for the upload field in the local fields
+		if (!http.uploadField) {
+			return;
+		}
+
 		let field = this._findField(http.uploadField, 'name');
 		let fieldName = '';
 
@@ -2745,12 +3002,12 @@ export default class Editor extends NestedData {
 			);
 		}
 
-		let res = await upload.exec(this, this._uploadData);
+		let res = (await upload.exec(this, this._uploadData)) || '';
 
-		if (!res) {
+		if (!res && this._out.fieldErrors) {
 			this._out.fieldErrors.push({
 				name: fieldName,
-				status: upload.error()
+				status: upload.error() || ''
 			});
 		}
 		else {

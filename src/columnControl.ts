@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import Editor, { IDtRequest } from './editor';
+import Field from './field';
 
 export default class ColumnControl {
 	public static ssp(
@@ -7,41 +8,43 @@ export default class ColumnControl {
 		query: Knex.QueryBuilder<any, any>,
 		http: IDtRequest
 	) {
-		for (let i = 0; i < http.columns.length; i++) {
-			let column = http['columns'][i];
+		if (http.columns) {
+			for (let i = 0; i < http.columns.length; i++) {
+				let column = http.columns[i];
 
-			if (column.columnControl) {
-				let field = editor.field(column['data']);
+				if (column.columnControl) {
+					let field = editor.field(column['data']);
 
-				// `<input>` based searches
-				if (column.columnControl.search) {
-					let search = column.columnControl.search;
-					let value = search.value;
-					let logic = search.logic;
-					let type = search.type;
+					// `<input>` based searches
+					if (column.columnControl.search) {
+						let search = column.columnControl.search;
+						let value = search.value;
+						let logic = search.logic;
+						let type = search.type;
 
-					if (type === 'num') {
-						ColumnControl._sspNumber(query, field, value, logic);
+						if (type === 'num') {
+							ColumnControl._sspNumber(query, field, value, logic);
+						}
+						else if (type === 'date') {
+							ColumnControl._sspDate(
+								query,
+								field,
+								value,
+								logic,
+								search.mask
+							);
+						}
+						else {
+							ColumnControl._sspText(query, field, value, logic);
+						}
 					}
-					else if (type === 'date') {
-						ColumnControl._sspDate(
-							query,
-							field,
-							value,
-							logic,
-							search.mask
-						);
-					}
-					else {
-						ColumnControl._sspText(query, field, value, logic);
-					}
-				}
 
-				// SearchList
-				if (column.columnControl.list) {
-					let list = column.columnControl.list;
+					// SearchList
+					if (column.columnControl.list) {
+						let list = column.columnControl.list;
 
-					query.whereIn(field.dbField(), list);
+						query.whereIn(field.dbField(), list);
+					}
 				}
 			}
 		}
@@ -57,7 +60,7 @@ export default class ColumnControl {
 	 * @param mask Mask value
 	 * @returns void
 	 */
-	private static _sspDate(query, field, value, logic, mask) {
+	private static _sspDate(query: Knex.QueryBuilder, field: Field, value: string, logic: string, mask?: string) {
 		let dbField = field.dbField();
 		let search = '(?)';
 
@@ -105,7 +108,7 @@ export default class ColumnControl {
 	 * @param logic Search logic
 	 * @returns void
 	 */
-	private static _sspNumber(query, field, value, logic) {
+	private static _sspNumber(query: Knex.QueryBuilder, field: Field, value: string, logic: string) {
 		if (logic === 'empty') {
 			query.where(q => {
 				q.whereNull(field.dbField());
@@ -151,7 +154,7 @@ export default class ColumnControl {
 	 * @param logic Search logic
 	 * @returns void
 	 */
-	private static _sspText(query, field, value, logic) {
+	private static _sspText(query: Knex.QueryBuilder, field: Field, value: string, logic: string) {
 		if (logic === 'empty') {
 			query.where(q => {
 				q.whereNull(field.dbField());

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as knex from 'knex';
 import { Knex } from 'knex';
 
-import * as mv from 'mv';
+import mv from 'mv';
 
 import Editor from './editor';
 import Field from './field';
@@ -18,16 +18,21 @@ export type DbUpdate = (
 	params: { [key: string]: any },
 	newId?: string | boolean
 ) => Promise<string>;
+
 export type UploadAction = (
 	upload: IFile,
 	id: string,
 	dbUpdate: DbUpdate
 ) => Promise<string>;
+
 export type DbFormat = (params: { [key: string]: any }) => void;
+
 export type DbValidate = (
 	file: IFile,
 	db: knex.Knex<any, any[]>
 ) => Promise<string | true>;
+
+export type DbCleanCallback = (data: Record<string, any>, db: Knex) => boolean;
 
 export enum DbOpts {
 	Content,
@@ -95,22 +100,22 @@ export default class Upload {
 	public static Db = DbOpts; // legacy
 	public static DbOpts = DbOpts;
 
-	private _action: string | UploadAction;
-	private _dbCleanCallback; // async function
-	private _dbCleanTableField: string | false | null;
+	private _action: string | UploadAction | null = null;
+	private _dbCleanCallback: DbCleanCallback | null = null; // async function
+	private _dbCleanTableField: string | false | null = null;
 	private _dbFormat: DbFormat | null = null;
-	private _dbTable: string;
-	private _dbPkey: string;
-	private _dbFields;
-	private _error: string;
+	private _dbTable: string = '';
+	private _dbPkey: string = '';
+	private _dbFields: Record<string, any> = {};
+	private _error: string | null = null;
 	private _validators: DbValidate[] = [];
-	private _where = [];
+	private _where: Knex.Where[] = [];
 
 	/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	 * Constructor
 	 */
 
-	constructor(action: string | UploadAction = null) {
+	constructor(action: string | UploadAction | null = null) {
 		if (action) {
 			this.action(action);
 		}
@@ -168,7 +173,7 @@ export default class Upload {
 		table: string,
 		pkey: string,
 		fields: object,
-		format?: DbFormat
+		format: DbFormat | null = null
 	): Upload {
 		this._dbTable = table;
 		this._dbPkey = pkey;
@@ -182,17 +187,18 @@ export default class Upload {
 	 * Set a callback function that is used to remove files which no longer have
 	 * a reference in a source table.
 	 *
-	 * @param {(string|Function)} tableField Table field to be used for the delete match
-	 * @param {Function} [callback=null] Function that will be executed on clean. It is
-	 *   given an array of information from the database about the orphaned
-	 *   rows, and can return true to indicate that the rows should be
-	 *   removed from the database. Any other return value (including none)
-	 *   will result in the records being retained.
+	 * @param {(string|Function)} tableField Table field to be used for the
+	 * delete match
+	 * @param {Function} [callback=null] Function that will be executed on
+	 *   clean. It is given an array of information from the database about the
+	 *   orphaned rows, and can return true to indicate that the rows should be
+	 *   removed from the database. Any other return value (including none) will
+	 *   result in the records being retained.
 	 * @returns {Upload} Self for chaining
 	 */
 	public dbClean(
-		tableField: string | Function | false,
-		callback: Function = null
+		tableField: string | DbCleanCallback | false,
+		callback: DbCleanCallback | null = null
 	): Upload {
 		// Argument swapping
 		if (typeof tableField === 'function') {
@@ -232,7 +238,7 @@ export default class Upload {
 	 * @param {any} fn Knex WHERE condition
 	 * @returns {Upload} Self for chaining
 	 */
-	public where(fn): Upload {
+	public where(fn: Knex.Where): Upload {
 		this._where.push(fn);
 
 		return this;
@@ -245,7 +251,7 @@ export default class Upload {
 	/**
 	 * @ignore
 	 */
-	public async data(db: Knex, ids: string[] = null): Promise<object> {
+	public async data(db: Knex, ids: string[] | null = null): Promise<Record<string, any> | null> {
 		if (!this._dbTable) {
 			return null;
 		}
@@ -271,7 +277,7 @@ export default class Upload {
 		}
 
 		let result = await query;
-		let out = {};
+		let out: Record<string, any> = {};
 
 		for (let i = 0, ien = result.length; i < ien; i++) {
 			if (this._dbFormat) {
@@ -304,15 +310,15 @@ export default class Upload {
 	/**
 	 * @ignore
 	 */
-	public async exec(editor: Editor, upload: IUpload): Promise<string> {
-		let id;
+	public async exec(editor: Editor, upload: IUpload): Promise<string | null> {
+		let id: any;
 
 		// Add any extra information to the upload structure
 		let fileInfo = await stat(upload.upload.file);
 		upload.upload.size = fileInfo.size;
 
 		let a = upload.upload.filename.split('.');
-		upload.upload.extn = a.length > 1 ? a.pop() : '';
+		upload.upload.extn = a.length > 1 ? a.pop()! : '';
 		upload.upload.name = a.join('.');
 
 		// Validation
@@ -409,7 +415,7 @@ export default class Upload {
 		id: string,
 		files: IUpload,
 		dbUpdate: DbUpdate
-	): Promise<string> {
+	): Promise<string | null> {
 		if (typeof this._action === 'function') {
 			let res = await this._action(files.upload, id, dbUpdate);
 			return res;
@@ -417,7 +423,7 @@ export default class Upload {
 
 		// Default action - move the file to the location specified by the
 		// action string
-		let to = this._substitute(this._action, files.upload.file, id);
+		let to = this._substitute(this._action!, files.upload.file, id);
 		to = path.normalize(to);
 
 		try {
@@ -441,7 +447,10 @@ export default class Upload {
 		// If specified as false for the field, then leave the db actions entirely
 		// to the dev using the library
 		if (this._dbCleanTableField === false) {
-			await this._dbCleanCallback(db);
+			if (this._dbCleanCallback) {
+				await this._dbCleanCallback([], db);
+			}
+
 			return;
 		}
 
@@ -497,7 +506,7 @@ export default class Upload {
 			return;
 		}
 
-		let result = await callback(rows);
+		let result = await callback(rows, db);
 
 		// Delete the selected rows, iff the developer says to do so with the
 		// returned value (i.e. acknowledge that the files have be removed from
@@ -514,10 +523,10 @@ export default class Upload {
 	}
 
 	private async _dbExec(db: Knex, files: IUpload): Promise<string> {
-		let pathFields = {};
+		let pathFields: Record<string, any> = {};
 		let fields = this._dbFields;
 		let columns = Object.keys(fields);
-		let set = {};
+		let set: Record<string, any> = {};
 		let upload = files.upload;
 		let insertId = null;
 
@@ -603,7 +612,7 @@ export default class Upload {
 		if (pathKeys.length) {
 			// For this to operate the action must be a string, which is
 			// validated in the `exec` method
-			let toSet = {};
+			let toSet: Record<string, any> = {};
 
 			for (let i = 0, ien = pathKeys.length; i < ien; i++) {
 				let key = pathKeys[i];
@@ -619,15 +628,23 @@ export default class Upload {
 		return id;
 	}
 
+	/**
+	 * Exchange tokens in a path with the actual values
+	 *
+	 * @param convert String to convert
+	 * @param uploadPath Path name
+	 * @param id File id
+	 * @returns Exchanged string
+	 */
 	private _substitute(
 		convert: string,
 		uploadPath: string,
 		id: string
 	): string {
 		let a = uploadPath.toString().split('/');
-		let fileName = a.pop();
+		let fileName = a.pop() || '';
 		let fileParts = fileName.split('.');
-		let extn = fileParts.pop();
+		let extn = fileParts.pop() || '';
 		let namePart = fileParts.join('.');
 
 		let to = convert.toString();

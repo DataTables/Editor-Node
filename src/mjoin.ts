@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
 
-import Editor, { IDtResponse, ILeftJoin } from './editor';
+import Editor, { IDtError, IDtResponse, ILeftJoin } from './editor';
 import Field, { SetType } from './field';
 import { leftJoin } from './helpers';
 import NestedData from './nestedData';
@@ -44,16 +44,16 @@ export default class Mjoin extends NestedData {
 	 * Private parameters
 	 */
 
-	private _table: string;
-	private _editor: Editor;
-	private _name: string;
+	private _table: string = '';
+	private _editor?: Editor;
+	private _name: string = '';
 	private _get: boolean = true;
 	private _leftJoin: ILeftJoin[] = [];
 	private _set: SetType = SetType.Both;
 	private _where: any[] = [];
 	private _fields: Field[] = [];
 	private _links: string[] = [];
-	private _order: string;
+	private _order: string = '';
 	private _join: IJoinTable = {
 		child: '',
 		parent: ''
@@ -84,13 +84,20 @@ export default class Mjoin extends NestedData {
 	 */
 
 	/**
-	 * Get or field by name, or add a field instance.
+	 * Get a field by name
 	 *
-	 * @param {(Field|string)} nameOrField Field instance to add, or field name to get
-	 * @returns Mjoin instance if adding a field, Field instance if getting a field.
+	 * @param name Field instance to add, or field name to get
+	 * @returns The field - throws if not found
 	 */
-	public field(nameOrField: string);
-	public field(nameOrField: Field);
+	public field(name: string): Field;
+
+	/**
+	 * Add a field instance.
+	 *
+	 * @param field Field to add
+	 * @returns Self instance for chaining
+	 */
+	public field(field: Field): this;
 	public field(nameOrField: Field | string) {
 		if (typeof nameOrField === 'string') {
 			for (let i = 0, ien = this._fields.length; i < ien; i++) {
@@ -308,7 +315,7 @@ export default class Mjoin extends NestedData {
 	 * @returns {Field} Self for chaining.
 	 */
 	public set(flag: boolean | SetType): Field;
-	public set(flag?: boolean): any {
+	public set(flag?: boolean | SetType): any {
 		if (flag === undefined) {
 			return this._set;
 		}
@@ -418,7 +425,7 @@ export default class Mjoin extends NestedData {
 			);
 		}
 
-		if (response.data.length) {
+		if (response.data && response.data.length) {
 			// If the Editor primary key is join key, then it is read automatically
 			// and into Editor's primary key store
 			let dteTable = editor.table()[0];
@@ -556,7 +563,7 @@ export default class Mjoin extends NestedData {
 			let res = await query;
 
 			// Map the data to the primary key for fast loop up
-			let joinMap = {};
+			let joinMap: Record<string, any> = {};
 
 			for (let i = 0, ien = res.length; i < ien; i++) {
 				let inner = {};
@@ -601,7 +608,11 @@ export default class Mjoin extends NestedData {
 	 *
 	 * @internal
 	 */
-	public async options(options, db, refresh) {
+	public async options(
+		options: Record<string, Record<string, any>>,
+		db: Knex,
+		refresh: boolean
+	) {
 		let fields = this.fields();
 
 		// Field options
@@ -627,7 +638,7 @@ export default class Mjoin extends NestedData {
 	public async create(
 		editor: Editor,
 		parentId: string,
-		data: object
+		data: any
 	): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Create && this._set !== SetType.Both) {
@@ -653,7 +664,7 @@ export default class Mjoin extends NestedData {
 	public async update(
 		editor: Editor,
 		parentId: string,
-		data: object
+		data: any
 	): Promise<void> {
 		// Not settable
 		if (this._set !== SetType.Edit && this._set !== SetType.Both) {
@@ -711,9 +722,9 @@ export default class Mjoin extends NestedData {
 	 * @ignore
 	 */
 	public async validate(
-		errors,
+		errors: IDtError[],
 		editor: Editor,
-		data: object,
+		data: any,
 		action: string
 	): Promise<void> {
 		if (!this._set) {
@@ -766,7 +777,7 @@ export default class Mjoin extends NestedData {
 	private async _insert(
 		db: Knex,
 		parentId: string,
-		data: object
+		data: any
 	): Promise<void> {
 		let join = this._join;
 		let fields = this.fields();
@@ -850,7 +861,7 @@ export default class Mjoin extends NestedData {
 	}
 
 	private async _validateFields(
-		errors,
+		errors: IDtError[],
 		editor: Editor,
 		data: object,
 		prefix: string,
@@ -860,7 +871,7 @@ export default class Mjoin extends NestedData {
 
 		for (let i = 0, ien = fields.length; i < ien; i++) {
 			let field = fields[i];
-			let validation = await field.validate(data, editor, null, action);
+			let validation = await field.validate(data, editor, '', action);
 
 			if (validation !== true) {
 				errors.push({
