@@ -969,9 +969,9 @@ export default class Editor extends NestedData {
 	/**
 	 * Get the database schema.
 	 *
-	 * This is used if you are using multiple schema's in your database. By default Editor
-	 * will not specify a schema, so the default search path will be used. This allows that
-	 * to be overridden.
+	 * This is used if you are using multiple schema's in your database. By
+	 * default Editor will not specify a schema, so the default search path will
+	 * be used. This allows that to be overridden.
 	 * @returns {string} Schema
 	 */
 	public schema(): string;

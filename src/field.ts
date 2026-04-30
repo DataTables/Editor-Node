@@ -334,40 +334,50 @@ export default class Field extends NestedData {
 	}
 
 	/**
-	 * Set how a list iof options (values and labels) will be retrieved for the fields SearchBuilder.
+	 * Get the SearchBuilder options for this field if configured
 	 *
-	 * Gets a list of values that can be used for the options list in SearchBuilder.
-	 *
-	 * @param spopts: SearchBuilderOptions
-	 * @return this
+	 * @return SearchBuilder options
 	 */
-	public searchBuilderOptions(): SearchBuilderOptions;
-	public searchBuilderOptions(sbopts: SearchBuilderOptions): Field;
-	public searchBuilderOptions(sbopts?: SearchBuilderOptions): any {
-		if (sbopts === undefined) {
+	public searchBuilderOptions(): SearchBuilderOptions | undefined;
+
+	/**
+	 * Set how a list iof options (values and labels) will be retrieved for the
+	 * fields SearchBuilder.
+	 *
+	 * @param sbOpts SearchBuilderOptions
+	 * @return Self for chaining
+	 */
+	public searchBuilderOptions(sbOpts: SearchBuilderOptions): Field;
+	public searchBuilderOptions(sbOpts?: SearchBuilderOptions): any {
+		if (sbOpts === undefined) {
 			return this._sbopts;
 		}
 
-		this._sbopts = sbopts;
+		this._sbopts = sbOpts;
 		return this;
 	}
 
 	/**
-	 * Set how a list iof options (values and labels) will be retrieved for the fields searchpane.
+	 * Get the SearchPanes options for this field if configured
 	 *
-	 * Gets a list of values that can be used for the options list in searchpanes.
-	 *
-	 * @param spopts: SearchPaneOptions
-	 * @return this
+	 * @return SearchPanes options
 	 */
-	public searchPaneOptions(): SearchPaneOptions;
-	public searchPaneOptions(spopts: SearchPaneOptions): Field;
-	public searchPaneOptions(spopts?: SearchPaneOptions): any {
-		if (spopts === undefined) {
+	public searchPaneOptions(): SearchPaneOptions | undefined;
+
+	/**
+	 * Set how a list iof options (values and labels) will be retrieved for the
+	 * fields SearchPanes.
+	 *
+	 * @param sbOpts SearchPanesOptions
+	 * @return Self for chaining
+	 */
+	public searchPaneOptions(spOpts: SearchPaneOptions): Field;
+	public searchPaneOptions(spOpts?: SearchPaneOptions): any {
+		if (spOpts === undefined) {
 			return this._spopts;
 		}
 
-		this._spopts = spopts;
+		this._spopts = spOpts;
 		return this;
 	}
 
