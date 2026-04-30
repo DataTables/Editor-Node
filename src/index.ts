@@ -1,6 +1,8 @@
 import Editor, * as editor from './editor';
 import * as upload from './upload';
 export default Editor;
+export { default as Column } from './column';
+export { default as DataTable } from './dataTable';
 export { default as Field } from './field';
 export { default as Format } from './formatters';
 export { default as Mjoin } from './mjoin';

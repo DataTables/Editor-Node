@@ -350,7 +350,7 @@ export default class DataTable {
 	 */
 	private _proxy(method: keyof Editor, args: any[] = []) {
 		let fn = this._editor[method] as any;
-		let ret = fn(...args);
+		let ret = fn.apply(this._editor, args);
 
 		if (ret === this._editor) {
 			return this;

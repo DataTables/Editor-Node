@@ -180,7 +180,7 @@ export default class Column {
 	 */
 	private _proxy(method: keyof Field, args: any[]) {
 		let fn = this._field[method] as any;
-		let ret = fn(...args);
+		let ret = fn.apply(this._field, args);
 
 		if (ret === this._field) {
 			return this;
