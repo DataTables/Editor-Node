@@ -1,18 +1,11 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import * as knex from 'knex';
 import { Knex } from 'knex';
 
-import mv from 'mv';
-
 import Editor from './editor.js';
 import Field from './field.js';
-import promisify from './promisify.js';
-
-let stat = promisify(fs.stat);
-let readFile = promisify(fs.readFile);
-let rename = promisify(mv);
 
 export type DbUpdate = (
 	params: { [key: string]: any },
@@ -251,7 +244,10 @@ export default class Upload {
 	/**
 	 * @ignore
 	 */
-	public async data(db: Knex, ids: string[] | null = null): Promise<Record<string, any> | null> {
+	public async data(
+		db: Knex,
+		ids: string[] | null = null
+	): Promise<Record<string, any> | null> {
 		if (!this._dbTable) {
 			return null;
 		}
@@ -314,7 +310,7 @@ export default class Upload {
 		let id: any;
 
 		// Add any extra information to the upload structure
-		let fileInfo = await stat(upload.upload.file);
+		let fileInfo = await fs.stat(upload.upload.file);
 		upload.upload.size = fileInfo.size;
 
 		let a = upload.upload.filename.split('.');
@@ -427,7 +423,11 @@ export default class Upload {
 		to = path.normalize(to);
 
 		try {
-			await rename(files.upload.file, to, { mkdirp: true });
+			// Make sure the target directory is present
+			await fs.mkdir(path.dirname(to), { recursive: true });
+
+			// Then move the file into place
+			await fs.rename(files.upload.file, to);
 		} catch (e) {
 			this._error = 'An error occurred while moving the uploaded file.';
 			return null;
@@ -539,7 +539,7 @@ export default class Upload {
 					break;
 
 				case DbOpts.Content:
-					set[column] = await readFile(upload.file);
+					set[column] = await fs.readFile(upload.file);
 					break;
 
 				case DbOpts.ContentType:

@@ -8,7 +8,6 @@ export { default as Field } from './field.js';
 export { default as Format } from './formatters.js';
 export { default as Mjoin } from './mjoin.js';
 export { default as Options } from './options.js';
-export { default as promisify } from './promisify.js';
 export { default as SearchBuilderOptions } from './searchBuilderOptions.js';
 export { default as SearchPaneOptions } from './searchPaneOptions.js';
 export { default as Upload } from './upload.js';
