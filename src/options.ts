@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
-import { ILeftJoin } from './editor.js';
 import { leftJoin } from './helpers.js';
+import { ILeftJoin } from './interface.js';
 
 function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);

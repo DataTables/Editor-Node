@@ -1,8 +1,9 @@
 import { Knex } from 'knex';
 
-import Editor, { ILeftJoin } from './editor.js';
+import Editor from './editor.js';
 import Field from './field.js';
 import { leftJoin } from './helpers.js';
+import { ILeftJoin } from './interface.js';
 
 function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);

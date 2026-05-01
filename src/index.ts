@@ -1,4 +1,5 @@
-import Editor, * as editor from './editor.js';
+import Editor from './editor.js';
+import * as I from './interface.js';
 import * as upload from './upload.js';
 export default Editor;
 export { default as Column } from './column.js';
@@ -14,9 +15,9 @@ export { default as Upload } from './upload.js';
 export { default as Validate } from './validators.js';
 export { Editor };
 
-export type IDtRequest = editor.IDtRequest;
-export type IDtResponse = editor.IDtResponse;
-export type IDtError = editor.IDtError;
+export type IDtRequest = I.IDtRequest;
+export type IDtResponse = I.IDtResponse;
+export type IDtError = I.IDtError;
 export type IFile = upload.IFile;
 export type IUpload = upload.IUpload;
 export type DbUpdate = upload.DbUpdate;

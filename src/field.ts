@@ -1,7 +1,8 @@
 import { Knex } from 'knex';
 
-import Editor, { IDtRequest, ILeftJoin } from './editor.js';
+import Editor from './editor.js';
 import { IFormatter } from './formatters.js';
+import { IDtRequest, ILeftJoin } from './interface.js';
 import NestedData from './nestedData.js';
 import Options, { CustomOptions, IOption, IRenderer } from './options.js';
 import SearchBuilderOptions from './searchBuilderOptions.js';

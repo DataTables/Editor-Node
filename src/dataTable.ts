@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 import Column from './column.js';
-import Editor, { IDtRequest, IDtResponse } from './editor.js';
+import Editor from './editor.js';
+import { IDtRequest, IDtResponse } from './interface.js';
 import Mjoin from './mjoin.js';
 import { IUpload } from './upload.js';
 
