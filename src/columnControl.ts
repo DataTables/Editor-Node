@@ -1,6 +1,6 @@
 import { Knex } from 'knex';
-import Editor, { IDtRequest } from './editor';
-import Field from './field';
+import Editor, { IDtRequest } from './editor.js';
+import Field from './field.js';
 
 export default class ColumnControl {
 	public static ssp(

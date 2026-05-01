@@ -1,9 +1,8 @@
 import { Knex } from 'knex';
-import { IDtResponse } from '.';
-import { Mjoin } from '../dist';
-import Column from './column';
-import Editor, { IDtRequest } from './editor';
-import { IUpload } from './upload';
+import Column from './column.js';
+import Editor, { IDtRequest, IDtResponse } from './editor.js';
+import Mjoin from './mjoin.js';
+import { IUpload } from './upload.js';
 
 /**
  * This class let's you define the structure of a database, in order for it to

@@ -1,5 +1,5 @@
-import NestedData from './nestedData';
-import ValidationHost from './validationHost';
+import NestedData from './nestedData.js';
+import ValidationHost from './validationHost.js';
 
 export type DependsOnFunc = (
 	val: any,

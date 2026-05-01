@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 
-import Editor from './editor';
-import Field from './field';
+import Editor from './editor.js';
+import Field from './field.js';
 
 export interface IHostOpts {
 	action: string;

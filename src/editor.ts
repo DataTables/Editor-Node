@@ -1,12 +1,12 @@
 import * as crc from 'crc';
 import { Knex } from 'knex';
 
-import ColumnControl from './columnControl';
-import Field, { SetType } from './field';
-import { leftJoin } from './helpers';
-import Mjoin from './mjoin';
-import NestedData from './nestedData';
-import { IUpload } from './upload';
+import ColumnControl from './columnControl.js';
+import Field, { SetType } from './field.js';
+import { leftJoin } from './helpers.js';
+import Mjoin from './mjoin.js';
+import NestedData from './nestedData.js';
+import { IUpload } from './upload.js';
 
 /**
  * Action that has been requested by the client-side

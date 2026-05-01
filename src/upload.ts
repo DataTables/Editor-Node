@@ -6,9 +6,9 @@ import { Knex } from 'knex';
 
 import mv from 'mv';
 
-import Editor from './editor';
-import Field from './field';
-import promisify from './promisify';
+import Editor from './editor.js';
+import Field from './field.js';
+import promisify from './promisify.js';
 
 let stat = promisify(fs.stat);
 let readFile = promisify(fs.readFile);

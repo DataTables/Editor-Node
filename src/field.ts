@@ -1,14 +1,14 @@
 import { Knex } from 'knex';
 
-import Editor, { IDtRequest, ILeftJoin } from './editor';
-import { IFormatter } from './formatters';
-import NestedData from './nestedData';
-import Options, { CustomOptions, IOption, IRenderer } from './options';
-import SearchBuilderOptions from './searchBuilderOptions';
-import SearchPaneOptions from './searchPaneOptions';
-import Upload from './upload';
-import Validator, { IValidator } from './validators';
-import xss, { Ixss } from './xss';
+import Editor, { IDtRequest, ILeftJoin } from './editor.js';
+import { IFormatter } from './formatters.js';
+import NestedData from './nestedData.js';
+import Options, { CustomOptions, IOption, IRenderer } from './options.js';
+import SearchBuilderOptions from './searchBuilderOptions.js';
+import SearchPaneOptions from './searchPaneOptions.js';
+import Upload from './upload.js';
+import Validator, { IValidator } from './validators.js';
+import xss, { Ixss } from './xss.js';
 
 /**
  * Set types

@@ -1,20 +1,22 @@
-var gulp = require('gulp');
-var ts = require('gulp-typescript');
-var sourcemaps = require('gulp-sourcemaps');
+import gulp from 'gulp';
+import gulpTs from 'gulp-typescript';
+import ts from 'typescript';
 
+gulp.task('typescript-cjs', function () {
+	var proj = gulpTs.createProject('./tsconfig.json', {
+		typescript: ts,
+		module: 'commonjs'
+	});
 
-gulp.task( 'typescript', function () {
-    var proj = ts.createProject( './tsconfig.json', {
-        typescript: require('typescript')
-    } );
+	return gulp.src('./src/**/*.ts').pipe(proj()).pipe(gulp.dest('./dist/cjs'));
+});
 
-    return gulp
-        .src( './src/**/*.ts' )
-        .pipe( sourcemaps.init() )
-        .pipe( proj() )
-        .pipe( sourcemaps.write('.') )
-        .pipe( gulp.dest('./dist') );
-} );
+gulp.task('typescript-esm', function () {
+	var proj = gulpTs.createProject('./tsconfig.json', {
+		typescript: ts
+	});
 
+	return gulp.src('./src/**/*.ts').pipe(proj()).pipe(gulp.dest('./dist/esm'));
+});
 
-gulp.task( 'default', gulp.series('typescript') );
+gulp.task('default', gulp.parallel('typescript-cjs', 'typescript-esm'));

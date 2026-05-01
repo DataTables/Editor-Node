@@ -1,9 +1,9 @@
 import { Knex } from 'knex';
 
-import Editor, { IDtError, IDtResponse, ILeftJoin } from './editor';
-import Field, { SetType } from './field';
-import { leftJoin } from './helpers';
-import NestedData from './nestedData';
+import Editor, { IDtError, IDtResponse, ILeftJoin } from './editor.js';
+import Field, { SetType } from './field.js';
+import { leftJoin } from './helpers.js';
+import NestedData from './nestedData.js';
 
 interface IJoinTable {
 	table?: string;

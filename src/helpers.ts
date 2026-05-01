@@ -1,5 +1,5 @@
 import { Knex } from 'knex';
-import { ILeftJoin } from './editor';
+import { ILeftJoin } from './editor.js';
 
 export function leftJoin(
 	query: Knex.QueryBuilder,

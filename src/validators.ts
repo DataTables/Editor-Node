@@ -2,13 +2,13 @@ import { Knex } from 'knex';
 import moment from 'moment';
 import * as validUrl from 'valid-url';
 
-import Editor from './editor';
-import Field from './field';
-import { IMjoinValidator } from './mjoin';
-import { default as JoinOptions } from './options';
-import { IFile } from './upload';
-import ValidationHost from './validationHost';
-import ValidationOptions from './validationOptions';
+import Editor from './editor.js';
+import Field from './field.js';
+import { IMjoinValidator } from './mjoin.js';
+import { default as JoinOptions } from './options.js';
+import { IFile } from './upload.js';
+import ValidationHost from './validationHost.js';
+import ValidationOptions from './validationOptions.js';
 
 // Note that validators return a Promise to allow async validators, such as
 // checking a value is unique against the database
@@ -216,13 +216,6 @@ export default class Validator {
 			if (val === '') {
 				return opts.message();
 			}
-
-			console.log(
-				'validate check',
-				val,
-				isNaN(Number(val)),
-				opts.message()
-			);
 
 			return isNaN(Number(val)) ? opts.message() : true;
 		};

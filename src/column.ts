@@ -1,8 +1,8 @@
-import { Options } from '../dist';
-import Field from './field';
-import { IFormatter } from './formatters';
-import SearchBuilderOptions from './searchBuilderOptions';
-import SearchPaneOptions from './searchPaneOptions';
+import Field from './field.js';
+import { IFormatter } from './formatters.js';
+import Options from './options.js';
+import SearchBuilderOptions from './searchBuilderOptions.js';
+import SearchPaneOptions from './searchPaneOptions.js';
 
 export default class Column {
 	/** Field instance that Column uses for most functionality */

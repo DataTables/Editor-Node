@@ -1,8 +1,8 @@
 import { Knex } from 'knex';
 
-import Editor, { ILeftJoin } from './editor';
-import Field from './field';
-import { leftJoin } from './helpers';
+import Editor, { ILeftJoin } from './editor.js';
+import Field from './field.js';
+import { leftJoin } from './helpers.js';
 
 function isNumeric(n: any) {
 	return !isNaN(parseFloat(n)) && isFinite(n);
@@ -244,11 +244,16 @@ export default class SearchBuilderOptions {
 		let formatter = this._renderer;
 		let join = this._leftJoin;
 		let fields = fieldsIn;
+		let options = field.searchBuilderOptions();
+
+		if (!options) {
+			return [];
+		}
 
 		// First get a value for `value`. This can be retrieved from either the
 		//  SearchBuilderOptions or the fieldName if it has not been declared
 		if (this._value === undefined) {
-			let sbopts = field.searchBuilderOptions();
+			let sbopts = options
 			value =
 				sbopts.label() !== undefined
 					? sbopts.label()[0]
